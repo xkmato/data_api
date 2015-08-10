@@ -5,12 +5,11 @@ import requests
 from retrying import retry
 from temba.base import TembaAPIError, TembaConnectionError, TembaException, TembaPager
 from data_api.api.models import BaseUtil, Org
-from celeryconf.task import Task, task
-from celeryconf.registry import tasks
+from djcelery_transactions import task
 
 __author__ = 'kenneth'
 
-logging.basicConfig(format=settings.FORMAT)
+logging.basicConfig(format=settings.LOG_FORMAT)
 logger = logging.getLogger("tasks")
 
 

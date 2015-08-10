@@ -19,12 +19,12 @@ class Org(Document):
     meta = {'collection': 'orgs'}
 
     @classmethod
-    def create(cls, **kwargs):
-        org = cls()
-        for k,v in kwargs.items():
-            setattr(org, k, v)
-        org.save()
-        return org
+    def create(cls, *args):
+        name, api_token, timezone = tuple(args)
+        o = cls(name=name, api_token=api_token, timezone=timezone)
+        o.save()
+        return o
+
 
     def get_temba_client(self):
         host = getattr(settings, 'SITE_API_HOST', None)
@@ -34,6 +34,9 @@ class Org(Document):
             host = '%s/api/v1' % settings.API_ENDPOINT  # UReport sites use this
 
         return TembaClient(host, self.api_token, user_agent=agent)
+
+    def __unicode__(self):
+        return self.name
 
 
 class LastSaved(DynamicDocument):
@@ -46,7 +49,6 @@ class BaseUtil(object):
     @classmethod
     def create_from_temba(cls, org, temba):
         obj = cls()
-        obj.org = org
         for key, value in temba.__dict__.items():
             class_attr = getattr(cls, key, None)
             if class_attr is None:
@@ -59,6 +61,8 @@ class BaseUtil(object):
                 elif isinstance(item_class, ReferenceField):
                     item_class = item_class.document_type_obj
                     setattr(obj, key, item_class.get_objects_from_uuids(org, getattr(temba, key)))
+                else:
+                    setattr(obj, key, value)
             elif isinstance(class_attr, ReferenceField):
                 item_class = class_attr.document_type_obj
                 setattr(obj, key, item_class.get_or_fetch(org, getattr(temba, key)))
@@ -69,6 +73,8 @@ class BaseUtil(object):
                 if key == 'id':
                     key = 'tid'
                 setattr(obj, key, value)
+
+        obj.org = org
         obj.save()
         return obj
 
@@ -90,7 +96,7 @@ class BaseUtil(object):
 
     @classmethod
     def fetch(cls, org, uuid):
-        func = "get_%s" % cls.meta['collection']
+        func = "get_%s" % cls._meta['collection']
         fetch = getattr(org.get_temba_client(), func.rstrip('s'))
         return cls.create_from_temba(org, fetch(uuid))
 
@@ -104,7 +110,7 @@ class BaseUtil(object):
                 q = {'uuid': temba.uuid}
             elif hasattr(temba, 'id'):
                 q = {'tid': temba.id}
-            if not q or not cls.objects.filter(**q).exists():
+            if not q or not cls.objects.filter(**q).first():
                 obj_list.append(cls.create_from_temba(org, temba))
         return obj_list
 
@@ -120,8 +126,8 @@ class BaseUtil(object):
 
     @classmethod
     def fetch_objects(cls, org, pager=None):
-        func = "get_%s" % cls.meta['collection']
-        ls = LastSaved.objects.filter(**{'coll': cls.meta['collection'], 'org.id': org.id}).first()
+        func = "get_%s" % cls._meta['collection']
+        ls = LastSaved.objects.filter(**{'coll': cls._meta['collection'], 'org.id': org.id}).first()
         after = getattr(ls, 'last_saved', None)
         fetch_all = getattr(org.get_temba_client(), func)
         try:
@@ -129,7 +135,7 @@ class BaseUtil(object):
             if not ls:
                 ls = LastSaved()
                 ls.org = org
-            ls.coll = cls.meta['collection']
+            ls.coll = cls._meta['collection']
             ls.last_saved = datetime.now(tz=org.timezone)
             ls.save()
         except TypeError:
@@ -138,6 +144,11 @@ class BaseUtil(object):
             except TypeError:
                 objs = cls.create_from_temba_list(org, fetch_all())
         return objs
+
+    def __unicode__(self):
+        if hasattr(self, 'name'):
+            return '%s - %s' % (self.name, self.org)
+        return "Base Util Object"
 
 
 class EmbeddedUtil(object):
@@ -180,6 +191,9 @@ class Urn(EmbeddedDocument, EmbeddedUtil):
         urn.identity = temba
         return urn
 
+    def __unicode__(self):
+        return self.identity
+
 
 class Contact(Document, BaseUtil):
     org = ReferenceField(Org)
@@ -208,6 +222,9 @@ class Broadcast(Document, BaseUtil):
 
     meta = {'collection': 'broadcasts'}
 
+    def __unicode__(self):
+        return "%s - %s" % (self.text[:7], self.org)
+
 
 class Campaign(Document, BaseUtil):
     org = ReferenceField(Org)
@@ -224,6 +241,9 @@ class Ruleset(EmbeddedDocument, EmbeddedUtil):
     uuid = StringField()
     label = StringField()
     response_type = StringField()
+
+    def __unicode__(self):
+        return self.label
 
 
 class Label(Document, BaseUtil):
@@ -243,8 +263,8 @@ class Flow(Document, BaseUtil):
     modified_on = DateTimeField()
     uuid = StringField()
     name = StringField()
-    archived = StringField()
-    labels = ListField(ReferenceField(Label))
+    archived = BooleanField()
+    labels = ListField(StringField())
     participants = IntField()
     runs = IntField()
     completed_runs = IntField()
@@ -268,6 +288,9 @@ class Event(Document, BaseUtil):
 
     meta = {'collection': 'events'}
 
+    def __unicode__(self):
+        return "%s - %s" % (self.uuid, self.org)
+
 
 class Message(Document, BaseUtil):
     org = ReferenceField(Org)
@@ -279,7 +302,7 @@ class Message(Document, BaseUtil):
     urn = EmbeddedDocumentField(Urn)
     status = StringField()
     type = StringField()
-    labels = ListField(ReferenceField(Label))
+    labels = ListField(StringField())
     direction = StringField()
     archived = StringField()
     text = StringField()
@@ -287,16 +310,22 @@ class Message(Document, BaseUtil):
     sent_on = DateTimeField()
 
     meta = {'collection': 'messages'}
+
+    def __unicode__(self):
+        return "%s - %s" % (self.text[:7], self.org)
     
 
 class RunValueSet(EmbeddedDocument, EmbeddedUtil):
     node = StringField()
-    category = StringField()
+    category = DictField()
     text = StringField()
     rule_value = StringField()
     label = StringField()
     value = StringField()
     time = DateTimeField()
+
+    def __unicode__(self):
+        return self.text[:7]
     
 
 class FlowStep(EmbeddedDocument, EmbeddedUtil):
@@ -306,6 +335,9 @@ class FlowStep(EmbeddedDocument, EmbeddedUtil):
     type = StringField()
     arrived_on = DateTimeField()
     left_on = DateTimeField()
+
+    def __unicode__(self):
+        return self.text[:7]
     
 
 class Run(Document, BaseUtil):
@@ -317,14 +349,20 @@ class Run(Document, BaseUtil):
     contact = ReferenceField(Contact)
     steps = ListField(EmbeddedDocumentField(FlowStep))
     values = ListField(EmbeddedDocumentField(RunValueSet))
-    completed = StringField()
+    completed = BooleanField()
 
     meta = {'collection': 'runs'}
+
+    def __unicode__(self):
+        return "%d - %s" % (self.tid, self.org)
     
 
 class CategoryStats(EmbeddedDocument, EmbeddedUtil):
     count = IntField()
     label = StringField()
+
+    def __unicode__(self):
+        return self.label
     
 
 class Result(Document, BaseUtil):
@@ -339,11 +377,17 @@ class Result(Document, BaseUtil):
     categories = ListField(EmbeddedDocumentField(CategoryStats))
 
     meta = {'collection': 'results'}
+
+    def __unicode__(self):
+        return "%s - %s" % (self.label, self.org)
     
 
 class Geometry(EmbeddedDocument, EmbeddedUtil):
     type = StringField()
     coordinates = StringField()
+
+    def __unicode__(self):
+        return self.coordinates
     
 
 class Boundary(Document, BaseUtil):

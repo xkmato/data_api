@@ -17,6 +17,10 @@ import datetime
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 
+import djcelery
+djcelery.setup_loader()
+
+
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/1.8/howto/deployment/checklist/
 
@@ -42,6 +46,7 @@ INSTALLED_APPS = (
 
     'rest_framework',
     'rest_framework_mongoengine',
+    'djcelery',
     'data_api.api'
 )
 
@@ -79,7 +84,7 @@ WSGI_APPLICATION = 'data_api.wsgi.application'
 SITE_API_HOST = 'https://app.rapidpro.io/api/v1'
 API_ENDPOINT = 'https://app.rapidpro.io/api/v1'
 
-FORMAT = '%(asctime)-15s %(message)s'
+LOG_FORMAT = '%(asctime)-15s %(message)s'
 
 
 RETRY_MAX_ATTEMPTS = int(os.environ.get('RETRY_MAX_ATTEMPTS', 10))

@@ -6,4 +6,5 @@ __author__ = 'kenneth'
 
 urlpatterns = patterns('',
                        url(r'^runs/$', RunList.as_view()),
-                       url(r'^runs/(?P<id>[\w])/$', RunDetails.as_view()))
+                       url(r'^runs/(?P<id>[\w])/$', RunDetails.as_view())
+                       )
