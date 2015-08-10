@@ -25,7 +25,6 @@ class Org(Document):
         o.save()
         return o
 
-
     def get_temba_client(self):
         host = getattr(settings, 'SITE_API_HOST', None)
         agent = getattr(settings, 'SITE_API_USER_AGENT', None)
@@ -102,7 +101,6 @@ class BaseUtil(object):
 
     @classmethod
     def create_from_temba_list(cls, org, temba_list):
-        print temba_list
         obj_list = []
         q = None
         for temba in temba_list:
