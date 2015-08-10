@@ -1,7 +1,13 @@
 from rest_framework_mongoengine import serializers
-from data_api.api.models import Run, Flow, Contact, FlowStep, RunValueSet
+from data_api.api.models import Run, Flow, Contact, FlowStep, RunValueSet, Org
 
 __author__ = 'kenneth'
+
+
+class OrgReadSerializer(serializers.DocumentSerializer):
+    class Meta:
+        model = Org
+        fields = ('name', )
 
 
 class FlowStepReadSerializer(serializers.EmbeddedDocumentSerializer):
@@ -24,6 +30,7 @@ class ContactReadSerializer(serializers.DocumentSerializer):
 
 class RunReadSerializer(serializers.DocumentSerializer):
     contact = ContactReadSerializer()
+    org = OrgReadSerializer()
     values = RunValueSetReadSerializer(many=True)
     steps = FlowStepReadSerializer(many=True)
 
