@@ -24,9 +24,22 @@ class RunValueSetReadSerializer(serializers.EmbeddedDocumentSerializer):
 
 
 class ContactReadSerializer(serializers.DocumentSerializer):
+    org_id = SerializerMethodField()
+    group_ids = SerializerMethodField()
+
     class Meta:
         model = Contact
-        fields = ('id', 'uuid', 'groups', 'fields', 'language')
+        fields = ('id', 'uuid', 'group_ids', 'fields', 'language', 'org_id')
+
+    def get_org_id(self, obj):
+        if obj.org:
+            return unicode(obj.org['id'])
+        return None
+
+    def get_group_ids(self, obj):
+        if obj.groups:
+            return [unicode(g['id'] for g in obj.groups)]
+        return []
 
 
 class RunReadSerializer(serializers.DocumentSerializer):
@@ -62,10 +75,19 @@ class RunReadSerializer(serializers.DocumentSerializer):
         return unicode(obj.flow['id'])
 
     def get_org_id(self, obj):
-        return unicode(obj.org['id'])
+        if obj.org:
+            return unicode(obj.org['id'])
+        return None
 
 
 class FlowReadSerializer(serializers.DocumentSerializer):
+    org_id = SerializerMethodField()
     class Meta:
         model = Flow
         depth = 3
+        exclude = ('org', 'modified_on',)
+
+    def get_org_id(self, obj):
+        if obj.org:
+            return unicode(obj.org['id'])
+        return None

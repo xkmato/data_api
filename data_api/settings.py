@@ -90,7 +90,15 @@ LOG_FORMAT = '%(asctime)-15s %(message)s'
 REST_FRAMEWORK = {
     'PAGINATE_BY': 10,                 # Default to 10
     'PAGINATE_BY_PARAM': 'page_size',  # Allow client to override, using `?page_size=xxx`.
-    'MAX_PAGINATE_BY': 100
+    'MAX_PAGINATE_BY': 100,
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework.authentication.BasicAuthentication',
+        'rest_framework.authentication.SessionAuthentication',
+        'rest_framework.authentication.TokenAuthentication',
+    ),
+    'DEFAULT_PERMISSION_CLASSES': (
+        'rest_framework.permissions.IsAuthenticated',
+    )
 }
 
 
@@ -114,8 +122,10 @@ CELERYBEAT_SCHEDULE = {
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+        'ENGINE': 'django.db.backends.postgresql_psycopg2',  # Add 'postgresql_psycopg2', 'postgresql', 'mysql', 'sqlite3' or 'oracle'.
+        'NAME': 'data',                # Or path to database file if using sqlite3.
+        'USER': 'postgres',                 # Not used with sqlite3.
+        'HOST': 'localhost',                 # Set to empty string for default. Not used with sqlite3.
     }
 }
 

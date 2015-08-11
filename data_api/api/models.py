@@ -1,4 +1,5 @@
 from datetime import datetime
+from bson.objectid import ObjectId
 from django.conf import settings
 from django.db.models.signals import post_save
 from django.dispatch import receiver
@@ -39,6 +40,15 @@ class Org(Document):
 
     def __unicode__(self):
         return self.name
+
+    def get_runs(self):
+        return Run.objects.filter(org__id=self.id)
+
+    def get_contacts(self):
+        return Contact.objects.filter(org__id=self.id)
+
+    def get_flows(self):
+        return Flow.objects.filter(org__id=self.id)
 
 
 class LastSaved(DynamicDocument):
@@ -150,6 +160,10 @@ class BaseUtil(object):
         if hasattr(self, 'name'):
             return '%s - %s' % (self.name, self.org)
         return "Base Util Object"
+
+    @classmethod
+    def get_for_org(cls, org):
+        return cls.objects.filter(org__id=ObjectId(org))
 
 
 class EmbeddedUtil(object):
