@@ -45,6 +45,7 @@ INSTALLED_APPS = (
 
 
     'rest_framework',
+    'rest_framework.authtoken',
     'rest_framework_mongoengine',
     'djcelery',
     'data_api.api'
@@ -85,6 +86,12 @@ SITE_API_HOST = 'https://app.rapidpro.io/api/v1'
 API_ENDPOINT = 'https://app.rapidpro.io/api/v1'
 
 LOG_FORMAT = '%(asctime)-15s %(message)s'
+
+REST_FRAMEWORK = {
+    'PAGINATE_BY': 10,                 # Default to 10
+    'PAGINATE_BY_PARAM': 'page_size',  # Allow client to override, using `?page_size=xxx`.
+    'MAX_PAGINATE_BY': 100
+}
 
 
 RETRY_MAX_ATTEMPTS = int(os.environ.get('RETRY_MAX_ATTEMPTS', 10))

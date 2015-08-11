@@ -18,9 +18,11 @@ def retry_if_temba_api_or_connection_error(exception):
                                                            requests.HTTPError
                                                            ) and 399 < exception.caused_by.response.status_code < 500:
         return False
-    logger.warning("Raised an exception: %s - Retrying in %s minutes", str(exception),
+    if isinstance(exception, TembaAPIError) or isinstance(exception, TembaConnectionError):
+        logger.warning("Raised an exception: %s - Retrying in %s minutes", str(exception),
                    str(settings.RETRY_WAIT_FIXED/60000))
-    return isinstance(exception, TembaAPIError) or isinstance(exception, TembaConnectionError)
+        return True
+    return False
 
 
 @retry(retry_on_exception=retry_if_temba_api_or_connection_error, stop_max_attempt_number=settings.RETRY_MAX_ATTEMPTS,
