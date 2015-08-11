@@ -1,3 +1,4 @@
+from rest_framework.fields import SerializerMethodField
 from rest_framework_mongoengine import serializers
 from data_api.api.models import Run, Flow, Contact, FlowStep, RunValueSet, Org
 
@@ -29,15 +30,16 @@ class ContactReadSerializer(serializers.DocumentSerializer):
 
 
 class RunReadSerializer(serializers.DocumentSerializer):
-    contact = ContactReadSerializer()
-    org = OrgReadSerializer()
     values = RunValueSetReadSerializer(many=True)
     steps = FlowStepReadSerializer(many=True)
+    contact_id = SerializerMethodField()
+    flow_id = SerializerMethodField()
+    org_id = SerializerMethodField()
 
     class Meta:
         model = Run
         depth = 3
-        exclude = ('tid', 'modified_on')
+        exclude = ('tid', 'modified_on', 'contact', 'flow', 'org')
 
     def update(self, instance, validated_data):
         values = validated_data.pop('values')
@@ -52,6 +54,15 @@ class RunReadSerializer(serializers.DocumentSerializer):
 
         updated_instance.save()
         return updated_instance
+
+    def get_contact_id(self, obj):
+        return unicode(obj.contact['id'])
+
+    def get_flow_id(self, obj):
+        return unicode(obj.flow['id'])
+
+    def get_org_id(self, obj):
+        return unicode(obj.org['id'])
 
 
 class FlowReadSerializer(serializers.DocumentSerializer):

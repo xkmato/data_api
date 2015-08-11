@@ -43,7 +43,7 @@ class Org(Document):
 
 class LastSaved(DynamicDocument):
     coll = StringField()
-    org = ReferenceField(Org)
+    org = DictField()
     last_saved = DateTimeField()
 
 
@@ -169,7 +169,7 @@ class EmbeddedUtil(object):
 
 
 class Group(Document, BaseUtil):
-    org = ReferenceField(Org)
+    org = DictField()
     created_on = DateTimeField(default=datetime.now)
     modified_on = DateTimeField()
     uuid = StringField()
@@ -197,13 +197,13 @@ class Urn(EmbeddedDocument, EmbeddedUtil):
 
 
 class Contact(Document, BaseUtil):
-    org = ReferenceField(Org)
+    org = DictField()
     created_on = DateTimeField(default=datetime.now)
     modified_on = DateTimeField()
     uuid = StringField()
     name = StringField()
     urns = ListField(EmbeddedDocumentField(Urn))
-    groups = ListField(ReferenceField(Group))
+    groups = ListField(DictField())
     language = StringField()
     fields = DictField()
 
@@ -211,13 +211,13 @@ class Contact(Document, BaseUtil):
 
 
 class Broadcast(Document, BaseUtil):
-    org = ReferenceField(Org)
+    org = DictField()
     created_on = DateTimeField(default=datetime.now)
     modified_on = DateTimeField()
     tid = IntField()
     urns = ListField(EmbeddedDocumentField(Urn))
-    contacts = ListField(ReferenceField(Contact))
-    groups = ListField(ReferenceField(Group))
+    contacts = ListField(DictField())
+    groups = ListField(DictField())
     text = StringField()
     status = StringField()
 
@@ -228,12 +228,12 @@ class Broadcast(Document, BaseUtil):
 
 
 class Campaign(Document, BaseUtil):
-    org = ReferenceField(Org)
+    org = DictField()
     created_on = DateTimeField(default=datetime.now)
     modified_on = DateTimeField()
     uuid = StringField()
     name = StringField()
-    group = ReferenceField(Group)
+    group = DictField()
 
     meta = {'collection': 'campaigns'}
 
@@ -248,7 +248,7 @@ class Ruleset(EmbeddedDocument, EmbeddedUtil):
 
 
 class Label(Document, BaseUtil):
-    org = ReferenceField(Org)
+    org = DictField()
     created_on = DateTimeField(default=datetime.now)
     modified_on = DateTimeField()
     uuid = StringField()
@@ -259,7 +259,7 @@ class Label(Document, BaseUtil):
 
 
 class Flow(Document, BaseUtil):
-    org = ReferenceField(Org)
+    org = DictField()
     created_on = DateTimeField(default=datetime.now)
     modified_on = DateTimeField()
     uuid = StringField()
@@ -275,17 +275,17 @@ class Flow(Document, BaseUtil):
 
 
 class Event(Document, BaseUtil):
-    org = ReferenceField(Org)
+    org = DictField()
     created_on = DateTimeField(default=datetime.now)
     modified_on = DateTimeField()
     uuid = StringField()
-    campaign = ReferenceField(Campaign)
+    campaign = DictField()
     relative_to = StringField()
     offset = IntField()
     unit = StringField()
     delivery_hour = IntField()
     message = StringField()
-    flow = ReferenceField(Flow)
+    flow = DictField()
 
     meta = {'collection': 'events'}
 
@@ -294,12 +294,12 @@ class Event(Document, BaseUtil):
 
 
 class Message(Document, BaseUtil):
-    org = ReferenceField(Org)
+    org = DictField()
     created_on = DateTimeField(default=datetime.now)
     modified_on = DateTimeField()
     tid = IntField()
-    broadcast = ReferenceField(Broadcast)
-    contact = ReferenceField(Contact)
+    broadcast = DictField()
+    contact = DictField()
     urn = EmbeddedDocumentField(Urn)
     status = StringField()
     type = StringField()
@@ -342,12 +342,12 @@ class FlowStep(EmbeddedDocument, EmbeddedUtil):
     
 
 class Run(Document, BaseUtil):
-    org = ReferenceField(Org)
+    org = DictField()
     created_on = DateTimeField(default=datetime.now)
     modified_on = DateTimeField()
     tid = IntField()
-    flow = ReferenceField(Flow)
-    contact = ReferenceField(Contact)
+    flow = DictField()
+    contact = DictField()
     steps = ListField(EmbeddedDocumentField(FlowStep))
     values = ListField(EmbeddedDocumentField(RunValueSet))
     completed = BooleanField()
@@ -355,7 +355,7 @@ class Run(Document, BaseUtil):
     meta = {'collection': 'runs'}
 
     def __unicode__(self):
-        return "%d - %s" % (self.tid, self.org)
+        return "For flow %s - %s" % (self.flow, self.org)
     
 
 class CategoryStats(EmbeddedDocument, EmbeddedUtil):
@@ -367,7 +367,7 @@ class CategoryStats(EmbeddedDocument, EmbeddedUtil):
     
 
 class Result(Document, BaseUtil):
-    org = ReferenceField(Org)
+    org = DictField()
     created_on = DateTimeField(default=datetime.now)
     modified_on = DateTimeField()
     boundary = StringField()
@@ -392,7 +392,7 @@ class Geometry(EmbeddedDocument, EmbeddedUtil):
     
 
 class Boundary(Document, BaseUtil):
-    org = ReferenceField(Org)
+    org = DictField()
     created_on = DateTimeField(default=datetime.now)
     modified_on = DateTimeField()
     boundary = StringField()
