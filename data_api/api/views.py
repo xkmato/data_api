@@ -1,6 +1,6 @@
 from bson import ObjectId
 from rest_framework.permissions import IsAuthenticated
-from rest_framework_mongoengine.generics import RetrieveUpdateDestroyAPIView, ListAPIView
+from rest_framework_mongoengine.generics import ListAPIView, RetrieveAPIView
 from data_api.api.models import Run, Contact, Flow
 from data_api.api.serializers import RunReadSerializer, ContactReadSerializer, FlowReadSerializer
 
@@ -22,7 +22,7 @@ class RunList(ListAPIView):
         return q
 
 
-class RunDetails(RetrieveUpdateDestroyAPIView):
+class RunDetails(RetrieveAPIView):
     serializer_class = RunReadSerializer
     queryset = Run.objects.all()
     permission_classes = (IsAuthenticated,)
@@ -43,7 +43,7 @@ class ContactList(ListAPIView):
         return q
 
 
-class ContactDetails(RetrieveUpdateDestroyAPIView):
+class ContactDetails(RetrieveAPIView):
     serializer_class = ContactReadSerializer
     queryset = Contact.objects.all()
 
@@ -62,6 +62,6 @@ class FlowList(ListAPIView):
         return q
 
 
-class FlowDetails(RetrieveUpdateDestroyAPIView):
+class FlowDetails(RetrieveAPIView):
     serializer_class = FlowReadSerializer
     queryset = Flow.objects.all()
