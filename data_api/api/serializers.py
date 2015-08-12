@@ -30,7 +30,7 @@ class ContactReadSerializer(serializers.DocumentSerializer):
 
     class Meta:
         model = Contact
-        fields = ('id', 'uuid', 'group_ids', 'contact_fields', 'language', 'org_id')
+        fields = ('id', 'group_ids', 'contact_fields', 'language', 'org_id')
 
     def get_org_id(self, obj):
         if obj.org:
@@ -39,7 +39,7 @@ class ContactReadSerializer(serializers.DocumentSerializer):
 
     def get_group_ids(self, obj):
         if obj.groups:
-            return [unicode(g['id']) for g in obj.groups]
+            return [g['uuid'] for g in obj.groups]
         return []
 
     def get_eval_fields(self, obj):
