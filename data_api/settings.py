@@ -150,3 +150,9 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR+'/static/'
+
+
+DEFAULT_FROM_EMAIL = 'Data Team<no-reply@data.uniceflabs.org>'
+EMAIL_HOST = '127.0.0.1'
+EMAIL_HOST_USER = 'no-reply@data.uniceflabs.org'
+SERVER_EMAIL = 'Data Team<no-reply@data.uniceflabs.org>'
