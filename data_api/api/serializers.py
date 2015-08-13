@@ -8,7 +8,7 @@ __author__ = 'kenneth'
 class OrgReadSerializer(serializers.DocumentSerializer):
     class Meta:
         model = Org
-        fields = ('name', )
+        fields = ('name', 'id', 'timezone')
 
 
 class FlowStepReadSerializer(serializers.EmbeddedDocumentSerializer):
@@ -18,28 +18,33 @@ class FlowStepReadSerializer(serializers.EmbeddedDocumentSerializer):
 
 
 class RunValueSetReadSerializer(serializers.EmbeddedDocumentSerializer):
+    category = SerializerMethodField()
+
     class Meta:
         model = RunValueSet
         exclude = ('text',)
 
+    def get_category(self, obj):
+        return eval(obj.category)
+
 
 class ContactReadSerializer(serializers.DocumentSerializer):
     org_id = SerializerMethodField()
-    group_ids = SerializerMethodField()
+    groups = SerializerMethodField()
     contact_fields = SerializerMethodField('get_eval_fields')
 
     class Meta:
         model = Contact
-        fields = ('id', 'group_ids', 'contact_fields', 'language', 'org_id')
+        fields = ('id', 'groups', 'contact_fields', 'language', 'org_id')
 
     def get_org_id(self, obj):
         if obj.org:
             return unicode(obj.org['id'])
         return None
 
-    def get_group_ids(self, obj):
+    def get_groups(self, obj):
         if obj.groups:
-            return [g['uuid'] for g in obj.groups]
+            return [g['name'] for g in obj.groups]
         return []
 
     def get_eval_fields(self, obj):

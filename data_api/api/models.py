@@ -156,10 +156,10 @@ class BaseUtil(object):
                 objs = cls.create_from_temba_list(org, fetch_all())
         return objs
 
-    def __unicode__(self):
-        if hasattr(self, 'name'):
-            return '%s - %s' % (self.name, self.org)
-        return "Base Util Object"
+    # def __unicode__(self):
+    #     if hasattr(self, 'name'):
+    #         return '%s - %s' % (self.name, self.org)
+    #     return "Base Util Object"
 
     @classmethod
     def get_for_org(cls, org):
@@ -184,7 +184,7 @@ class EmbeddedUtil(object):
 
 class Group(Document, BaseUtil):
     org = DictField()
-    created_on = DateTimeField(default=datetime.now)
+    created_on = DateTimeField()
     modified_on = DateTimeField()
     uuid = StringField()
     name = StringField()
@@ -212,7 +212,7 @@ class Urn(EmbeddedDocument, EmbeddedUtil):
 
 class Contact(Document, BaseUtil):
     org = DictField()
-    created_on = DateTimeField(default=datetime.now)
+    created_on = DateTimeField()
     modified_on = DateTimeField()
     uuid = StringField()
     name = StringField()
@@ -226,7 +226,7 @@ class Contact(Document, BaseUtil):
 
 class Broadcast(Document, BaseUtil):
     org = DictField()
-    created_on = DateTimeField(default=datetime.now)
+    created_on = DateTimeField()
     modified_on = DateTimeField()
     tid = IntField()
     urns = ListField(EmbeddedDocumentField(Urn))
@@ -243,7 +243,7 @@ class Broadcast(Document, BaseUtil):
 
 class Campaign(Document, BaseUtil):
     org = DictField()
-    created_on = DateTimeField(default=datetime.now)
+    created_on = DateTimeField()
     modified_on = DateTimeField()
     uuid = StringField()
     name = StringField()
@@ -263,7 +263,7 @@ class Ruleset(EmbeddedDocument, EmbeddedUtil):
 
 class Label(Document, BaseUtil):
     org = DictField()
-    created_on = DateTimeField(default=datetime.now)
+    created_on = DateTimeField()
     modified_on = DateTimeField()
     uuid = StringField()
     name = StringField()
@@ -274,7 +274,7 @@ class Label(Document, BaseUtil):
 
 class Flow(Document, BaseUtil):
     org = DictField()
-    created_on = DateTimeField(default=datetime.now)
+    created_on = DateTimeField()
     modified_on = DateTimeField()
     uuid = StringField()
     name = StringField()
@@ -290,7 +290,7 @@ class Flow(Document, BaseUtil):
 
 class Event(Document, BaseUtil):
     org = DictField()
-    created_on = DateTimeField(default=datetime.now)
+    created_on = DateTimeField()
     modified_on = DateTimeField()
     uuid = StringField()
     campaign = DictField()
@@ -309,7 +309,7 @@ class Event(Document, BaseUtil):
 
 class Message(Document, BaseUtil):
     org = DictField()
-    created_on = DateTimeField(default=datetime.now)
+    created_on = DateTimeField()
     modified_on = DateTimeField()
     tid = IntField()
     broadcast = DictField()
@@ -357,7 +357,7 @@ class FlowStep(EmbeddedDocument, EmbeddedUtil):
 
 class Run(Document, BaseUtil):
     org = DictField()
-    created_on = DateTimeField(default=datetime.now)
+    created_on = DateTimeField()
     modified_on = DateTimeField()
     tid = IntField()
     flow = DictField()
@@ -382,7 +382,7 @@ class CategoryStats(EmbeddedDocument, EmbeddedUtil):
 
 class Result(Document, BaseUtil):
     org = DictField()
-    created_on = DateTimeField(default=datetime.now)
+    created_on = DateTimeField()
     modified_on = DateTimeField()
     boundary = StringField()
     set = IntField()
@@ -407,7 +407,7 @@ class Geometry(EmbeddedDocument, EmbeddedUtil):
 
 class Boundary(Document, BaseUtil):
     org = DictField()
-    created_on = DateTimeField(default=datetime.now)
+    created_on = DateTimeField()
     modified_on = DateTimeField()
     boundary = StringField()
     name = StringField()
