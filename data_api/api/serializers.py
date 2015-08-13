@@ -35,7 +35,11 @@ class FlowStepReadSerializer(serializers.EmbeddedDocumentSerializer):
                 i = x.index('hi')
                 if i < len(x) -1 and x[i+1] not in [',', '.', '?']:
                     g = x.pop(i+1)
-        return " ".join(x)
+            if 'hello' in x:
+                i = x.index('hello')
+                if i < len(x) -1 and x[i+1] not in [',', '.', '?']:
+                    g = x.pop(i+1)
+        return " ".join(x).capitalize()
 
 
 class RunValueSetReadSerializer(serializers.EmbeddedDocumentSerializer):
