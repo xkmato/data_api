@@ -1,6 +1,6 @@
 from rest_framework.fields import SerializerMethodField
 from rest_framework_mongoengine import serializers
-from data_api.api.models import Run, Flow, Contact, FlowStep, RunValueSet, Org
+from data_api.api.models import Run, Flow, Contact, FlowStep, RunValueSet, Org, Message
 
 __author__ = 'kenneth'
 
@@ -25,7 +25,11 @@ class RunValueSetReadSerializer(serializers.EmbeddedDocumentSerializer):
         exclude = ('text',)
 
     def get_category(self, obj):
-        return eval(obj.category)
+        try:
+            return eval(obj.category)
+        except Exception as e:
+            print e
+            return {}
 
 
 class ContactReadSerializer(serializers.DocumentSerializer):
@@ -78,7 +82,9 @@ class RunReadSerializer(serializers.DocumentSerializer):
         return updated_instance
 
     def get_contact_id(self, obj):
-        return unicode(obj.contact['id'])
+        if obj.contact.has_key("id"):
+            return unicode(obj.contact['id'])
+        return None
 
     def get_flow_id(self, obj):
         return unicode(obj.flow['id'])
@@ -101,3 +107,8 @@ class FlowReadSerializer(serializers.DocumentSerializer):
         if obj.org:
             return unicode(obj.org['id'])
         return None
+
+
+class MessageReadSerializer(serializers.DocumentSerializer):
+    class Meta:
+        model = Message

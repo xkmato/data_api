@@ -1,9 +1,10 @@
 from bson import ObjectId
 from rest_framework.permissions import IsAuthenticated
 from rest_framework_mongoengine.generics import ListAPIView, RetrieveAPIView
-from data_api.api.models import Run, Contact, Flow, Org
+from data_api.api.models import Run, Contact, Flow, Org, Message
 from data_api.api.permissions import ContactAccessPermissions
-from data_api.api.serializers import RunReadSerializer, ContactReadSerializer, FlowReadSerializer, OrgReadSerializer
+from data_api.api.serializers import RunReadSerializer, ContactReadSerializer, FlowReadSerializer, OrgReadSerializer, \
+    MessageReadSerializer
 
 __author__ = 'kenneth'
 
@@ -60,3 +61,15 @@ class FlowDetails(RetrieveAPIView):
 class OrgDetails(RetrieveAPIView):
     serializer_class = OrgReadSerializer
     queryset = Org.objects.all()
+
+
+class MessageList(DataListAPIView):
+    serializer_class = MessageReadSerializer
+    object_model = Message
+
+
+class MessageDetails(RetrieveAPIView):
+    serializer_class = MessageReadSerializer
+    queryset = MessageReadSerializer
+
+
