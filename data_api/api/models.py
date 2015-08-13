@@ -1,4 +1,5 @@
 from datetime import datetime
+from bson.errors import InvalidId
 from bson.objectid import ObjectId
 from django.conf import settings
 from django.db.models.signals import post_save
@@ -163,7 +164,10 @@ class BaseUtil(object):
 
     @classmethod
     def get_for_org(cls, org):
-        return cls.objects.filter(org__id=ObjectId(org))
+        try:
+            return cls.objects.filter(org__id=ObjectId(org))
+        except InvalidId:
+            return cls.objects.none()
 
 
 class EmbeddedUtil(object):

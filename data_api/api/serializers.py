@@ -35,7 +35,6 @@ class FlowStepReadSerializer(serializers.EmbeddedDocumentSerializer):
                 i = x.index('hi')
                 if i < len(x) -1 and x[i+1] not in [',', '.', '?']:
                     g = x.pop(i+1)
-        print g
         return " ".join(x)
 
 

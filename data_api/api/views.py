@@ -22,7 +22,7 @@ class DataListAPIView(ListAPIView):
         return q
 
 
-class RunList(ListAPIView):
+class RunList(DataListAPIView):
     serializer_class = RunReadSerializer
     queryset = Run.objects.all()
     permission_classes = (IsAuthenticated,)
