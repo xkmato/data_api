@@ -14,7 +14,6 @@ class OrgReadSerializer(serializers.DocumentSerializer):
 class FlowStepReadSerializer(serializers.EmbeddedDocumentSerializer):
     class Meta:
         model = FlowStep
-        exclude = ('text',)
 
 
 class RunValueSetReadSerializer(serializers.EmbeddedDocumentSerializer):
