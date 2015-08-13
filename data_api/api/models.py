@@ -364,7 +364,7 @@ class Run(Document, BaseUtil):
     contact = DictField()
     steps = ListField(EmbeddedDocumentField(FlowStep))
     values = ListField(EmbeddedDocumentField(RunValueSet))
-    completed = BooleanField()
+    completed = StringField()
 
     meta = {'collection': 'runs'}
 

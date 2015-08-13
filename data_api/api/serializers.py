@@ -61,6 +61,7 @@ class RunReadSerializer(serializers.DocumentSerializer):
     contact_id = SerializerMethodField()
     flow_id = SerializerMethodField()
     org_id = SerializerMethodField()
+    completed = SerializerMethodField()
 
     class Meta:
         model = Run
@@ -93,6 +94,9 @@ class RunReadSerializer(serializers.DocumentSerializer):
         if obj.org:
             return unicode(obj.org['id'])
         return None
+
+    def get_completed(self, obj):
+        return eval(obj.completed)
 
 
 class FlowReadSerializer(serializers.DocumentSerializer):
