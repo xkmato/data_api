@@ -88,11 +88,14 @@ class RunReadSerializer(serializers.DocumentSerializer):
         return None
 
     def get_flow_id(self, obj):
-        return unicode(obj.flow['id'])
+        if obj.flow.has_key("id"):
+            return unicode(obj.flow['id'])
+        return None
 
     def get_org_id(self, obj):
         if obj.org:
-            return unicode(obj.org['id'])
+            if obj.org.has_key("id"):
+                return unicode(obj.org['id'])
         return None
 
     def get_completed(self, obj):
@@ -109,7 +112,8 @@ class FlowReadSerializer(serializers.DocumentSerializer):
 
     def get_org_id(self, obj):
         if obj.org:
-            return unicode(obj.org['id'])
+            if obj.org.has_key("id"):
+                return unicode(obj.org['id'])
         return None
 
 
