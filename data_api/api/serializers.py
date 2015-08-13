@@ -12,8 +12,31 @@ class OrgReadSerializer(serializers.DocumentSerializer):
 
 
 class FlowStepReadSerializer(serializers.EmbeddedDocumentSerializer):
+    text = SerializerMethodField()
+
     class Meta:
         model = FlowStep
+
+    def get_text(self, obj):
+        if not obj.text:
+            return None
+        return FlowStepReadSerializer.remove_word_before_or_after(obj.text.lower())
+
+    @classmethod
+    def remove_word_before_or_after(cls, text):
+        x = text.split()
+        g = 'nothing'
+        if len(x) > 1:
+            if ',' in x:
+                i = x.index(',')
+                if i > 0 and x[i-1] not in ['hello', 'hi']:
+                    g = x.pop(i-1)
+            if 'hi' in x:
+                i = x.index('hi')
+                if i < len(x) -1 and x[i+1] not in [',', '.', '?']:
+                    g = x.pop(i+1)
+        print g
+        return " ".join(x)
 
 
 class RunValueSetReadSerializer(serializers.EmbeddedDocumentSerializer):
