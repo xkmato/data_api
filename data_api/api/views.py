@@ -58,6 +58,11 @@ class FlowDetails(RetrieveAPIView):
     queryset = Flow.objects.all()
 
 
+class OrgList(ListAPIView):
+    serializer_class = OrgReadSerializer
+    queryset = Org.objects.all()
+
+
 class OrgDetails(RetrieveAPIView):
     serializer_class = OrgReadSerializer
     queryset = Org.objects.all()

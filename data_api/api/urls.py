@@ -1,5 +1,6 @@
 from django.conf.urls import patterns, url
-from data_api.api.views import RunList, RunDetails, ContactDetails, ContactList, FlowList, FlowDetails, OrgDetails
+from data_api.api.views import RunList, RunDetails, ContactDetails, ContactList, FlowList, FlowDetails, OrgDetails, \
+    OrgList
 
 __author__ = 'kenneth'
 
@@ -17,5 +18,6 @@ urlpatterns = patterns('',
                        url(r'^runs/org/(?P<org>[\w]+)/$', RunList.as_view()),
                        url(r'^runs/(?P<id>[\w]+)/$', RunDetails.as_view()),
 
-                       url(r'^org/(?P<id>[\w]+)/$', OrgDetails.as_view())
+                       url(r'^orgs/$', OrgList.as_view()),
+                       url(r'^orgs/(?P<id>[\w]+)/$', OrgDetails.as_view())
                        )
