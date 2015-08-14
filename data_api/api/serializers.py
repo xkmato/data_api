@@ -22,7 +22,7 @@ class FlowStepReadSerializer(serializers.EmbeddedDocumentSerializer):
         if not obj.text:
             return None
         if obj.type == 'R':
-            return None
+            return "#hidden#"
         return FlowStepReadSerializer.remove_word_before_or_after(obj.text.lower())
 
     @classmethod
