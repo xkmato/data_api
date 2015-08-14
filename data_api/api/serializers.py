@@ -16,9 +16,12 @@ class FlowStepReadSerializer(serializers.EmbeddedDocumentSerializer):
 
     class Meta:
         model = FlowStep
+        exclude = ('value',)
 
     def get_text(self, obj):
         if not obj.text:
+            return None
+        if obj.type == 'R':
             return None
         return FlowStepReadSerializer.remove_word_before_or_after(obj.text.lower())
 
@@ -44,6 +47,8 @@ class FlowStepReadSerializer(serializers.EmbeddedDocumentSerializer):
 
 class RunValueSetReadSerializer(serializers.EmbeddedDocumentSerializer):
     category = SerializerMethodField()
+    value = SerializerMethodField('get_parsed_value')
+    rule_value = SerializerMethodField()
 
     class Meta:
         model = RunValueSet
@@ -55,6 +60,25 @@ class RunValueSetReadSerializer(serializers.EmbeddedDocumentSerializer):
         except Exception as e:
             print e
             return {}
+
+    def get_parsed_value(self, obj):
+        if hasattr(obj, 'category') and obj.category:
+            category = eval(obj.category)
+            if 'eng' in category and category['eng'] == "All Responses":
+                return None
+            if 'base' in category and category['base'] == "All Responses":
+                return None
+        return obj.value
+
+
+    def get_rule_value(self, obj):
+        if hasattr(obj, 'category') and obj.category:
+            category = eval(obj.category)
+            if 'eng' in category and category['eng'] == "All Responses":
+                return None
+            if 'base' in category and category['base'] == "All Responses":
+                return None
+        return obj.value
 
 
 class ContactReadSerializer(serializers.DocumentSerializer):
