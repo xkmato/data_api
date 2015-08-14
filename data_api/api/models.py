@@ -374,6 +374,13 @@ class Run(Document, BaseUtil):
 
     def __unicode__(self):
         return "For flow %s - %s" % (self.flow, self.org)
+
+    @classmethod
+    def get_for_flow(cls, flow_id):
+        try:
+            return cls.objects.filter(flow__id=ObjectId(flow_id))
+        except InvalidId:
+            return cls.objects.none()
     
 
 class CategoryStats(EmbeddedDocument, EmbeddedUtil):

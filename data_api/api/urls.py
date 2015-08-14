@@ -16,6 +16,7 @@ urlpatterns = patterns('',
 
                        url(r'^runs/$', RunList.as_view()),
                        url(r'^runs/org/(?P<org>[\w]+)/$', RunList.as_view()),
+                       url(r'^runs/flow/(?P<flow>[\w]+)/$', RunList.as_view()),
                        url(r'^runs/(?P<id>[\w]+)/$', RunDetails.as_view()),
 
                        url(r'^orgs/$', OrgList.as_view()),

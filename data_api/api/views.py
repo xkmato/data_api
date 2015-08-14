@@ -28,6 +28,12 @@ class RunList(DataListAPIView):
     permission_classes = (IsAuthenticated,)
     object_model = Run
 
+    def get_queryset(self):
+        q = super(RunList, self).get_queryset()
+        if self.kwargs.get('flow'):
+            q = q.filter(flow__id=ObjectId(self.kwargs.get('flow')))
+        return q
+
 
 class RunDetails(RetrieveAPIView):
     serializer_class = RunReadSerializer
