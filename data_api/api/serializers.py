@@ -58,8 +58,7 @@ class RunValueSetReadSerializer(serializers.EmbeddedDocumentSerializer):
         try:
             return eval(obj.category)
         except Exception as e:
-            print e
-            return {}
+            return {'base': obj.category}
 
     def get_parsed_value(self, obj):
         try:
@@ -71,9 +70,9 @@ class RunValueSetReadSerializer(serializers.EmbeddedDocumentSerializer):
                     return None
             return obj.value
         except Exception as e:
-            print e
+            if obj.category == "All Responses":
+                return None
             return obj.value
-
 
     def get_rule_value(self, obj):
         try:
@@ -85,7 +84,8 @@ class RunValueSetReadSerializer(serializers.EmbeddedDocumentSerializer):
                     return None
             return obj.rule_value
         except Exception as e:
-            print e
+            if obj.category == "All Responses":
+                return None
             return obj.rule_value
 
 
