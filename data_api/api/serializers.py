@@ -62,13 +62,17 @@ class RunValueSetReadSerializer(serializers.EmbeddedDocumentSerializer):
             return {}
 
     def get_parsed_value(self, obj):
-        if hasattr(obj, 'category') and obj.category:
-            category = eval(obj.category)
-            if 'eng' in category and category['eng'] == "All Responses":
-                return None
-            if 'base' in category and category['base'] == "All Responses":
-                return None
-        return obj.value
+        try:
+            if hasattr(obj, 'category') and obj.category:
+                category = eval(obj.category)
+                if 'eng' in category and category['eng'] == "All Responses":
+                    return None
+                if 'base' in category and category['base'] == "All Responses":
+                    return None
+            return obj.value
+        except Exception as e:
+            print e
+            return obj.value
 
 
     def get_rule_value(self, obj):
