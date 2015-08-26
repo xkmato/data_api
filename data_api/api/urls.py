@@ -12,6 +12,7 @@ urlpatterns = patterns('',
 
                        url(r'^flows/$', FlowList.as_view()),
                        url(r'^flows/org/(?P<org>[\w]+)/$', FlowList.as_view()),
+                       url(r'^flows/uuid/(?P<uuid>[\w\-]+)/$', FlowDetails.as_view()),
                        url(r'^flows/(?P<id>[\w]+)/$', FlowDetails.as_view()),
 
                        url(r'^runs/$', RunList.as_view()),

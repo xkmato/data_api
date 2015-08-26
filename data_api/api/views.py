@@ -1,4 +1,5 @@
 from bson import ObjectId
+from mongoengine.django.shortcuts import get_document_or_404
 from rest_framework.permissions import IsAuthenticated
 from rest_framework_mongoengine.generics import ListAPIView, RetrieveAPIView
 from data_api.api.models import Run, Contact, Flow, Org, Message
@@ -62,6 +63,11 @@ class FlowList(DataListAPIView):
 class FlowDetails(RetrieveAPIView):
     serializer_class = FlowReadSerializer
     queryset = Flow.objects.all()
+
+    def get_object(self):
+        if self.kwargs.get('uuid', None):
+            return get_document_or_404(self.get_queryset(), uuid=self.kwargs.get('uuid'))
+        return super(FlowDetails, self).get_object()
 
 
 class OrgList(ListAPIView):
