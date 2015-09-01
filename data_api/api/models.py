@@ -291,6 +291,11 @@ class Flow(Document, BaseUtil):
 
     meta = {'collection': 'flows'}
 
+    def get_runs(self, queryset=None):
+        if queryset:
+            return queryset.filter(flow__id=self.id)
+        return Run.objects.filter(flow__id=self.id)
+
 
 class Event(Document, BaseUtil):
     org = DictField()

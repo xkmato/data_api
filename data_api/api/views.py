@@ -33,6 +33,9 @@ class RunList(DataListAPIView):
         q = super(RunList, self).get_queryset()
         if self.kwargs.get('flow'):
             q = q.filter(flow__id=ObjectId(self.kwargs.get('flow')))
+        if self.kwargs.get('flow_uuid'):
+            flow = get_document_or_404(Flow, uuid=self.kwargs.get('flow_uuid'))
+            return flow.get_runs(queryset=q)
         return q
 
 
