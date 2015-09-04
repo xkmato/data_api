@@ -23,3 +23,8 @@ urlpatterns = [
     url(r'^admin/', include(admin.site.urls)),
     url(r'^api/v1/', include(urls))
 ]
+
+handler404 = 'data_api.views.page_not_found_view'
+handler500 = 'data_api.views.server_error_view'
+handler403 = 'data_api.views.request_forbidden_view'
+handler400 = 'data_api.views.bad_request_view'
