@@ -1,8 +1,20 @@
 from rest_framework.fields import SerializerMethodField
 from rest_framework_mongoengine import serializers
-from data_api.api.models import Run, Flow, Contact, FlowStep, RunValueSet, Org, Message
+from data_api.api.models import Run, Flow, Contact, FlowStep, RunValueSet, Org, Message, Broadcast, Campaign, Event
 
 __author__ = 'kenneth'
+
+
+ALWAYS_EXCLUDE = ('org', 'modified_on')
+
+
+class BaseDocumentSerializer(serializers.DocumentSerializer):
+    org_id = SerializerMethodField()
+
+    def get_org_id(self, obj):
+        if obj.org:
+            return unicode(obj.org['id'])
+        return None
 
 
 class OrgReadSerializer(serializers.DocumentSerializer):
@@ -89,19 +101,13 @@ class RunValueSetReadSerializer(serializers.EmbeddedDocumentSerializer):
             return obj.rule_value
 
 
-class ContactReadSerializer(serializers.DocumentSerializer):
-    org_id = SerializerMethodField()
+class ContactReadSerializer(BaseDocumentSerializer):
     groups = SerializerMethodField()
     contact_fields = SerializerMethodField('get_eval_fields')
 
     class Meta:
         model = Contact
         fields = ('id', 'groups', 'contact_fields', 'language', 'org_id')
-
-    def get_org_id(self, obj):
-        if obj.org:
-            return unicode(obj.org['id'])
-        return None
 
     def get_groups(self, obj):
         if obj.groups:
@@ -112,12 +118,11 @@ class ContactReadSerializer(serializers.DocumentSerializer):
         return eval(obj.fields)
 
 
-class RunReadSerializer(serializers.DocumentSerializer):
+class RunReadSerializer(BaseDocumentSerializer):
     values = RunValueSetReadSerializer(many=True)
     steps = FlowStepReadSerializer(many=True)
     contact_id = SerializerMethodField()
     flow_id = SerializerMethodField()
-    org_id = SerializerMethodField()
     completed = SerializerMethodField()
 
     class Meta:
@@ -149,31 +154,78 @@ class RunReadSerializer(serializers.DocumentSerializer):
             return unicode(obj.flow['id'])
         return None
 
-    def get_org_id(self, obj):
-        if obj.org:
-            if obj.org.has_key("id"):
-                return unicode(obj.org['id'])
-        return None
-
     def get_completed(self, obj):
         return eval(obj.completed)
 
 
-class FlowReadSerializer(serializers.DocumentSerializer):
-    org_id = SerializerMethodField()
-
+class FlowReadSerializer(BaseDocumentSerializer):
     class Meta:
         model = Flow
         depth = 3
-        exclude = ('org', 'modified_on',)
-
-    def get_org_id(self, obj):
-        if obj.org:
-            if obj.org.has_key("id"):
-                return unicode(obj.org['id'])
-        return None
+        exclude = ALWAYS_EXCLUDE
 
 
-class MessageReadSerializer(serializers.DocumentSerializer):
+class MessageReadSerializer(BaseDocumentSerializer):
+    broadcast = SerializerMethodField()
+    contact = SerializerMethodField()
+    labels = SerializerMethodField()
+
     class Meta:
         model = Message
+        exclude = ALWAYS_EXCLUDE + ('tid', 'urn')
+
+    def get_broadcast(self, obj):
+        return str(obj.broadcast.get('id', '')) or None
+
+    def get_contact(self, obj):
+        return str(obj.contact.get('id', '')) or None
+
+    def get_labels(self, obj):
+        return [l['name'] for l in obj.labels]
+
+
+class BroadcastReadSerializer(BaseDocumentSerializer):
+    groups = SerializerMethodField()
+    contacts = SerializerMethodField()
+
+    class Meta:
+        model = Broadcast
+        exclude = ALWAYS_EXCLUDE + ('tid', 'urns')
+
+    def get_groups(self, obj):
+        if obj.groups:
+            return [g['name'] for g in obj.groups]
+        return []
+
+    def get_contacts(self, obj):
+        if obj.contacts:
+            return [c['name'] for c in obj.contacts]
+        return []
+
+
+class CampaignReadSerializer(BaseDocumentSerializer):
+    group = SerializerMethodField()
+
+    class Meta:
+        model = Campaign
+        exclude = ALWAYS_EXCLUDE
+
+    def get_group(self, obj):
+        return str(obj.group.get('id', '')) or None
+
+
+class EventReadSerializer(BaseDocumentSerializer):
+    flow = SerializerMethodField()
+    campaign = SerializerMethodField()
+
+    class Meta:
+        model = Event
+        exclude = ALWAYS_EXCLUDE
+
+    def get_flow(self, obj):
+        return str(obj.flow.get('id', '')) or None
+
+    def get_campaign(self, obj):
+        return str(obj.campaign.get('id', '')) or None
+
+

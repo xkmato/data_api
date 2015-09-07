@@ -2,10 +2,10 @@ from bson import ObjectId
 from mongoengine.django.shortcuts import get_document_or_404
 from rest_framework.permissions import IsAuthenticated
 from rest_framework_mongoengine.generics import ListAPIView, RetrieveAPIView
-from data_api.api.models import Run, Contact, Flow, Org, Message
+from data_api.api.models import Run, Contact, Flow, Org, Message, Broadcast, Campaign, Event
 from data_api.api.permissions import ContactAccessPermissions
 from data_api.api.serializers import RunReadSerializer, ContactReadSerializer, FlowReadSerializer, OrgReadSerializer, \
-    MessageReadSerializer
+    MessageReadSerializer, BroadcastReadSerializer, CampaignReadSerializer, EventReadSerializer
 
 __author__ = 'kenneth'
 
@@ -90,6 +90,35 @@ class MessageList(DataListAPIView):
 
 class MessageDetails(RetrieveAPIView):
     serializer_class = MessageReadSerializer
-    queryset = MessageReadSerializer
+    queryset = Message
 
+
+class BroadcastList(DataListAPIView):
+    serializer_class = BroadcastReadSerializer
+    object_model = Broadcast
+
+
+class BroadcastDetails(RetrieveAPIView):
+    serializer_class = BroadcastReadSerializer
+    queryset = Broadcast
+
+
+class CampaignList(DataListAPIView):
+    serializer_class = CampaignReadSerializer
+    object_model = Campaign
+
+
+class CampaignDetails(RetrieveAPIView):
+    serializer_class = CampaignReadSerializer
+    queryset = Campaign
+
+
+class EventList(DataListAPIView):
+    serializer_class = EventReadSerializer
+    object_model = Event
+
+
+class EventDetails(RetrieveAPIView):
+    serializer_class = EventReadSerializer
+    queryset = Event
 

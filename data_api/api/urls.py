@@ -1,6 +1,7 @@
 from django.conf.urls import patterns, url
 from data_api.api.views import RunList, RunDetails, ContactDetails, ContactList, FlowList, FlowDetails, OrgDetails, \
-    OrgList
+    OrgList, MessageList, MessageDetails, BroadcastList, BroadcastDetails, CampaignDetails, CampaignList, EventList, \
+    EventDetails
 
 __author__ = 'kenneth'
 
@@ -9,6 +10,22 @@ urlpatterns = patterns('',
                        url(r'^contacts/$', ContactList.as_view()),
                        url(r'^contacts/org/(?P<org>[\w]+)/$', ContactList.as_view()),
                        url(r'^contacts/(?P<id>[\w]+)/$', ContactDetails.as_view()),
+
+                       url(r'^messages/$', MessageList.as_view()),
+                       url(r'^messages/org/(?P<org>[\w]+)/$', MessageList.as_view()),
+                       url(r'^messages/(?P<id>[\w]+)/$', MessageDetails.as_view()),
+
+                       url(r'^broadcasts/$', BroadcastList.as_view()),
+                       url(r'^broadcasts/org/(?P<org>[\w]+)/$', BroadcastList.as_view()),
+                       url(r'^broadcasts/(?P<id>[\w]+)/$', BroadcastDetails.as_view()),
+
+                       url(r'^campaigns/$', CampaignList.as_view()),
+                       url(r'^campaigns/org/(?P<org>[\w]+)/$', CampaignList.as_view()),
+                       url(r'^campaigns/(?P<id>[\w]+)/$', CampaignDetails.as_view()),
+
+                       url(r'^events/$', EventList.as_view()),
+                       url(r'^events/org/(?P<org>[\w]+)/$', EventList.as_view()),
+                       url(r'^events/(?P<id>[\w]+)/$', EventDetails.as_view()),
 
                        url(r'^flows/$', FlowList.as_view()),
                        url(r'^flows/org/(?P<org>[\w]+)/$', FlowList.as_view()),
