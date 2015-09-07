@@ -3,7 +3,7 @@ from mongoengine.django.shortcuts import get_document_or_404
 from rest_framework.permissions import IsAuthenticated
 from rest_framework_mongoengine.generics import ListAPIView, RetrieveAPIView
 from data_api.api.models import Run, Contact, Flow, Org, Message, Broadcast, Campaign, Event
-from data_api.api.permissions import ContactAccessPermissions
+from data_api.api.permissions import ContactAccessPermissions, MessageAccessPermissions
 from data_api.api.serializers import RunReadSerializer, ContactReadSerializer, FlowReadSerializer, OrgReadSerializer, \
     MessageReadSerializer, BroadcastReadSerializer, CampaignReadSerializer, EventReadSerializer
 
@@ -86,11 +86,13 @@ class OrgDetails(RetrieveAPIView):
 class MessageList(DataListAPIView):
     serializer_class = MessageReadSerializer
     object_model = Message
+    permission_classes = (IsAuthenticated, MessageAccessPermissions)
 
 
 class MessageDetails(RetrieveAPIView):
     serializer_class = MessageReadSerializer
     queryset = Message
+    permission_classes = (IsAuthenticated, MessageAccessPermissions)
 
 
 class BroadcastList(DataListAPIView):
