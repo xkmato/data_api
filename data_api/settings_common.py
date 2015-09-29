@@ -170,6 +170,10 @@ SERVER_EMAIL = 'Data Team<no-reply@data.uniceflabs.org>'
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': True,
+    'root': {
+        'level': 'WARNING',
+        'handlers': ['sentry'],
+    },
     'formatters': {
         'verbose': {
             'format': '%(levelname)s [%(asctime)s] %(module)s %(message)s'
@@ -184,6 +188,10 @@ LOGGING = {
         }
     },
     'handlers': {
+        'sentry': {
+            'level': 'ERROR',
+            'class': 'raven.contrib.django.raven_compat.handlers.SentryHandler',
+        },
         'console': {
             'level': 'DEBUG',
             'class': 'logging.StreamHandler',
@@ -211,5 +219,17 @@ LOGGING = {
             'propagate': True,
             'level': 'DEBUG',
         },
+        'raven': {
+            'level': 'DEBUG',
+            'handlers': ['console'],
+            'propagate': False,
+        },
+        'sentry.errors': {
+            'level': 'DEBUG',
+            'handlers': ['console'],
+            'propagate': False,
+        },
     }
 }
+
+SITE_ID = 1
