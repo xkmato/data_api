@@ -6,12 +6,15 @@ Django==1.8.3
 django-celery==3.1.16
 django-celery-transactions==0.3.2
 django-rest-framework-mongoengine==2.0.2
+django-rest-swagger==0.3.4
 djangorestframework==3.0.0
-ipython==3.2.1
 kombu==3.0.26
+Markdown==2.6.2
 mongoengine==0.8.7
+psycopg2==2.6.1
 pymongo==2.8
 pytz==2015.4
+PyYAML==3.11
 rapidpro-python==1.1
 raven==5.7.2
 redis==2.10.3
