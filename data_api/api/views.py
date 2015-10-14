@@ -24,6 +24,65 @@ class DataListAPIView(ListAPIView):
 
 
 class RunList(DataListAPIView):
+    """
+    This endpoint allows you to list Runs.
+
+    ## Listing Runs
+
+    By making a ```GET``` request you can list all the runs, filtering them as needed.  Each
+    run has the following attributes:
+
+    * **id** - the ID of the poll (int)
+    * **org_id** - the ID of the org to which the run belongs(string) (filterable: ```org```)
+    * **values** - the VALUES of this run (list(dictionary))
+    * **steps** - the STEPS of this run (list(dictionary))
+    * **contact_id** - the ID of the contact participating in this run (string)
+    * **flow_id** - this ID of the flow to which this run belongs (string)
+    * **completed** - the COMPLETED flag shows if the run was completed or not (boolean)
+    * **created_on** - the TIME when this run was created (datetime)
+
+    Examples:
+
+        GET /api/v1/runs/
+        GET /api/v1/runs/org/xxxxxxxxxxxxx/
+        GET /api/v1/runs/flow/xxxxxxxxxxxxx/
+        GET /api/v1/runs/flow/uuid/xxxxxxxxxxxxx-xxxx-xxxx-xxxx-xxxxxxx/
+
+    Response is the list of runs on the flow, most recent first:
+
+        {
+            "count": 389,
+            "next": "/api/v1/runs/?page=1",
+            "previous": null,
+            "results": [
+            {
+                "id": "xxxxxxxxxxxxxxxxxxxxxxxxx",
+                "values": [],
+                "steps": [
+                    {
+                        "text": "Hello world",
+                        "node": "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxx",
+                        "type": "A",
+                        "arrived_on": "2015-07-28T19:10:47.441000",
+                        "left_on": "2015-07-28T19:10:47.675000"
+                    },
+                    {
+                        "text": null,
+                        "node": "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxx",
+                        "type": "R",
+                        "arrived_on": "2015-07-28T19:10:47.675000",
+                        "left_on": null
+                    }
+                ],
+                "contact_id": "xxxxxxxxxxxxxxxxxxxxxxxxx",
+                "flow_id": "xxxxxxxxxxxxxxxxxxxxxxxxx",
+                "org_id": "xxxxxxxxxxxxxxxxxxxxxxxxx",
+                "completed": false,
+                "created_on": "2015-07-28T19:10:47.431000"
+            },
+            ...
+        }
+    """
     serializer_class = RunReadSerializer
     queryset = Run.objects.all()
     permission_classes = (IsAuthenticated,)
@@ -40,12 +99,59 @@ class RunList(DataListAPIView):
 
 
 class RunDetails(RetrieveAPIView):
+    """
+    This endpoint allows you to a single Run.
+
+    Example:
+
+        GET /api/v1/runs/xxxxxxxxxxxxx/
+    """
     serializer_class = RunReadSerializer
     queryset = Run.objects.all()
     permission_classes = (IsAuthenticated,)
 
 
 class ContactList(DataListAPIView):
+    """
+    This endpoint allows you to list Contacts.
+
+    ## Listing Contacts
+
+    By making a ```GET``` request you can list all the Contacts, filtering them as needed.  Each
+    flow has the following attributes:
+
+    * **id** - the ID of the poll (int)
+    * **org_id** - the ID of the org to which the run belongs(string) (filterable: ```org```)
+    * **groups** - the GROUPS to which the contact belongs (list(dictionary))
+    * **contact_fields** - the extra FIELDS for this contact (dictionary)
+    * **language** - the preferred LANGUAGE for this contact (string)
+
+    Examples:
+
+        GET /api/v1/contacts/
+        GET /api/v1/contacts/org/xxxxxxxxxxxxx/
+
+    Response is the list of contacts, most recent first:
+
+        {
+            "count": 389,
+            "next": "/api/v1/contacts/?page=1",
+            "previous": null,
+            "results": [
+            {
+                "id": "xxxxxxxxxxxxx",
+                "groups": [],
+                "contact_fields": {
+                    "last_menses_date": null,
+                    "reseaux_nombre": null,
+                    "contact_nom_site": null,
+                },
+                "language": null,
+                "org_id": "xxxxxxxxxxxxx"
+            },
+            ...
+        }
+    """
     serializer_class = ContactReadSerializer
     queryset = Contact.objects.all()
     permission_classes = (IsAuthenticated, ContactAccessPermissions)
@@ -53,17 +159,88 @@ class ContactList(DataListAPIView):
 
 
 class ContactDetails(RetrieveAPIView):
+    """
+    This endpoint allows you to a single Contact.
+
+    Example:
+
+        GET /api/v1/contacts/xxxxxxxxxxxxx/
+    """
     serializer_class = ContactReadSerializer
     queryset = Contact.objects.all()
     permission_classes = (IsAuthenticated, ContactAccessPermissions)
 
 
 class FlowList(DataListAPIView):
+    """
+    This endpoint allows you to list Flows.
+
+    ## Listing Flows
+
+    By making a ```GET``` request you can list all the flows, filtering them as needed.  Each
+    flow has the following attributes:
+
+    * **id** - the ID of the poll (int)
+    * **org_id** - the ID of the org to which the flow belongs(string) (filterable: ```org```)
+    * **created_on** - the CREATE DATE of the flow (date)
+    * **uuid** - the UUID of the flow as is in rapidpro (string)
+    * **name** - the NAME of of this flow (string)
+    * **archived** - this flag shows whether the flow is archived or not (boolean)
+    * **labels** - the LABELS attached to this flow (list(string))
+    * **participants** - the number of PARTICIPANTS in this flow (int)
+    * **runs** - the number of runs in this flow so far (int)
+    * **completed_runs** - the number of complete runs in this flow so far (int)
+    * **rulesets** - the RULESETS of this flow (list(dictionary))
+
+    Examples:
+
+        GET /api/v1/flows/
+        GET /api/v1/flows/org/xxxxxxxxxxxxx/
+
+    Response is the list flows, most recent first:
+
+        {
+            "count": 389,
+            "next": "/api/v1/flows/?page=1",
+            "previous": null,
+            "results": [
+            {
+                "id": "xxxxxxxxxxxx",
+                "org_id": "xxxxxxxxxxxxx",
+                "created_on": "2015-02-16T06:38:04.990000",
+                "uuid": "xxxxxx-xxxx-xxxx-xxxx-xxxxxxxx",
+                "name": "SAMPLE FLOW",
+                "archived": true,
+                "labels": [
+                    null
+                ],
+                "participants": 21,
+                "runs": 49,
+                "completed_runs": 22,
+                "rulesets": [
+                    {
+                        "label": "Sample Response",
+                        "uuid": "xxxxxxx-xxx-xxx-xxx-xxxxxxxxx",
+                        "response_type": "O"
+                    },
+                ]
+            },
+            ...
+        }
+    """
     serializer_class = FlowReadSerializer
     object_model = Flow
 
 
 class FlowDetails(RetrieveAPIView):
+    """
+    This endpoint allows you to a single Flow.
+
+    Examples:
+
+        GET /api/v1/flows/uuid/xxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxx/
+        GET /api/v1/flows/xxxxxxxxxxxxx/
+    """
     serializer_class = FlowReadSerializer
     queryset = Flow.objects.all()
 
@@ -74,53 +251,186 @@ class FlowDetails(RetrieveAPIView):
 
 
 class OrgList(ListAPIView):
+    """
+    This endpoint allows you to list Orgs.
+
+    ## Listing Orgs
+
+    By making a ```GET``` request you can list all the Orgs, filtering them as needed.  Each
+    flow has the following attributes:
+
+    * **id** - the ID of the org (int)
+    * **name** - the NAME of the org(string)
+    * **timezone** - the TIMEZONE of the Org (timezone)
+
+    Examples:
+
+        GET /api/v1/orgs/
+
+    Response is the list of orgs, most recent first:
+
+        {
+            "count": 389,
+            "next": "/api/v1/orgs/?page=1",
+            "previous": null,
+            "results": [
+            {
+                "name": "Uganda",
+                "id": "xxxxxxxxxxxxx",
+                "timezone": "Africa/Kampala"
+            },
+            ...
+        }
+    """
     serializer_class = OrgReadSerializer
     queryset = Org.objects.all()
 
 
 class OrgDetails(RetrieveAPIView):
+    """
+    This endpoint allows you to a single Org.
+
+    Example:
+
+        GET /api/v1/orgs/xxxxxxxxxxxxx/
+    """
     serializer_class = OrgReadSerializer
     queryset = Org.objects.all()
 
 
 class MessageList(DataListAPIView):
+    """
+    This endpoint allows you to list Messages.
+
+    ## Listing Messages
+
+    By making a ```GET``` request you can list all the Messages, filtering them as needed.  Each
+    flow has the following attributes:
+
+    * **id** - the ID of the poll (int)
+    * **org_id** - the ID of the org to which the flow belongs(string) (filterable: ```org```)
+    * **broadcast** - the ID of the broadcast if this message was part of a broadcast (date)
+    * **contact** - the ID of the contact related to this message (string)
+    * **labels** - the LABELS of this message (list(string))
+    * **created_on** - this DATE on which this message was created (datetime)
+    * **status** - the STATUS of this message (string)
+    * **type** - the TYPE of this message (string)
+    * **direction** - the DIRECTION of this message (string)
+    * **archived** - a flag that shows whether the message is archived or not (boolean)
+    * **text** - the TEXT content of this message (string)
+    * **delivered_on** - the DATE when this message was delivered (datetime)
+    * **sent_on** - the DATE when this message was sent (datetime)
+
+    Examples:
+
+        GET /api/v1/messages/
+        GET /api/v1/messages/org/xxxxxxxxxxxxx/
+
+    Response is the list flows, most recent first:
+
+        {
+            "count": 389,
+            "next": "/api/v1/flows/?page=1",
+            "previous": null,
+            "results": [
+            {
+              "id": "",
+              "org_id": "",
+              "broadcast": "",
+              "contact": "",
+              "labels": "",
+              "created_on": "",
+              "status": "",
+              "type": "",
+              "direction": "",
+              "archived": "",
+              "text": "",
+              "delivered_on": "",
+              "sent_on": ""
+            },
+            ...
+        }
+    """
     serializer_class = MessageReadSerializer
     object_model = Message
     permission_classes = (IsAuthenticated, MessageAccessPermissions)
 
 
 class MessageDetails(RetrieveAPIView):
+    """
+    This endpoint allows you to a single Message.
+
+    Example:
+
+        GET /api/v1/messages/xxxxxxxxxxxxx/
+    """
     serializer_class = MessageReadSerializer
     queryset = Message
     permission_classes = (IsAuthenticated, MessageAccessPermissions)
 
 
 class BroadcastList(DataListAPIView):
+    """
+    This endpoint allows you to list Broadcasts.
+
+    ## Listing Broadcasts
+    """
     serializer_class = BroadcastReadSerializer
     object_model = Broadcast
 
 
 class BroadcastDetails(RetrieveAPIView):
+    """
+    This endpoint allows you to a single Broadcast.
+
+    Example:
+
+        GET /api/v1/broadcasts/xxxxxxxxxxxxx/
+    """
     serializer_class = BroadcastReadSerializer
     queryset = Broadcast
 
 
 class CampaignList(DataListAPIView):
+    """
+    This endpoint allows you to list Campaigns.
+
+    ## Listing Campaigns
+    """
     serializer_class = CampaignReadSerializer
     object_model = Campaign
 
 
 class CampaignDetails(RetrieveAPIView):
+    """
+    This endpoint allows you to a single Campaign.
+
+    Example:
+
+        GET /api/v1/campaigns/xxxxxxxxxxxxx/
+    """
     serializer_class = CampaignReadSerializer
     queryset = Campaign
 
 
 class EventList(DataListAPIView):
+    """
+    This endpoint allows you to list Events.
+
+    ## Listing Events
+    """
     serializer_class = EventReadSerializer
     object_model = Event
 
 
 class EventDetails(RetrieveAPIView):
+    """
+    This endpoint allows you to a single Event.
+
+    Example:
+
+        GET /api/v1/events/xxxxxxxxxxxxx/
+    """
     serializer_class = EventReadSerializer
     queryset = Event
 

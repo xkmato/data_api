@@ -50,6 +50,7 @@ INSTALLED_APPS = (
     'rest_framework',
     'rest_framework.authtoken',
     'rest_framework_mongoengine',
+    'rest_framework_swagger',
     'djcelery',
 )
 
@@ -233,3 +234,10 @@ LOGGING = {
 }
 
 SITE_ID = 1
+
+SWAGGER_SETTINGS = {
+    'api_version': '0.1',
+    'enabled_methods': [
+        'get'
+    ],
+}
