@@ -18,8 +18,8 @@ import datetime
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 
-import djcelery
-djcelery.setup_loader()
+# import djcelery
+# djcelery.setup_loader()
 
 
 # Quick-start development settings - unsuitable for production
@@ -51,7 +51,6 @@ INSTALLED_APPS = (
     'rest_framework.authtoken',
     'rest_framework_mongoengine',
     'rest_framework_swagger',
-    'djcelery',
 )
 
 MIDDLEWARE_CLASSES = (

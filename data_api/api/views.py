@@ -6,6 +6,7 @@ from data_api.api.models import Run, Contact, Flow, Org, Message, Broadcast, Cam
 from data_api.api.permissions import ContactAccessPermissions, MessageAccessPermissions
 from data_api.api.serializers import RunReadSerializer, ContactReadSerializer, FlowReadSerializer, OrgReadSerializer, \
     MessageReadSerializer, BroadcastReadSerializer, CampaignReadSerializer, EventReadSerializer
+from data_api.api.utils import get_date_from_param
 
 __author__ = 'kenneth'
 
@@ -19,7 +20,9 @@ class DataListAPIView(ListAPIView):
             ids = [ObjectId(_id) for _id in self.request.query_params.get('ids')]
             q = q.filter(id__in=ids)
         if self.request.query_params.get('after', None):
-            q = q.filter(created_on=self.request.query_params.get('after'))
+            q = q.filter(created_on__gt=get_date_from_param(self.request.query_params.get('after')))
+        if self.request.query_params.get('before', None):
+            q = q.filter(created_on__lt=get_date_from_param(self.request.query_params.get('before')))
         return q
 
 
@@ -39,7 +42,7 @@ class RunList(DataListAPIView):
     * **contact_id** - the ID of the contact participating in this run (string)
     * **flow_id** - this ID of the flow to which this run belongs (string)
     * **completed** - the COMPLETED flag shows if the run was completed or not (boolean)
-    * **created_on** - the TIME when this run was created (datetime)
+    * **created_on** - the TIME when this run was created (datetime) (filterable: ```before``` and ```after``` - format: ```ddmmyyyy```)
 
     Examples:
 
@@ -47,6 +50,7 @@ class RunList(DataListAPIView):
         GET /api/v1/runs/org/xxxxxxxxxxxxx/
         GET /api/v1/runs/flow/xxxxxxxxxxxxx/
         GET /api/v1/runs/flow/uuid/xxxxxxxxxxxxx-xxxx-xxxx-xxxx-xxxxxxx/
+        GET /api/v1/runs/?after=13012016&before=15012016
 
     Response is the list of runs on the flow, most recent first:
 
@@ -182,7 +186,7 @@ class FlowList(DataListAPIView):
 
     * **id** - the ID of the poll (int)
     * **org_id** - the ID of the org to which the flow belongs(string) (filterable: ```org```)
-    * **created_on** - the CREATE DATE of the flow (date)
+    * **created_on** - the CREATE DATE of the flow (date) (filterable: ```before``` and ```after``` - format: ```ddmmyyyy```)
     * **uuid** - the UUID of the flow as is in rapidpro (string)
     * **name** - the NAME of of this flow (string)
     * **archived** - this flag shows whether the flow is archived or not (boolean)
@@ -196,6 +200,7 @@ class FlowList(DataListAPIView):
 
         GET /api/v1/flows/
         GET /api/v1/flows/org/xxxxxxxxxxxxx/
+        GET /api/v1/flows/?after=13012016&before=15012016
 
     Response is the list flows, most recent first:
 
@@ -312,7 +317,7 @@ class MessageList(DataListAPIView):
     * **broadcast** - the ID of the broadcast if this message was part of a broadcast (date)
     * **contact** - the ID of the contact related to this message (string)
     * **labels** - the LABELS of this message (list(string))
-    * **created_on** - this DATE on which this message was created (datetime)
+    * **created_on** - this DATE on which this message was created (datetime) (filterable: ```before``` and ```after``` - format: ```ddmmyyyy```)
     * **status** - the STATUS of this message (string)
     * **type** - the TYPE of this message (string)
     * **direction** - the DIRECTION of this message (string)
