@@ -8,6 +8,7 @@ django-celery-transactions==0.3.2
 django-rest-framework-mongoengine==2.0.2
 django-rest-swagger==0.3.4
 djangorestframework==3.0.0
+fabric==1.11.1
 kombu==3.0.26
 Markdown==2.6.2
 mongoengine==0.8.7
