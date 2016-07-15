@@ -30,6 +30,14 @@ class RunList(DataListAPIView):
     """
     This endpoint allows you to list Runs.
 
+    ## Filters
+
+    You can use the filters below in the url query string(```?filter=value```) to filter the data
+
+    * **page_size** - Determine number of results per page. Maximum 1000, default 10 (int)
+    * **before** - Return results with ```created_on``` date before (digit) (format ``ddmmyyyy``)
+    * **after** - Return results with ```created_on``` date after (digit) (format ``ddmmyyyy``)
+
     ## Listing Runs
 
     By making a ```GET``` request you can list all the runs, filtering them as needed.  Each
@@ -119,6 +127,12 @@ class ContactList(DataListAPIView):
     """
     This endpoint allows you to list Contacts.
 
+    ## Filters
+
+    You can use the filters below in the url query string(```?filter=value```) to filter the data
+
+    * **page_size** - Determine number of results per page. Maximum 1000, default 10 (int)
+
     ## Listing Contacts
 
     By making a ```GET``` request you can list all the Contacts, filtering them as needed.  Each
@@ -178,6 +192,14 @@ class ContactDetails(RetrieveAPIView):
 class FlowList(DataListAPIView):
     """
     This endpoint allows you to list Flows.
+
+    ## Filters
+
+    You can use the filters below in the url query string(```?filter=value```) to filter the data
+
+    * **page_size** - Determine number of results per page. Maximum 1000, default 10 (int)
+    * **before** - Return results with ```created_on``` date before (digit) (format ``ddmmyyyy``)
+    * **after** - Return results with ```created_on``` date after (digit) (format ``ddmmyyyy``)
 
     ## Listing Flows
 
@@ -307,6 +329,14 @@ class MessageList(DataListAPIView):
     """
     This endpoint allows you to list Messages.
 
+    ## Filters
+
+    You can use the filters below in the url query string(```?filter=value```) to filter the data
+
+    * **page_size** - Determine number of results per page. Maximum 1000, default 10 (int)
+    * **before** - Return results with ```created_on``` date before (digit) (format ``ddmmyyyy``)
+    * **after** - Return results with ```created_on``` date after (digit) (format ``ddmmyyyy``)
+
     ## Listing Messages
 
     By making a ```GET``` request you can list all the Messages, filtering them as needed.  Each
@@ -378,6 +408,12 @@ class BroadcastList(DataListAPIView):
     """
     This endpoint allows you to list Broadcasts.
 
+    ## Filters
+
+    You can use the filters below in the url query string(```?filter=value```) to filter the data
+
+    * **page_size** - Determine number of results per page. Maximum 1000, default 10 (int)
+
     ## Listing Broadcasts
     """
     serializer_class = BroadcastReadSerializer
@@ -399,6 +435,12 @@ class BroadcastDetails(RetrieveAPIView):
 class CampaignList(DataListAPIView):
     """
     This endpoint allows you to list Campaigns.
+
+    ## Filters
+
+    You can use the filters below in the url query string(```?filter=value```) to filter the data
+
+    * **page_size** - Determine number of results per page. Maximum 1000, default 10 (int))
 
     ## Listing Campaigns
     """
@@ -422,6 +464,12 @@ class EventList(DataListAPIView):
     """
     This endpoint allows you to list Events.
 
+    ## Filters
+
+    You can use the filters below in the url query string(```?filter=value```) to filter the data
+
+    * **page_size** - Determine number of results per page. Maximum 1000, default 10 (int)
+
     ## Listing Events
     """
     serializer_class = EventReadSerializer
@@ -431,6 +479,12 @@ class EventList(DataListAPIView):
 class EventDetails(RetrieveAPIView):
     """
     This endpoint allows you to a single Event.
+
+    ## Filters
+
+    You can use the filters below in the url query string(```?filter=value```) to filter the data
+
+    * **page_size** - Determine number of results per page. Maximum 1000, default 10 (int)
 
     Example:
 
