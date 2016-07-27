@@ -166,22 +166,22 @@ class FlowReadSerializer(BaseDocumentSerializer):
 
 
 class MessageReadSerializer(BaseDocumentSerializer):
-    broadcast = SerializerMethodField()
+    # broadcast = SerializerMethodField()
     contact = SerializerMethodField()
-    labels = SerializerMethodField()
+    # labels = SerializerMethodField()
 
     class Meta:
         model = Message
-        exclude = ALWAYS_EXCLUDE + ('tid', 'urn')
+        exclude = ALWAYS_EXCLUDE + ('tid', 'urn', 'broadcast')
 
-    def get_broadcast(self, obj):
-        return str(obj.broadcast.get('id', '')) or None
+    # def get_broadcast(self, obj):
+    #     return str(obj.broadcast.get('id', '')) or None
 
     def get_contact(self, obj):
         return str(obj.contact.get('id', '')) or None
 
-    def get_labels(self, obj):
-        return [l['name'] for l in obj.labels]
+    # def get_labels(self, obj):
+    #     return [l['name'] for l in obj.labels]
 
 
 class BroadcastReadSerializer(BaseDocumentSerializer):
