@@ -158,7 +158,10 @@ class RunReadSerializer(BaseDocumentSerializer):
         return None
 
     def get_completed(self, obj):
-        return eval(obj.completed)
+        try:
+            return eval(obj.completed)
+        except TypeError:
+            return None
 
 
 class FlowReadSerializer(BaseDocumentSerializer):
