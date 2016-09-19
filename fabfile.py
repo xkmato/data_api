@@ -6,7 +6,7 @@ __author__ = 'kenneth'
 
 def deploy(user='www-data', git_hash=None):
     source = 'https://github.com/rapidpro/data_api.git'
-    proc_name = 'data_shell'
+    proc_name = 'api'
     path = '/var/www/data_api'
     workon_home = '/var/www/.virtualenvs/api/bin/'
 
@@ -24,7 +24,7 @@ def deploy(user='www-data', git_hash=None):
             run("git fetch")
             run("git checkout %s" % git_hash)
         run('%spip install -r requirements.txt' % workon_home)
-        run('%spython manage.py collectstatic' % workon_home)
+        run('%spython manage.py collectstatic --noinput' % workon_home)
 
         sudo("chown -R %s:%s ." % (user, user))
         sudo("chmod -R ug+rwx .")

@@ -150,8 +150,11 @@ class RunReadSerializer(BaseDocumentSerializer):
         return None
 
     def get_flow_id(self, obj):
-        if obj.flow.has_key("id"):
-            return unicode(obj.flow['id'])
+        try:
+            if obj.flow.has_key("id"):
+                return unicode(obj.flow['id'])
+        except AttributeError:
+            return obj.flow
         return None
 
     def get_completed(self, obj):
