@@ -57,7 +57,7 @@ class RunList(DataListAPIView):
         GET /api/v1/runs/
         GET /api/v1/runs/org/xxxxxxxxxxxxx/
         GET /api/v1/runs/flow/xxxxxxxxxxxxx/
-        GET /api/v1/runs/flow/uuid/xxxxxxxxxxxxx-xxxx-xxxx-xxxx-xxxxxxx/
+        GET /api/v1/runs/flow_uuid/xxxxxxxxxxxxx-xxxx-xxxx-xxxx-xxxxxxx/
         GET /api/v1/runs/?after=13012016&before=15012016
 
     Response is the list of runs on the flow, most recent first:
