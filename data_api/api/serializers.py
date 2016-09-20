@@ -115,7 +115,7 @@ class ContactReadSerializer(BaseDocumentSerializer):
                 return [g['name'] for g in obj.groups]
             return []
         except TypeError:
-            return obj.groups
+            return [str(g) for g in obj.groups]
 
     def get_eval_fields(self, obj):
         return eval(obj.fields)
