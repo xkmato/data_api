@@ -110,12 +110,9 @@ class ContactReadSerializer(BaseDocumentSerializer):
         fields = ('id', 'groups', 'contact_fields', 'language', 'org_id')
 
     def get_groups(self, obj):
-        try:
-            if obj.groups:
-                return [g['name'] for g in obj.groups]
-            return []
-        except TypeError:
-            return [str(g) for g in obj.groups]
+        if obj.groups:
+            return [g.get('name') for g in obj.groups if isinstance(g, dict)]
+        return []
 
     def get_eval_fields(self, obj):
         return eval(obj.fields)
