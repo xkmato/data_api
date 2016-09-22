@@ -14,7 +14,7 @@ __author__ = 'kenneth'
 class DataListAPIView(ListAPIView):
     def get_queryset(self):
         if not self.kwargs.get('org'):
-            return self.object_model.none()
+            return self.object_model.objects.none()
         q = self.object_model.objects.all()
         if self.kwargs.get('org'):
             q = self.object_model.get_for_org(self.kwargs['org'])
