@@ -3,7 +3,7 @@ from mongoengine.django.shortcuts import get_document_or_404
 from rest_framework.permissions import IsAuthenticated
 from rest_framework_mongoengine.generics import ListAPIView, RetrieveAPIView
 from data_api.api.models import Run, Contact, Flow, Org, Message, Broadcast, Campaign, Event
-from data_api.api.permissions import ContactAccessPermissions, MessageAccessPermissions
+from data_api.api.permissions import ContactAccessPermissions, MessageAccessPermissions, OrgAccessPermissions
 from data_api.api.serializers import RunReadSerializer, ContactReadSerializer, FlowReadSerializer, OrgReadSerializer, \
     MessageReadSerializer, BroadcastReadSerializer, CampaignReadSerializer, EventReadSerializer
 from data_api.api.utils import get_date_from_param
@@ -13,6 +13,8 @@ __author__ = 'kenneth'
 
 class DataListAPIView(ListAPIView):
     def get_queryset(self):
+        if not self.kwargs.get('org'):
+            return self.object_model.none()
         q = self.object_model.objects.all()
         if self.kwargs.get('org'):
             q = self.object_model.get_for_org(self.kwargs['org'])
@@ -54,7 +56,6 @@ class RunList(DataListAPIView):
 
     Examples:
 
-        GET /api/v1/runs/
         GET /api/v1/runs/org/xxxxxxxxxxxxx/
         GET /api/v1/runs/flow/xxxxxxxxxxxxx/
         GET /api/v1/runs/flow_uuid/xxxxxxxxxxxxx-xxxx-xxxx-xxxx-xxxxxxx/
@@ -146,7 +147,6 @@ class ContactList(DataListAPIView):
 
     Examples:
 
-        GET /api/v1/contacts/
         GET /api/v1/contacts/org/xxxxxxxxxxxxx/
 
     Response is the list of contacts, most recent first:
@@ -220,7 +220,6 @@ class FlowList(DataListAPIView):
 
     Examples:
 
-        GET /api/v1/flows/
         GET /api/v1/flows/org/xxxxxxxxxxxxx/
         GET /api/v1/flows/?after=13012016&before=15012016
 
@@ -311,6 +310,7 @@ class OrgList(ListAPIView):
     """
     serializer_class = OrgReadSerializer
     queryset = Org.objects.all()
+    permission_classes = (IsAuthenticated, OrgAccessPermissions)
 
 
 class OrgDetails(RetrieveAPIView):
@@ -358,7 +358,6 @@ class MessageList(DataListAPIView):
 
     Examples:
 
-        GET /api/v1/messages/
         GET /api/v1/messages/org/xxxxxxxxxxxxx/
 
     Response is the list flows, most recent first:

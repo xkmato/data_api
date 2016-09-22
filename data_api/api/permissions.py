@@ -19,3 +19,7 @@ class ContactAccessPermissions(EntityAccessPermissions):
 
 class MessageAccessPermissions(EntityAccessPermissions):
     _group = getattr(settings, 'MESSAGE_ACCESS_GROUP', "message_access")
+
+
+class OrgAccessPermissions(EntityAccessPermissions):
+    _group = getattr(settings, 'ORG_ACCESS_GROUP', "org_access")
