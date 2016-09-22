@@ -104,7 +104,6 @@ class RunList(DataListAPIView):
 
     def get_queryset(self):
         q = super(RunList, self).get_queryset()
-        q = q.exclude(flow__id=ObjectId(settings.EXCLUDED_FLOWS))
         if self.kwargs.get('flow'):
             q = q.filter(flow__id=ObjectId(self.kwargs.get('flow')))
         if self.kwargs.get('flow_uuid'):
