@@ -5,7 +5,7 @@ __author__ = 'kenneth'
 
 
 def deploy(user='www-data', git_hash=None):
-    source = 'https://github.com/xkmato/data_api.git'
+    source = 'https://github.com/rapidpro/data_api.git'
     proc_name = 'api'
     path = '/var/www/data_api'
     workon_home = '/var/www/.virtualenvs/api/bin/'
