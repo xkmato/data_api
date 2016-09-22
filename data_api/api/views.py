@@ -1,4 +1,5 @@
 from bson import ObjectId
+from django.conf import settings
 from mongoengine.django.shortcuts import get_document_or_404
 from rest_framework.permissions import IsAuthenticated
 from rest_framework_mongoengine.generics import ListAPIView, RetrieveAPIView
@@ -103,6 +104,7 @@ class RunList(DataListAPIView):
 
     def get_queryset(self):
         q = super(RunList, self).get_queryset()
+        q = q.exclude(flow__id=ObjectId(settings.EXCLUDED_FLOWS))
         if self.kwargs.get('flow'):
             q = q.filter(flow__id=ObjectId(self.kwargs.get('flow')))
         if self.kwargs.get('flow_uuid'):

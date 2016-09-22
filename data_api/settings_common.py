@@ -239,4 +239,6 @@ SWAGGER_SETTINGS = {
     'enabled_methods': [
         'get'
     ],
-}
+},
+
+EXCLUDED_FLOWS = '55b99f354439f1187a6df178'
