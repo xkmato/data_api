@@ -33,7 +33,7 @@ class FlowStepReadSerializer(serializers.EmbeddedDocumentSerializer):
     def get_text(self, obj):
         if not obj.text:
             return None
-        if obj.type == 'R':
+        if obj.type == 'A':
             return "#hidden#"
         return FlowStepReadSerializer.remove_word_before_or_after(obj.text.lower())
 
