@@ -4,7 +4,7 @@ from django.conf import settings
 import requests
 from retrying import retry
 from temba.base import TembaAPIError, TembaConnectionError, TembaException, TembaPager
-from data_api.api.models import BaseUtil, Org
+from data_api.api.models import BaseUtil, Org, Message
 from djcelery_transactions import task
 
 __author__ = 'kenneth'
@@ -55,3 +55,8 @@ def fetch_all(entities=None, orgs=None):
                 continue
             except Exception as e:
                 logger.error("Things are dead: %s - No retry", str(traceback.format_exc()))
+
+
+@task
+def generate_district_csv():
+    Message.generate_csv()

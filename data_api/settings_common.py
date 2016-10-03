@@ -113,13 +113,13 @@ BROKER_URL = 'redis://'
 
 cron_minutes = int(os.environ.get('FETCH_SLEEP', 60*24*7))
 
-CELERYBEAT_SCHEDULE = {
-    'sync-all': {
-        'task': 'data_api.api.tasks.fetch_all',
-        'schedule': datetime.timedelta(minutes=cron_minutes),
-        'args': ()
-    }
-}
+# CELERYBEAT_SCHEDULE = {
+#     'sync-all': {
+#         'task': 'data_api.api.tasks.fetch_all',
+#         'schedule': datetime.timedelta(minutes=cron_minutes),
+#         'args': ()
+#     }
+# }
 
 # Database
 # https://docs.djangoproject.com/en/1.8/ref/settings/#databases
@@ -242,3 +242,6 @@ SWAGGER_SETTINGS = {
 },
 
 EXCLUDED_FLOWS = '55b99f354439f1187a6df178'
+
+MAX_RECORDS_PER_EXPORT = 2000
+CSV_DUMPS_FOLDER = '/mnt/data1/csv_dumps'

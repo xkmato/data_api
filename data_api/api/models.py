@@ -1,3 +1,4 @@
+import csv
 from datetime import datetime
 from bson.errors import InvalidId
 from bson.objectid import ObjectId
@@ -9,6 +10,7 @@ from mongoengine import connect, Document, StringField, BooleanField, ReferenceF
 from rest_framework.authtoken.models import Token
 from temba import TembaClient
 from temba.base import TembaNoSuchObjectError, TembaException
+from data_api.api.utils import create_folder_for_org
 
 __author__ = 'kenneth'
 
@@ -337,7 +339,40 @@ class Message(Document, BaseUtil):
 
     def __unicode__(self):
         return "%s - %s" % (self.text[:7], self.org)
-    
+
+    @classmethod
+    def generate_csv(cls, from_date=None, org_id=None, contact_fields=None):
+        create_folder_for_org(org_id)
+        if not from_date:
+            from_date = datetime(2016, 1, 1)
+        if not org_id:
+            org_id = '578c88f64439f1157befb2c6'
+        if not contact_fields:
+            contact_fields = ['age_groups', 'education_level', 'village', 'occupation', 'district', 'year_born',
+                              'registration_date', 'subcounty', 'gender', 'age', 'village_name', 'isfacebookuser',
+                              'istwitteruser', 'isinternetuser', 'recruitment_source']
+
+        message_attributes = ['created_on', 'text', 'direction', 'status', 'sent_on', 'type']
+        file_number = 0
+        for message in cls.objects.filter(created_on__gt=from_date):
+            contact = Contact.objects.filter(id=ObjectId(message.contact.id)).first()
+            record_number = 0
+            with open('%s/%s/messages_export_%s_%d' % (settings.CSV_DUMPS_FOLDER, org_id, str(datetime.now()),
+                                                       file_number), 'w') as csv_file:
+                while record_number < settings.MAX_RECORDS_PER_EXPORT:
+                    writer = csv.DictWriter(csv_file, fieldnames=message_attributes+['contact_%s' % a
+                                                                                     for a in contact_fields])
+                    writer.writeheader()
+
+                    m_dict = {}
+                    for attrib in message_attributes:
+                        m_dict[attrib] = getattr(message, attrib)
+                    for _attrib in contact_fields:
+                        m_dict['contact_%s' % _attrib] = getattr(contact, _attrib)
+                    writer.writerow(m_dict)
+                    record_number += 1
+            file_number += 1
+
 
 class RunValueSet(EmbeddedDocument, EmbeddedUtil):
     node = StringField()
