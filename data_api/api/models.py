@@ -355,7 +355,7 @@ class Message(Document, BaseUtil):
         message_attributes = ['created_on', 'text', 'direction', 'status', 'sent_on', 'type']
         file_number = 0
         for message in cls.objects.filter(created_on__gt=from_date):
-            contact = Contact.objects.filter(id=ObjectId(message.contact.id)).first()
+            contact = Contact.objects.filter(id=ObjectId(message.contact.get('id'))).first()
             record_number = 0
             with open('%s/%s/messages_export_%s_%d.csv' % (settings.CSV_DUMPS_FOLDER, org_id, str(datetime.now()),
                                                            file_number), 'w') as csv_file:
