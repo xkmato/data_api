@@ -12,6 +12,6 @@ def get_date_from_param(param):
 
 
 def create_folder_for_org(org_id):
-    path = '%s/%s' % (settings.MAX_RECORDS_PER_EXPORT, org_id)
+    path = '%s/%s' % (settings.CSV_DUMPS_FOLDER, org_id)
     if not os.path.exists(path):
         os.makedirs(path)

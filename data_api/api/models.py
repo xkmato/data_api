@@ -160,7 +160,7 @@ class BaseUtil(object):
         return objs
 
     # def __unicode__(self):
-    #     if hasattr(self, 'name'):
+    # if hasattr(self, 'name'):
     #         return '%s - %s' % (self.name, self.org)
     #     return "Base Util Object"
 
@@ -342,35 +342,48 @@ class Message(Document, BaseUtil):
 
     @classmethod
     def generate_csv(cls, from_date=None, org_id=None, contact_fields=None):
-        create_folder_for_org(org_id)
         if not from_date:
             from_date = datetime(2016, 1, 1)
         if not org_id:
-            org_id = '578c88f64439f1157befb2c6'
+            org_id = settings.DEFAULT_ORG
+        create_folder_for_org(org_id)
         if not contact_fields:
-            contact_fields = ['age_groups', 'education_level', 'village', 'occupation', 'district', 'year_born',
-                              'registration_date', 'subcounty', 'gender', 'age', 'village_name', 'isfacebookuser',
-                              'istwitteruser', 'isinternetuser', 'recruitment_source']
+            contact_fields = settings.DEFAULT_CONTACT_FIELDS
 
-        message_attributes = ['created_on', 'text', 'direction', 'status', 'sent_on', 'type']
+        message_attributes = settings.DEFAULT_MESSAGE_ATTRIBUTES
         file_number = 0
-        for message in cls.objects.filter(created_on__gt=from_date):
-            contact = Contact.objects.filter(id=ObjectId(message.contact.get('id'))).first()
-            record_number = 0
+        record_number = 0
+        while cls.objects.filter(created_on__gte=from_date)[
+                           record_number: record_number + settings.MAX_RECORDS_PER_EXPORT].first():
             with open('%s/%s/messages_export_%s_%d.csv' % (settings.CSV_DUMPS_FOLDER, org_id, str(datetime.now()),
                                                            file_number), 'w') as csv_file:
-                while record_number < settings.MAX_RECORDS_PER_EXPORT:
-                    writer = csv.DictWriter(csv_file, fieldnames=message_attributes+['contact_%s' % a
-                                                                                     for a in contact_fields])
-                    writer.writeheader()
+                writer = csv.DictWriter(csv_file, fieldnames=message_attributes + ['contact_%s' % a
+                                                                                   for a in contact_fields])
+                writer.writeheader()
+                for message in cls.objects.filter(created_on__gt=from_date)[
+                               record_number: record_number + settings.MAX_RECORDS_PER_EXPORT]:
+                    try:
+                        contact = Contact.objects.filter(id=ObjectId(message.contact.get('id'))).first()
+                        if contact:
+                            try:
+                                fields = eval(contact.fields)
+                            except NameError:
+                                fields = {}
 
-                    m_dict = {}
-                    for attrib in message_attributes:
-                        m_dict[attrib] = getattr(message, attrib)
-                    for _attrib in contact_fields:
-                        m_dict['contact_%s' % _attrib] = getattr(contact, _attrib)
-                    writer.writerow(m_dict)
-                    record_number += 1
+                        m_dict = {}
+                        for attrib in message_attributes:
+                            m_dict[attrib] = unicode(getattr(message, attrib)).encode('utf-8')
+                        if contact:
+                            for _attrib in contact_fields:
+                                m_dict['contact_%s' % _attrib] = unicode(fields.get(_attrib)).encode('utf-8')
+                        writer.writerow(m_dict)
+                        record_number += 1
+                        if record_number >= record_number+settings.MAX_RECORDS_PER_EXPORT:
+                            break
+                    except UnicodeEncodeError:
+                        pass #Todo Figure out what todo here
+                    except Exception:
+                        pass
             file_number += 1
 
 
@@ -385,7 +398,7 @@ class RunValueSet(EmbeddedDocument, EmbeddedUtil):
 
     def __unicode__(self):
         return self.text[:7]
-    
+
 
 class FlowStep(EmbeddedDocument, EmbeddedUtil):
     node = StringField()
@@ -397,7 +410,7 @@ class FlowStep(EmbeddedDocument, EmbeddedUtil):
 
     def __unicode__(self):
         return self.text[:7]
-    
+
 
 class Run(Document, BaseUtil):
     org = DictField()
@@ -421,7 +434,7 @@ class Run(Document, BaseUtil):
             return cls.objects.filter(flow__id=ObjectId(flow_id))
         except InvalidId:
             return cls.objects.none()
-    
+
 
 class CategoryStats(EmbeddedDocument, EmbeddedUtil):
     count = IntField()
@@ -429,7 +442,7 @@ class CategoryStats(EmbeddedDocument, EmbeddedUtil):
 
     def __unicode__(self):
         return self.label
-    
+
 
 class Result(Document, BaseUtil):
     org = DictField()
@@ -446,7 +459,7 @@ class Result(Document, BaseUtil):
 
     def __unicode__(self):
         return "%s - %s" % (self.label, self.org)
-    
+
 
 class Geometry(EmbeddedDocument, EmbeddedUtil):
     type = StringField()
@@ -454,7 +467,7 @@ class Geometry(EmbeddedDocument, EmbeddedUtil):
 
     def __unicode__(self):
         return self.coordinates
-    
+
 
 class Boundary(Document, BaseUtil):
     org = DictField()
