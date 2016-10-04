@@ -357,8 +357,8 @@ class Message(Document, BaseUtil):
         for message in cls.objects.filter(created_on__gt=from_date):
             contact = Contact.objects.filter(id=ObjectId(message.contact.id)).first()
             record_number = 0
-            with open('%s/%s/messages_export_%s_%d' % (settings.CSV_DUMPS_FOLDER, org_id, str(datetime.now()),
-                                                       file_number), 'w') as csv_file:
+            with open('%s/%s/messages_export_%s_%d.csv' % (settings.CSV_DUMPS_FOLDER, org_id, str(datetime.now()),
+                                                           file_number), 'w') as csv_file:
                 while record_number < settings.MAX_RECORDS_PER_EXPORT:
                     writer = csv.DictWriter(csv_file, fieldnames=message_attributes+['contact_%s' % a
                                                                                      for a in contact_fields])
