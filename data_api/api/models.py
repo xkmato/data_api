@@ -494,7 +494,7 @@ class Run(Document, BaseUtil):
         run_attributes = ['created_on', 'kind', 'flow_uuid', 'flow_name']
         file_number = 0
         record_number = 0
-        q = cls.get_for_org(org_id).filter(created_on__gt=from_date).order_by('created_on')
+        q = cls.get_for_org(org_id).filter(created_on__gt=from_date, values__ne=[]).order_by('created_on')
         while q[record_number: record_number + settings.MAX_RECORDS_PER_EXPORT].first():
             with open('%s/%s/runs/export_%s_%d.csv' % (settings.CSV_DUMPS_FOLDER, org_id, str(datetime.now()),
                                                            file_number), 'w') as csv_file:
@@ -549,7 +549,6 @@ class Run(Document, BaseUtil):
                         logger.error(e)
                 CSVExport.update_for_runs(org_id, run.created_on)
             file_number += 1
-
 
 
 class CategoryStats(EmbeddedDocument, EmbeddedUtil):
