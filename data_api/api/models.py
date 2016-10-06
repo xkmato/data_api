@@ -1,8 +1,10 @@
 import csv
 from datetime import datetime
+import logging
 from bson.errors import InvalidId
 from bson.objectid import ObjectId
 from django.conf import settings
+from django.db import models
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from mongoengine import connect, Document, StringField, BooleanField, ReferenceField, DateTimeField, IntField, \
@@ -15,6 +17,47 @@ from data_api.api.utils import create_folder_for_org
 __author__ = 'kenneth'
 
 connect(db="rapidpro")
+
+logging.basicConfig(format=settings.LOG_FORMAT)
+logger = logging.getLogger("models")
+
+
+class CSVExport(models.Model):
+    org_id = models.CharField(max_length=100)
+    created_on = models.DateTimeField(auto_now_add=True)
+    modified_on = models.DateTimeField(auto_now=True)
+    last_object = models.DateTimeField()
+    object_model = models.CharField(max_length=100)
+
+    @classmethod
+    def update_for_object(cls, org_id, obj_id, obj_type):
+        obj = cls.objects.filter(object_model=obj_type, org_id=org_id).first()
+        if not obj:
+            obj = cls.objects.create(object_model=obj_type, last_object=obj_id, org_id=org_id)
+        else:
+            obj.last_object = obj_id
+            obj.save()
+        return obj
+
+    @classmethod
+    def update_for_messages(cls, org_id, obj_id):
+        return cls.update_for_object(org_id, obj_id, 'message')
+
+    @classmethod
+    def update_for_runs(cls, org_id, obj_id):
+        return cls.update_for_object(org_id, obj_id, 'run')
+
+    @classmethod
+    def get_last_object(cls, org, obj_type):
+        return cls.objects.filter(object_model=obj_type, org_id=org)
+
+    @classmethod
+    def get_last_message(cls, org):
+        return cls.get_last_object(org, 'message')
+
+    @classmethod
+    def get_last_run(cls, org):
+        return cls.get_last_object(org, 'run')
 
 
 class Org(Document):
@@ -353,9 +396,9 @@ class Message(Document, BaseUtil):
         message_attributes = settings.DEFAULT_MESSAGE_ATTRIBUTES
         file_number = 0
         record_number = 0
-        q = cls.get_for_org(org_id)
+        q = cls.get_for_org(org_id).filter(created_on__gt=from_date)
         while q[record_number: record_number + settings.MAX_RECORDS_PER_EXPORT].first():
-            with open('%s/%s/messages_export_%s_%d.csv' % (settings.CSV_DUMPS_FOLDER, org_id, str(datetime.now()),
+            with open('%s/%s/messages/export_%s_%d.csv' % (settings.CSV_DUMPS_FOLDER, org_id, str(datetime.now()),
                                                            file_number), 'w') as csv_file:
                 writer = csv.DictWriter(csv_file, fieldnames=message_attributes + ['contact_%s' % a
                                                                                    for a in contact_fields])
@@ -379,10 +422,12 @@ class Message(Document, BaseUtil):
                         record_number += 1
                         if record_number >= record_number+settings.MAX_RECORDS_PER_EXPORT:
                             break
-                    except UnicodeEncodeError:
-                        pass #Todo Figure out what todo here
-                    except Exception:
-                        pass
+                    except UnicodeEncodeError as e:
+                        logger.error(e)
+                        #Todo Figure out what todo here
+                    except Exception as e:
+                        logger.error(e)
+                CSVExport.update_for_messages(org_id, message.created_on)
             file_number += 1
 
 
@@ -433,6 +478,78 @@ class Run(Document, BaseUtil):
             return cls.objects.filter(flow__id=ObjectId(flow_id))
         except InvalidId:
             return cls.objects.none()
+
+    @classmethod
+    def generate_csv(cls, from_date=None, org_id=None, contact_fields=None):
+        if not org_id:
+            org_id = settings.DEFAULT_ORG
+        create_folder_for_org(org_id)
+        if not from_date:
+            from_date = datetime(2016, 1, 1)
+        if not contact_fields:
+            contact_fields = settings.DEFAULT_CONTACT_FIELDS
+
+        step_attributes = ['node', 'text', 'value', 'type', 'arrived_on', 'left_on']
+        ruleset_attributes = ['node', 'category', 'text', 'rule_value', 'label', 'value', 'time']
+        run_attributes = ['created_on', 'kind']
+        file_number = 0
+        record_number = 0
+        q = cls.get_for_org(org_id).filter(created_on__gt=from_date).order_by('created_on')
+        while q[record_number: record_number + settings.MAX_RECORDS_PER_EXPORT].first():
+            with open('%s/%s/runs/export_%s_%d.csv' % (settings.CSV_DUMPS_FOLDER, org_id, str(datetime.now()),
+                                                           file_number), 'w') as csv_file:
+                writer = csv.DictWriter(csv_file, fieldnames=run_attributes + ['step_%s' % sa for sa in step_attributes]
+                                                                + ['ruleset_%s' % ra for ra in ruleset_attributes] +
+                                                                ['contact_%s' % a for a in contact_fields])
+                writer.writeheader()
+                for run in q[record_number: record_number + settings.MAX_RECORDS_PER_EXPORT]:
+                    try:
+                        flow = Flow.objects.filter(id=ObjectId(run.flow.get('id'))).first()
+                        contact = Contact.objects.filter(id=ObjectId(run.contact.get('id'))).first()
+                        if contact:
+                            try:
+                                fields = eval(contact.fields)
+                            except NameError:
+                                fields = {}
+
+                        m_dict = {'created_on': unicode(run.created_on), 'flow_uuid': flow.uuid if flow else None,
+                                  'flow_name': flow.name if flow else None}
+                        if contact:
+                            for _attrib in contact_fields:
+                                m_dict['contact_%s' % _attrib] = unicode(fields.get(_attrib)).encode('utf-8')
+                        r_dict, s_dict = {}, {}
+                        try:
+                            for ruleset in run.values:
+                                m_dict['kind'] = 'value'
+                                for ra in ruleset_attributes:
+                                    r_dict['ruleset_%s' % ra] = unicode(getattr(ruleset, ra, None)).encode('utf-8')
+                                x = m_dict.copy()
+                                x.update(r_dict)
+                                writer.writerow(x)
+                                record_number += 1
+                        except Exception as e:
+                            logger.error(e)
+                        # try:
+                        #     for step in run.steps:
+                        #         m_dict['kind'] = 'step'
+                        #         for sa in step_attributes:
+                        #             s_dict['step_%s' % sa] = unicode(getattr(step, sa, None)).encode('utf-8')
+                        #         x = m_dict.copy()
+                        #         x.update(s_dict)
+                        #         writer.writerow(x)
+                        #         record_number += 1
+                        # except Exception as e:
+                        #     logger.error(e)
+                        if record_number >= record_number+settings.MAX_RECORDS_PER_EXPORT:
+                            break
+                    except UnicodeEncodeError as e:
+                        logger.error(e)
+                        #Todo Figure out what todo here
+                    except Exception as e:
+                        logger.error(e)
+                CSVExport.update_for_runs(org_id, run.created_on)
+            file_number += 1
+
 
 
 class CategoryStats(EmbeddedDocument, EmbeddedUtil):

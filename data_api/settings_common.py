@@ -244,7 +244,7 @@ SWAGGER_SETTINGS = {
 
 EXCLUDED_FLOWS = '55b99f354439f1187a6df178'
 
-MAX_RECORDS_PER_EXPORT = 2000
+MAX_RECORDS_PER_EXPORT = 5000
 CSV_DUMPS_FOLDER = '/mnt/data1/csv_dumps'
 DEFAULT_ORG = '578c88f64439f1157befb2c6'
 DEFAULT_MESSAGE_ATTRIBUTES = ['created_on', 'text', 'direction', 'status', 'sent_on', 'type']

@@ -15,3 +15,5 @@ def create_folder_for_org(org_id):
     path = '%s/%s' % (settings.CSV_DUMPS_FOLDER, org_id)
     if not os.path.exists(path):
         os.makedirs(path)
+        os.makedirs('%s/messages' % path)
+        os.makedirs('%s/runs' % path)

@@ -4,7 +4,7 @@ from django.conf import settings
 import requests
 from retrying import retry
 from temba.base import TembaAPIError, TembaConnectionError, TembaException, TembaPager
-from data_api.api.models import BaseUtil, Org, Message
+from data_api.api.models import BaseUtil, Org, Message, Run
 from djcelery_transactions import task
 
 __author__ = 'kenneth'
@@ -58,5 +58,9 @@ def fetch_all(entities=None, orgs=None):
 
 
 @task
-def generate_district_csv():
+def generate_message_dumps():
     Message.generate_csv()
+
+@task
+def generate_run_dumps():
+    Run.generate_csv()
