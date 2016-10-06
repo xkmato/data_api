@@ -526,7 +526,6 @@ class Run(Document, BaseUtil):
                                 x = m_dict.copy()
                                 x.update(r_dict)
                                 writer.writerow(x)
-                                record_number += 1
                         except Exception as e:
                             logger.error(e)
                         # try:
@@ -540,6 +539,7 @@ class Run(Document, BaseUtil):
                         #         record_number += 1
                         # except Exception as e:
                         #     logger.error(e)
+                        record_number += 1
                         if record_number >= record_number+settings.MAX_RECORDS_PER_EXPORT:
                             break
                     except UnicodeEncodeError as e:
