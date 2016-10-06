@@ -4,7 +4,7 @@ from fabric.operations import run, sudo
 __author__ = 'kenneth'
 
 
-def deploy(user='www-data', git_hash=None):
+def deploy(restart_celery=False, user='www-data', git_hash=None):
     source = 'https://github.com/rapidpro/data_api.git'
     proc_name = 'api'
     path = '/var/www/data_api'
@@ -30,3 +30,5 @@ def deploy(user='www-data', git_hash=None):
         sudo("chmod -R ug+rwx .")
 
     sudo("supervisorctl restart %s" % proc_name)
+    if restart_celery:
+        sudo("supervisorctl restart %s_celery" % proc_name)

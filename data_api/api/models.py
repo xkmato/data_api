@@ -491,7 +491,7 @@ class Run(Document, BaseUtil):
 
         step_attributes = ['node', 'text', 'value', 'type', 'arrived_on', 'left_on']
         ruleset_attributes = ['node', 'category', 'text', 'rule_value', 'label', 'value', 'time']
-        run_attributes = ['created_on', 'kind']
+        run_attributes = ['created_on', 'kind', 'flow_uuid', 'flow_name']
         file_number = 0
         record_number = 0
         q = cls.get_for_org(org_id).filter(created_on__gt=from_date).order_by('created_on')
