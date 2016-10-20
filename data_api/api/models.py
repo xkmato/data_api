@@ -16,7 +16,7 @@ from data_api.api.utils import create_folder_for_org
 
 __author__ = 'kenneth'
 
-connect(db="rapidpro")
+connect(db="rapidpro", username=settings.MONGO_USERNAME, password=settings.MONGO_PASSWORD)
 
 logging.basicConfig(format=settings.LOG_FORMAT)
 logger = logging.getLogger("models")
