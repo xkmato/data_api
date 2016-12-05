@@ -16,7 +16,7 @@ from data_api.api.utils import create_folder_for_org
 
 __author__ = 'kenneth'
 
-if getattr(settings, 'MONGO_USERNAME', None)
+if getattr(settings, 'MONGO_USERNAME', None):
     connect(db="rapidpro", username=settings.MONGO_USERNAME, password=settings.MONGO_PASSWORD)
 else:
     connect(db='rapidpro')
