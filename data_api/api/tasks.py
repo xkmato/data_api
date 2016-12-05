@@ -58,9 +58,9 @@ def fetch_all(entities=None, orgs=None):
 
 
 @task
-def generate_message_dumps():
-    Message.generate_csv()
+def generate_message_dumps(from_date=None, org=None, contact_fields=None):
+    Message.generate_csv(from_date=from_date, org_id=org, contact_fields=contact_fields)
 
 @task
-def generate_run_dumps():
-    Run.generate_csv()
+def generate_run_dumps(from_date=None, org=None, contact_fields=None):
+    Run.generate_csv(from_date=from_date, org_id=org, contact_fields=contact_fields)
