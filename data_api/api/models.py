@@ -554,7 +554,7 @@ class Run(Document, BaseUtil):
                     CSVExport.update_for_runs(org_id, run.created_on)
                 file_number += 1
             except Exception as e:
-                logging.error(e)
+                pass
 
 
 class CategoryStats(EmbeddedDocument, EmbeddedUtil):
