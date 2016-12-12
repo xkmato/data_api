@@ -499,59 +499,62 @@ class Run(Document, BaseUtil):
         record_number = 0
         q = cls.get_for_org(org_id).filter(created_on__gt=from_date, values__ne=[]).order_by('created_on')
         while q[record_number: record_number + settings.MAX_RECORDS_PER_EXPORT].first():
-            with open('%s/%s/runs/export_%s_%d.csv' % (settings.CSV_DUMPS_FOLDER, org_id, str(datetime.now()),
-                                                           file_number), 'w') as csv_file:
-                writer = csv.DictWriter(csv_file, fieldnames=run_attributes + ['step_%s' % sa for sa in step_attributes]
-                                                                + ['ruleset_%s' % ra for ra in ruleset_attributes] +
-                                                                ['contact_%s' % a for a in contact_fields])
-                writer.writeheader()
-                for run in q[record_number: record_number + settings.MAX_RECORDS_PER_EXPORT]:
-                    try:
-                        flow = Flow.objects.filter(id=ObjectId(run.flow.get('id'))).first()
-                        contact = Contact.objects.filter(id=ObjectId(run.contact.get('id'))).first()
-                        if contact:
-                            try:
-                                fields = eval(contact.fields)
-                            except NameError:
-                                fields = {}
-
-                        m_dict = {'created_on': unicode(run.created_on), 'flow_uuid': flow.uuid if flow else None,
-                                  'flow_name': flow.name if flow else None}
-                        if contact:
-                            for _attrib in contact_fields:
-                                m_dict['contact_%s' % _attrib] = unicode(fields.get(_attrib)).encode('utf-8')
-                        r_dict, s_dict = {}, {}
+            try:
+                with open('%s/%s/runs/export_%s_%d.csv' % (settings.CSV_DUMPS_FOLDER, org_id, str(datetime.now()),
+                                                               file_number), 'w') as csv_file:
+                    writer = csv.DictWriter(csv_file, fieldnames=run_attributes + ['step_%s' % sa for sa in step_attributes]
+                                                                    + ['ruleset_%s' % ra for ra in ruleset_attributes] +
+                                                                    ['contact_%s' % a for a in contact_fields])
+                    writer.writeheader()
+                    for run in q[record_number: record_number + settings.MAX_RECORDS_PER_EXPORT]:
                         try:
-                            for ruleset in run.values:
-                                m_dict['kind'] = 'value'
-                                for ra in ruleset_attributes:
-                                    r_dict['ruleset_%s' % ra] = unicode(getattr(ruleset, ra, None)).encode('utf-8')
-                                x = m_dict.copy()
-                                x.update(r_dict)
-                                writer.writerow(x)
+                            flow = Flow.objects.filter(id=ObjectId(run.flow.get('id'))).first()
+                            contact = Contact.objects.filter(id=ObjectId(run.contact.get('id'))).first()
+                            if contact:
+                                try:
+                                    fields = eval(contact.fields)
+                                except NameError:
+                                    fields = {}
+
+                            m_dict = {'created_on': unicode(run.created_on), 'flow_uuid': flow.uuid if flow else None,
+                                      'flow_name': flow.name if flow else None}
+                            if contact:
+                                for _attrib in contact_fields:
+                                    m_dict['contact_%s' % _attrib] = unicode(fields.get(_attrib)).encode('utf-8')
+                            r_dict, s_dict = {}, {}
+                            try:
+                                for ruleset in run.values:
+                                    m_dict['kind'] = 'value'
+                                    for ra in ruleset_attributes:
+                                        r_dict['ruleset_%s' % ra] = unicode(getattr(ruleset, ra, None)).encode('utf-8')
+                                    x = m_dict.copy()
+                                    x.update(r_dict)
+                                    writer.writerow(x)
+                            except Exception as e:
+                                logger.error(e)
+                            # try:
+                            #     for step in run.steps:
+                            #         m_dict['kind'] = 'step'
+                            #         for sa in step_attributes:
+                            #             s_dict['step_%s' % sa] = unicode(getattr(step, sa, None)).encode('utf-8')
+                            #         x = m_dict.copy()
+                            #         x.update(s_dict)
+                            #         writer.writerow(x)
+                            #         record_number += 1
+                            # except Exception as e:
+                            #     logger.error(e)
+                            record_number += 1
+                            if record_number >= record_number+settings.MAX_RECORDS_PER_EXPORT:
+                                break
+                        except UnicodeEncodeError as e:
+                            logger.error(e)
+                            #Todo Figure out what todo here
                         except Exception as e:
                             logger.error(e)
-                        # try:
-                        #     for step in run.steps:
-                        #         m_dict['kind'] = 'step'
-                        #         for sa in step_attributes:
-                        #             s_dict['step_%s' % sa] = unicode(getattr(step, sa, None)).encode('utf-8')
-                        #         x = m_dict.copy()
-                        #         x.update(s_dict)
-                        #         writer.writerow(x)
-                        #         record_number += 1
-                        # except Exception as e:
-                        #     logger.error(e)
-                        record_number += 1
-                        if record_number >= record_number+settings.MAX_RECORDS_PER_EXPORT:
-                            break
-                    except UnicodeEncodeError as e:
-                        logger.error(e)
-                        #Todo Figure out what todo here
-                    except Exception as e:
-                        logger.error(e)
-                CSVExport.update_for_runs(org_id, run.created_on)
-            file_number += 1
+                    CSVExport.update_for_runs(org_id, run.created_on)
+                file_number += 1
+            except Exception as e:
+                logging.error(e)
 
 
 class CategoryStats(EmbeddedDocument, EmbeddedUtil):
