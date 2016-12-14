@@ -419,6 +419,8 @@ class Message(Document, BaseUtil):
                         for attrib in message_attributes:
                             m_dict[attrib] = unicode(getattr(message, attrib)).encode('utf-8')
                         if contact:
+                            m_dict['contact_uuid'] = contact.uuid
+                            contact_fields.remove('uuid')
                             for _attrib in contact_fields:
                                 m_dict['contact_%s' % _attrib] = unicode(fields.get(_attrib)).encode('utf-8')
                         writer.writerow(m_dict)
@@ -519,6 +521,8 @@ class Run(Document, BaseUtil):
                             m_dict = {'created_on': unicode(run.created_on), 'flow_uuid': flow.uuid if flow else None,
                                       'flow_name': flow.name if flow else None}
                             if contact:
+                                m_dict['contact_uuid'] = contact.uuid
+                                contact_fields.remove('uuid')
                                 for _attrib in contact_fields:
                                     m_dict['contact_%s' % _attrib] = unicode(fields.get(_attrib)).encode('utf-8')
                             r_dict, s_dict = {}, {}
@@ -532,17 +536,6 @@ class Run(Document, BaseUtil):
                                     writer.writerow(x)
                             except Exception as e:
                                 logger.error(e)
-                            # try:
-                            #     for step in run.steps:
-                            #         m_dict['kind'] = 'step'
-                            #         for sa in step_attributes:
-                            #             s_dict['step_%s' % sa] = unicode(getattr(step, sa, None)).encode('utf-8')
-                            #         x = m_dict.copy()
-                            #         x.update(s_dict)
-                            #         writer.writerow(x)
-                            #         record_number += 1
-                            # except Exception as e:
-                            #     logger.error(e)
                             record_number += 1
                             if record_number >= record_number+settings.MAX_RECORDS_PER_EXPORT:
                                 break

@@ -248,6 +248,6 @@ MAX_RECORDS_PER_EXPORT = 5000
 CSV_DUMPS_FOLDER = '/mnt/data1/csv_dumps'
 DEFAULT_ORG = '578c88f64439f1157befb2c6'
 DEFAULT_MESSAGE_ATTRIBUTES = ['created_on', 'text', 'direction', 'status', 'sent_on', 'type']
-DEFAULT_CONTACT_FIELDS = ['age_groups', 'education_level', 'village', 'occupation', 'district', 'year_born',
+DEFAULT_CONTACT_FIELDS = ['uuid', 'age_groups', 'education_level', 'village', 'occupation', 'district', 'year_born',
                               'registration_date', 'subcounty', 'gender', 'age', 'village_name', 'isfacebookuser',
                               'istwitteruser', 'isinternetuser', 'recruitment_source']
