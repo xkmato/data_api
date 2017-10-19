@@ -45,5 +45,4 @@ sudo -u postgres createdb rapidpro_data_api
 
 ## Run Server
 
-Use whichever settings module you prefer
 `./manage.py runserver --settings [settings module]`
