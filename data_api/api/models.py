@@ -10,8 +10,8 @@ from django.dispatch import receiver
 from mongoengine import connect, Document, StringField, BooleanField, ReferenceField, DateTimeField, IntField, \
     EmbeddedDocument, ListField, EmbeddedDocumentField, DictField, DynamicDocument
 from rest_framework.authtoken.models import Token
-from temba import TembaClient
-from temba.base import TembaNoSuchObjectError, TembaException
+from temba_client.exceptions import TembaNoSuchObjectError, TembaException
+from temba_client.v1 import TembaClient
 from data_api.api.utils import create_folder_for_org
 
 __author__ = 'kenneth'
