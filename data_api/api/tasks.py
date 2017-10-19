@@ -39,7 +39,7 @@ def fetch_all(entities=None, orgs=None):
     if not entities:
         entities = [dict(name=cls) for cls in BaseUtil.__subclasses__()]
     if not orgs:
-        orgs = Org.objects.all({"is_active": True})
+        orgs = Org.objects.filter(is_active=True)
     else:
         orgs = [Org.objects.get(**{'api_token': api_key}) for api_key in orgs]
     assert iter(entities)
