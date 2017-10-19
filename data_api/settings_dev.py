@@ -11,3 +11,6 @@ DATABASES = {
         'HOST': 'localhost',
     }
 }
+
+
+RAVEN_CONFIG = {}
