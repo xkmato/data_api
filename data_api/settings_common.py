@@ -127,10 +127,10 @@ cron_minutes = int(os.environ.get('FETCH_SLEEP', 60*24*7))
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.postgresql_psycopg2',  # Add 'postgresql_psycopg2', 'postgresql', 'mysql', 'sqlite3' or 'oracle'.
-        'NAME': 'data',                # Or path to database file if using sqlite3.
-        'USER': 'postgres',                 # Not used with sqlite3.
-        'HOST': 'localhost',                 # Set to empty string for default. Not used with sqlite3.
+        'ENGINE': 'django.db.backends.postgresql_psycopg2',
+        'NAME': 'data',
+        'USER': 'postgres',
+        'HOST': 'localhost',
     }
 }
 

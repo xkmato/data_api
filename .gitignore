@@ -3,3 +3,4 @@ db.sqlite3
 .idea
 celerybeat-schedule
 data_api/settings.py
+data_api/localsettings.py
