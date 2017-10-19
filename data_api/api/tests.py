@@ -1,3 +1,4 @@
+from copy import copy
 from datetime import datetime
 from django.utils import unittest
 from data_api.api.models import Org, Urn, Group, Contact, Broadcast, Campaign, Flow, Event, Label, Message, Run, \
@@ -10,8 +11,8 @@ class FakeTemba(object):
     __dict__ = {}
 
     def __init__(self, **kwargs):
+        self.__dict__ = kwargs
         for k, v in kwargs.items():
-            self.__dict__ = kwargs
             setattr(self, k, v)
 
 
@@ -22,29 +23,30 @@ class TestModels(unittest.TestCase):
         self.urns = ['tel:1234', 'twitter:5678', '876565']
         self.temba_group = FakeTemba(uuid='090IOU98', name='test_group', size=1)
         self.temba_contact = FakeTemba(uuid='97976768', name='test_contact', urns=self.urns,
-                                 groups=[self.temba_group.uuid], fields={'name': 'test_field'}, language='en',
+                                 groups=[_id_to_dict(self.temba_group.uuid)], fields={'name': 'test_field'}, language='en',
                                  modified_on=datetime.now())
-        self.temba_broadcast = FakeTemba(id=1, urns=self.urns, contacts=[self.temba_contact.uuid],
-                                         groups=[self.temba_group.uuid], text='test test message', status='S',
+        self.temba_broadcast = FakeTemba(id=1, urns=self.urns, contacts=[_id_to_dict(self.temba_contact.uuid)],
+                                         groups=[_id_to_dict(self.temba_group.uuid)], text='test test message', status='S',
                                          created_on=datetime.now())
-        self.temba_campaign = FakeTemba(uuid='IOUIU8908', name='test_campaign', group=self.temba_group.uuid,
+        self.temba_campaign = FakeTemba(uuid='IOUIU8908', name='test_campaign', group=_id_to_dict(self.temba_group.uuid),
                                         created_on=datetime.now())
         self.rule_set = FakeTemba(uuid='iteueiot', label='some label', response_type='I')
-        self.temba_flow = FakeTemba(uuid='89077897897', name='test_flow', archived='T', labels=[], participants=3,
+        self.temba_flow = FakeTemba(uuid='89077897897', name='test_flow', archived=True, labels=[], participants=3,
                                     runs=3, completed_runs=2, rulesets=[self.rule_set], created_on=datetime.now())
-        self.temba_event = FakeTemba(uuid='79079079078', campaign=self.temba_campaign.uuid, relative_to='yuyyer',
+        self.temba_event = FakeTemba(uuid='79079079078', campaign=_id_to_dict(self.temba_campaign.uuid), relative_to='yuyyer',
                                      offset=5, unit='something', delivery_hour=4, message='Some message',
-                                     flow=self.temba_flow.uuid, created_on=datetime.now())
+                                     flow=_id_to_dict(self.temba_flow.uuid), created_on=datetime.now())
         self.temba_label = FakeTemba(uuid='0789089789', name='test_label', count=5)
-        self.temba_message = FakeTemba(id=242, broadcast=self.temba_broadcast.id, contact=self.temba_contact.uuid,
+        self.temba_message = FakeTemba(id=242, broadcast=_id_to_dict(self.temba_broadcast.id), contact=_id_to_dict(self.temba_contact.uuid),
                                        urn=self.urns[0], status='S', type='F', labels=[self.temba_label.name],
                                        direction='I', archived='F', text='Hi There', created_on=datetime.now(),
                                        delivered_on=datetime.now(), sent_on=datetime.now())
-        self.temba_run_value_set = FakeTemba(node='90890', category='SC', text='Some Text', rule_value='Y', value='yes',
+        self.temba_run_value_set = FakeTemba(node='90890', category=_id_to_dict('SC'), text='Some Text', rule_value='Y', value='yes',
                                              label='some', time=datetime.now())
+
         self.temba_flow_step = FakeTemba(node='Some Node', text='Yo yo', value='youngh', type='I',
                                          arrived_on=datetime.now(), left_on=datetime.now())
-        self.temba_run = FakeTemba(id=43, flow=self.temba_flow.uuid, contact=self.temba_contact.uuid,
+        self.temba_run = FakeTemba(id=43, flow=_id_to_dict(self.temba_flow.uuid), contact=_id_to_dict(self.temba_contact.uuid),
                                    steps=[self.temba_flow_step], values=[self.temba_run_value_set],
                                    create_on=datetime.now(), completed='y')
         self.temba_geometry = FakeTemba(type='some geo type', coordinates='gulu lango')
@@ -95,3 +97,7 @@ class TestModels(unittest.TestCase):
         result = Result.create_from_temba(self.org, self.temba_result)
         self.assertEqual(result_count+1, Result.objects.count())
         self.assertEqual(result.categories[0].label, self.temba_category_stats.label)
+
+
+def _id_to_dict(an_id):
+    return {'id': an_id}
