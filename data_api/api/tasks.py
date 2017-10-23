@@ -1,7 +1,6 @@
 import logging
 import traceback
 from django.conf import settings
-import requests
 from retrying import retry
 from temba_client.exceptions import TembaConnectionError, TembaBadRequestError, TembaTokenError, \
     TembaRateExceededError, TembaException
