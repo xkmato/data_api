@@ -136,6 +136,7 @@ class BaseUtil(object):
                 setattr(obj, key, value)
 
         obj.org_id = str(org['id'])
+        # import pdb; pdb.set_trace()
         obj.save()
         return obj
 
@@ -324,6 +325,16 @@ class Label(Document, BaseUtil):
     meta = {'collection': 'labels'}
 
 
+class Runs(EmbeddedDocument, EmbeddedUtil):
+    active = IntField()
+    completed = IntField()
+    expired = IntField()
+    interrupted = IntField()
+
+    def __unicode__(self):
+        return self.label
+
+
 class Flow(Document, BaseUtil):
     org_id = StringField(required=True)
     created_on = DateTimeField()
@@ -333,8 +344,7 @@ class Flow(Document, BaseUtil):
     archived = BooleanField()
     labels = ListField(StringField())
     participants = IntField()
-    runs = IntField()
-    completed_runs = IntField()
+    runs = EmbeddedDocumentField(Runs)
     rulesets = ListField(EmbeddedDocumentField(Ruleset))
 
     meta = {'collection': 'flows'}
