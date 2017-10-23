@@ -110,7 +110,6 @@ class BaseUtil(object):
     @classmethod
     def create_from_temba(cls, org, temba):
         obj = cls()
-        import pdb; pdb.set_trace()
         for key, value in temba.__dict__.items():
             class_attr = getattr(cls, key, None)
             if class_attr is None:
