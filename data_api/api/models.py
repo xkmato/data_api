@@ -11,7 +11,7 @@ from mongoengine import connect, Document, StringField, BooleanField, ReferenceF
     EmbeddedDocument, ListField, EmbeddedDocumentField, DictField, DynamicDocument
 from rest_framework.authtoken.models import Token
 from temba_client.exceptions import TembaNoSuchObjectError, TembaException
-from temba_client.v1 import TembaClient
+from temba_client.v2 import TembaClient
 from data_api.api.utils import create_folder_for_org
 
 __author__ = 'kenneth'
@@ -110,6 +110,7 @@ class BaseUtil(object):
     @classmethod
     def create_from_temba(cls, org, temba):
         obj = cls()
+        import pdb; pdb.set_trace()
         for key, value in temba.__dict__.items():
             class_attr = getattr(cls, key, None)
             if class_attr is None:
@@ -135,7 +136,7 @@ class BaseUtil(object):
                     key = 'tid'
                 setattr(obj, key, value)
 
-        obj.org = org
+        obj.org_id = str(org['id'])
         obj.save()
         return obj
 
@@ -165,7 +166,7 @@ class BaseUtil(object):
     def create_from_temba_list(cls, org, temba_list):
         obj_list = []
         q = None
-        for temba in temba_list:
+        for temba in temba_list.all():
             if hasattr(temba, 'uuid'):
                 q = {'uuid': temba.uuid}
             elif hasattr(temba, 'id'):
@@ -235,12 +236,12 @@ class EmbeddedUtil(object):
 
 
 class Group(Document, BaseUtil):
-    org = DictField()
-    created_on = DateTimeField()
-    modified_on = DateTimeField()
+    org_id = StringField(required=True)
+    # created_on = DateTimeField()
+    # modified_on = DateTimeField()
     uuid = StringField()
     name = StringField()
-    size = IntField()
+    count = IntField()
 
     meta = {'collection': 'groups'}
 
@@ -263,7 +264,7 @@ class Urn(EmbeddedDocument, EmbeddedUtil):
 
 
 class Contact(Document, BaseUtil):
-    org = DictField()
+    org_id = StringField(required=True)
     created_on = DateTimeField()
     modified_on = DateTimeField()
     uuid = StringField()
@@ -277,7 +278,7 @@ class Contact(Document, BaseUtil):
 
 
 class Broadcast(Document, BaseUtil):
-    org = DictField()
+    org_id = StringField(required=True)
     created_on = DateTimeField()
     modified_on = DateTimeField()
     tid = IntField()
@@ -294,7 +295,7 @@ class Broadcast(Document, BaseUtil):
 
 
 class Campaign(Document, BaseUtil):
-    org = DictField()
+    org_id = StringField(required=True)
     created_on = DateTimeField()
     modified_on = DateTimeField()
     uuid = StringField()
@@ -314,7 +315,7 @@ class Ruleset(EmbeddedDocument, EmbeddedUtil):
 
 
 class Label(Document, BaseUtil):
-    org = DictField()
+    org_id = StringField(required=True)
     created_on = DateTimeField()
     modified_on = DateTimeField()
     uuid = StringField()
@@ -325,7 +326,7 @@ class Label(Document, BaseUtil):
 
 
 class Flow(Document, BaseUtil):
-    org = DictField()
+    org_id = StringField(required=True)
     created_on = DateTimeField()
     modified_on = DateTimeField()
     uuid = StringField()
@@ -346,7 +347,7 @@ class Flow(Document, BaseUtil):
 
 
 class Event(Document, BaseUtil):
-    org = DictField()
+    org_id = StringField(required=True)
     created_on = DateTimeField()
     modified_on = DateTimeField()
     uuid = StringField()
@@ -365,7 +366,7 @@ class Event(Document, BaseUtil):
 
 
 class Message(Document, BaseUtil):
-    org = DictField()
+    org_id = StringField(required=True)
     created_on = DateTimeField()
     modified_on = DateTimeField()
     tid = IntField()
@@ -462,7 +463,7 @@ class FlowStep(EmbeddedDocument, EmbeddedUtil):
 
 
 class Run(Document, BaseUtil):
-    org = DictField()
+    org_id = StringField(required=True)
     created_on = DateTimeField()
     modified_on = DateTimeField()
     tid = IntField()
@@ -559,7 +560,7 @@ class CategoryStats(EmbeddedDocument, EmbeddedUtil):
 
 
 class Result(Document, BaseUtil):
-    org = DictField()
+    org_id = StringField(required=True)
     created_on = DateTimeField()
     modified_on = DateTimeField()
     boundary = StringField()
@@ -584,7 +585,7 @@ class Geometry(EmbeddedDocument, EmbeddedUtil):
 
 
 class Boundary(Document, BaseUtil):
-    org = DictField()
+    org_id = StringField(required=True)
     created_on = DateTimeField()
     modified_on = DateTimeField()
     boundary = StringField()
