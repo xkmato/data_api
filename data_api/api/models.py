@@ -571,7 +571,7 @@ class CategoryStats(EmbeddedDocument, EmbeddedUtil):
 
 
 class Result(Document):
-    # todo: add back inheritance from BaseUtil once figure out how to get all messages
+    # todo: add back inheritance from BaseUtil once we figure out where this model went
     org_id = StringField(required=True)
     created_on = DateTimeField()
     modified_on = DateTimeField()
