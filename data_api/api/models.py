@@ -10,8 +10,8 @@ from django.dispatch import receiver
 from mongoengine import connect, Document, StringField, BooleanField, ReferenceField, DateTimeField, IntField, \
     EmbeddedDocument, ListField, EmbeddedDocumentField, DictField, DynamicDocument
 from rest_framework.authtoken.models import Token
-from temba import TembaClient
-from temba.base import TembaNoSuchObjectError, TembaException
+from temba_client.exceptions import TembaNoSuchObjectError, TembaException
+from temba_client.v2 import TembaClient
 from data_api.api.utils import create_folder_for_org
 
 __author__ = 'kenneth'
@@ -120,8 +120,8 @@ class BaseUtil(object):
                     item_class = item_class.document_type_obj
                     setattr(obj, key, item_class.create_from_temba_list(getattr(temba, key)))
                 elif isinstance(item_class, ReferenceField):
-                    item_class = item_class.document_type_obj
-                    setattr(obj, key, item_class.get_objects_from_uuids(org, getattr(temba, key)))
+                    uuids = [v.uuid for v in getattr(temba, key)]
+                    setattr(obj, key, item_class.document_type.get_objects_from_uuids(org, uuids))
                 else:
                     setattr(obj, key, value)
             elif isinstance(class_attr, ReferenceField):
@@ -135,7 +135,8 @@ class BaseUtil(object):
                     key = 'tid'
                 setattr(obj, key, value)
 
-        obj.org = org
+        obj.org_id = str(org['id'])
+        # import pdb; pdb.set_trace()
         obj.save()
         return obj
 
@@ -165,7 +166,7 @@ class BaseUtil(object):
     def create_from_temba_list(cls, org, temba_list):
         obj_list = []
         q = None
-        for temba in temba_list:
+        for temba in temba_list.all():
             if hasattr(temba, 'uuid'):
                 q = {'uuid': temba.uuid}
             elif hasattr(temba, 'id'):
@@ -235,12 +236,12 @@ class EmbeddedUtil(object):
 
 
 class Group(Document, BaseUtil):
-    org = DictField()
-    created_on = DateTimeField()
-    modified_on = DateTimeField()
+    org_id = StringField(required=True)
+    # created_on = DateTimeField()
+    # modified_on = DateTimeField()
     uuid = StringField()
     name = StringField()
-    size = IntField()
+    count = IntField()
 
     meta = {'collection': 'groups'}
 
@@ -263,7 +264,7 @@ class Urn(EmbeddedDocument, EmbeddedUtil):
 
 
 class Contact(Document, BaseUtil):
-    org = DictField()
+    org_id = StringField(required=True)
     created_on = DateTimeField()
     modified_on = DateTimeField()
     uuid = StringField()
@@ -277,14 +278,14 @@ class Contact(Document, BaseUtil):
 
 
 class Broadcast(Document, BaseUtil):
-    org = DictField()
+    org_id = StringField(required=True)
     created_on = DateTimeField()
     modified_on = DateTimeField()
     tid = IntField()
     urns = ListField(EmbeddedDocumentField(Urn))
-    contacts = ListField(DictField())
-    groups = ListField(DictField())
-    text = StringField()
+    contacts = ListField(ReferenceField('Contact'))
+    groups = ListField(ReferenceField('Group'))
+    text = DictField()
     status = StringField()
 
     meta = {'collection': 'broadcasts'}
@@ -294,7 +295,7 @@ class Broadcast(Document, BaseUtil):
 
 
 class Campaign(Document, BaseUtil):
-    org = DictField()
+    org_id = StringField(required=True)
     created_on = DateTimeField()
     modified_on = DateTimeField()
     uuid = StringField()
@@ -314,7 +315,7 @@ class Ruleset(EmbeddedDocument, EmbeddedUtil):
 
 
 class Label(Document, BaseUtil):
-    org = DictField()
+    org_id = StringField(required=True)
     created_on = DateTimeField()
     modified_on = DateTimeField()
     uuid = StringField()
@@ -324,8 +325,18 @@ class Label(Document, BaseUtil):
     meta = {'collection': 'labels'}
 
 
+class Runs(EmbeddedDocument, EmbeddedUtil):
+    active = IntField()
+    completed = IntField()
+    expired = IntField()
+    interrupted = IntField()
+
+    def __unicode__(self):
+        return self.label
+
+
 class Flow(Document, BaseUtil):
-    org = DictField()
+    org_id = StringField(required=True)
     created_on = DateTimeField()
     modified_on = DateTimeField()
     uuid = StringField()
@@ -333,8 +344,7 @@ class Flow(Document, BaseUtil):
     archived = BooleanField()
     labels = ListField(StringField())
     participants = IntField()
-    runs = IntField()
-    completed_runs = IntField()
+    runs = EmbeddedDocumentField(Runs)
     rulesets = ListField(EmbeddedDocumentField(Ruleset))
 
     meta = {'collection': 'flows'}
@@ -346,7 +356,8 @@ class Flow(Document, BaseUtil):
 
 
 class Event(Document, BaseUtil):
-    org = DictField()
+    # todo: rename to CampaignEvent?
+    org_id = StringField(required=True)
     created_on = DateTimeField()
     modified_on = DateTimeField()
     uuid = StringField()
@@ -358,14 +369,15 @@ class Event(Document, BaseUtil):
     message = StringField()
     flow = DictField()
 
-    meta = {'collection': 'events'}
+    meta = {'collection': 'campaign_events'}
 
     def __unicode__(self):
         return "%s - %s" % (self.uuid, self.org)
 
 
-class Message(Document, BaseUtil):
-    org = DictField()
+class Message(Document):
+    # todo: add back inheritance from BaseUtil once figure out how to get all messages
+    org_id = StringField(required=True)
     created_on = DateTimeField()
     modified_on = DateTimeField()
     tid = IntField()
@@ -462,7 +474,7 @@ class FlowStep(EmbeddedDocument, EmbeddedUtil):
 
 
 class Run(Document, BaseUtil):
-    org = DictField()
+    org_id = StringField(required=True)
     created_on = DateTimeField()
     modified_on = DateTimeField()
     tid = IntField()
@@ -558,8 +570,9 @@ class CategoryStats(EmbeddedDocument, EmbeddedUtil):
         return self.label
 
 
-class Result(Document, BaseUtil):
-    org = DictField()
+class Result(Document):
+    # todo: add back inheritance from BaseUtil once we figure out where this model went
+    org_id = StringField(required=True)
     created_on = DateTimeField()
     modified_on = DateTimeField()
     boundary = StringField()
@@ -584,7 +597,7 @@ class Geometry(EmbeddedDocument, EmbeddedUtil):
 
 
 class Boundary(Document, BaseUtil):
-    org = DictField()
+    org_id = StringField(required=True)
     created_on = DateTimeField()
     modified_on = DateTimeField()
     boundary = StringField()

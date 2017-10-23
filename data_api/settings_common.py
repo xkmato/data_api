@@ -85,8 +85,8 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'data_api.wsgi.application'
 
-SITE_API_HOST = 'https://app.rapidpro.io/api/v1'
-API_ENDPOINT = 'https://app.rapidpro.io/api/v1'
+SITE_API_HOST = 'https://app.rapidpro.io/'
+API_ENDPOINT = 'https://app.rapidpro.io/'
 
 LOG_FORMAT = '%(asctime)-15s %(message)s'
 
