@@ -356,6 +356,7 @@ class Flow(Document, BaseUtil):
 
 
 class Event(Document, BaseUtil):
+    # todo: rename to CampaignEvent?
     org_id = StringField(required=True)
     created_on = DateTimeField()
     modified_on = DateTimeField()
@@ -368,7 +369,7 @@ class Event(Document, BaseUtil):
     message = StringField()
     flow = DictField()
 
-    meta = {'collection': 'events'}
+    meta = {'collection': 'campaign_events'}
 
     def __unicode__(self):
         return "%s - %s" % (self.uuid, self.org)
