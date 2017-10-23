@@ -120,8 +120,8 @@ class BaseUtil(object):
                     item_class = item_class.document_type_obj
                     setattr(obj, key, item_class.create_from_temba_list(getattr(temba, key)))
                 elif isinstance(item_class, ReferenceField):
-                    item_class = item_class.document_type_obj
-                    setattr(obj, key, item_class.get_objects_from_uuids(org, getattr(temba, key)))
+                    uuids = [v.uuid for v in getattr(temba, key)]
+                    setattr(obj, key, item_class.document_type.get_objects_from_uuids(org, uuids))
                 else:
                     setattr(obj, key, value)
             elif isinstance(class_attr, ReferenceField):
@@ -282,9 +282,9 @@ class Broadcast(Document, BaseUtil):
     modified_on = DateTimeField()
     tid = IntField()
     urns = ListField(EmbeddedDocumentField(Urn))
-    contacts = ListField(DictField())
-    groups = ListField(DictField())
-    text = StringField()
+    contacts = ListField(ReferenceField('Contact'))
+    groups = ListField(ReferenceField('Group'))
+    text = DictField()
     status = StringField()
 
     meta = {'collection': 'broadcasts'}
