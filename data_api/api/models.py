@@ -124,7 +124,7 @@ class BaseUtil(object):
                     setattr(obj, key, item_class.document_type.get_objects_from_uuids(org, uuids))
                 else:
                     setattr(obj, key, value)
-            elif isinstance(class_attr, ReferenceField):
+            elif isinstance(class_attr, ReferenceField) and getattr(temba, key) is not None:
                 item_class = class_attr.document_type
                 setattr(obj, key, item_class.get_or_fetch(org, getattr(temba, key).uuid))
             elif isinstance(class_attr, EmbeddedDocumentField):
