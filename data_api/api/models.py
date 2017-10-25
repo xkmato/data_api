@@ -607,10 +607,11 @@ class Boundary(Document, BaseUtil):
     org_id = StringField(required=True)
     created_on = DateTimeField()
     modified_on = DateTimeField()
-    boundary = StringField()
+    osm_id = StringField(required=True)
     name = StringField()
     level = IntField()
     parent = EmbeddedDocumentField(BoundaryRef)
+    aliases = ListField(StringField())
     geometry = EmbeddedDocumentField(Geometry)
 
     meta = {'collection': 'boundaries'}
