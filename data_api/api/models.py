@@ -8,7 +8,7 @@ from django.db import models
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from mongoengine import connect, Document, StringField, BooleanField, ReferenceField, DateTimeField, IntField, \
-    EmbeddedDocument, ListField, EmbeddedDocumentField, DictField, DynamicDocument
+    EmbeddedDocument, ListField, EmbeddedDocumentField, DictField, DynamicDocument, FloatField
 from rest_framework.authtoken.models import Token
 from temba_client.exceptions import TembaNoSuchObjectError, TembaException
 from temba_client.v2 import TembaClient
@@ -135,6 +135,7 @@ class BaseUtil(object):
                 setattr(obj, key, value)
 
         obj.org_id = str(org['id'])
+
         # import pdb; pdb.set_trace()
         obj.save()
         return obj
@@ -589,9 +590,14 @@ class Result(Document):
         return "%s - %s" % (self.label, self.org)
 
 
+class BoundaryRef(EmbeddedDocument, EmbeddedUtil):
+    osm_id = StringField()
+    name = StringField()
+
+
 class Geometry(EmbeddedDocument, EmbeddedUtil):
     type = StringField()
-    coordinates = StringField()
+    coordinates = ListField(ListField(ListField(ListField(FloatField()))))  # turtles all the way down
 
     def __unicode__(self):
         return self.coordinates
@@ -603,8 +609,8 @@ class Boundary(Document, BaseUtil):
     modified_on = DateTimeField()
     boundary = StringField()
     name = StringField()
-    level = StringField()
-    parent = StringField()
+    level = IntField()
+    parent = EmbeddedDocumentField(BoundaryRef)
     geometry = EmbeddedDocumentField(Geometry)
 
     meta = {'collection': 'boundaries'}

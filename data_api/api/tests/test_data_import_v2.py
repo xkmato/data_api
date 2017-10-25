@@ -5,6 +5,7 @@ from mock import patch
 import six
 from temba_client.tests import TembaTest, MockResponse
 from temba_client.v2 import TembaClient
+import uuid
 from ..models import Org, Boundary
 from data_api.api.tasks import fetch_entity
 
@@ -17,7 +18,8 @@ class V2TembaTest(TembaTest):
         """
         Loads JSON from the given test file
         """
-        handle = codecs.open(os.path.join(os.path.dirname(__file__), 'test_api_results', '{}.json'.format(filename)))
+        handle = codecs.open(os.path.join(os.path.dirname(__file__), 'test_api_results',
+                                          '{}.json'.format(filename)))
         contents = six.text_type(handle.read())
         handle.close()
 
@@ -28,9 +30,16 @@ class V2TembaTest(TembaTest):
 
     @classmethod
     def setUpClass(cls):
+        cls.api_token = uuid.uuid4().hex
         cls.client = TembaClient('example.com', '1234567890', user_agent='test/0.1')
-        cls.org = Org.create(name='test org', api_token='f00b4r', timezone=None)
+        cls.org = Org.create(name='test org', api_token=cls.api_token, timezone=None)
 
     def test_get_boundaries(self, mock_request):
-        mock_request.return_value = MockResponse(200, self.read_json('boundaries'))
-        fetch_entity(Boundary, self.org)
+        api_results_text = self.read_json('boundaries')
+        api_results = json.loads(api_results_text)
+        mock_request.return_value = MockResponse(200, api_results_text)
+        objs_made = fetch_entity(Boundary, self.org)
+        self.assertEqual(2, len(objs_made))
+        for i, obj in enumerate(objs_made):
+            self.assertTrue(isinstance(obj, Boundary))
+            self.assertEqual(obj.name, api_results['results'][i]['name'])
