@@ -268,6 +268,18 @@ class Channel(Document, BaseUtil):
     meta = {'collection': 'channels'}
 
 
+class ChannelEvent(Document, BaseUtil):
+    tid = IntField()
+    type = StringField()
+    contact = ReferenceField('Contact')
+    channel = ReferenceField('Channel')
+    time = DateTimeField()
+    duration = IntField()
+    created_on = DateTimeField()
+
+    meta = {'collection': 'channel_events'}
+
+
 class Urn(EmbeddedDocument, EmbeddedUtil):
     type = StringField()
     identity = StringField()

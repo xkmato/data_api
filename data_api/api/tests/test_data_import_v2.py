@@ -7,7 +7,7 @@ import six
 from temba_client.tests import TembaTest, MockResponse
 from temba_client.v2 import TembaClient
 import uuid
-from ..models import Org, Boundary, Broadcast, Contact, Group, Channel
+from ..models import Org, Boundary, Broadcast, Contact, Group, Channel, ChannelEvent
 from data_api.api.tasks import fetch_entity
 
 
@@ -38,8 +38,10 @@ class V2TembaTest(TembaTest):
     @classmethod
     def tearDownClass(cls):
         Broadcast.objects.all().delete()
-        Group.objects.all().delete()
+        Channel.objects.all().delete()
+        ChannelEvent.objects.all().delete()
         Contact.objects.all().delete()
+        Group.objects.all().delete()
 
     def _run_test(self, mock_request, obj_class):
         api_results_text = self.read_json(obj_class._meta['collection'])
@@ -69,6 +71,14 @@ class V2TembaTest(TembaTest):
         self.assertEqual(2, len(objs_made))
         for i, obj in enumerate(objs_made):
             self.assertEqual(obj.name, api_results[i]['name'])
+
+    def test_import_channel_events(self, mock_request):
+        Channel(org_id=str(self.org.id), uuid='9a8b001e-a913-486c-80f4-1356e23f582e').save()
+        Contact(org_id=str(self.org.id), uuid='d33e9ad5-5c35-414c-abd4-e7451c69ff1d').save()
+        api_results, objs_made = self._run_test(mock_request, ChannelEvent)
+        self.assertEqual(2, len(objs_made))
+        for i, obj in enumerate(objs_made):
+            self.assertEqual(obj.tid, api_results[i]['id'])
 
     def test_import_contacts(self, mock_request):
         # todo: find a more generic way to bootstrap related models
