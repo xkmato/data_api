@@ -7,7 +7,7 @@ import six
 from temba_client.tests import TembaTest, MockResponse
 from temba_client.v2 import TembaClient
 import uuid
-from ..models import Org, Boundary, Broadcast, Contact, Group, Channel, ChannelEvent
+from ..models import Org, Boundary, Broadcast, Contact, Group, Channel, ChannelEvent, Campaign
 from data_api.api.tasks import fetch_entity
 
 
@@ -38,6 +38,7 @@ class V2TembaTest(TembaTest):
     @classmethod
     def tearDownClass(cls):
         Broadcast.objects.all().delete()
+        Campaign.objects.all().delete()
         Channel.objects.all().delete()
         ChannelEvent.objects.all().delete()
         Contact.objects.all().delete()
@@ -65,6 +66,12 @@ class V2TembaTest(TembaTest):
         self.assertEqual(2, len(objs_made))
         for i, obj in enumerate(objs_made):
             self.assertEqual(obj.text, api_results[i]['text'])
+
+    def test_import_campaigns(self, mock_request):
+        api_results, objs_made = self._run_test(mock_request, Campaign)
+        self.assertEqual(2, len(objs_made))
+        for i, obj in enumerate(objs_made):
+            self.assertEqual(obj.name, api_results[i]['name'])
 
     def test_import_channels(self, mock_request):
         api_results, objs_made = self._run_test(mock_request, Channel)
