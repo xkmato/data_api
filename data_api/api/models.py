@@ -261,7 +261,7 @@ class Urn(EmbeddedDocument, EmbeddedUtil):
         return urn
 
     def __unicode__(self):
-        return self.identity
+        return u'{}:{}'.format(self.type, self.identity)
 
 
 class Contact(Document, BaseUtil):
