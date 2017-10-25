@@ -266,14 +266,16 @@ class Urn(EmbeddedDocument, EmbeddedUtil):
 
 class Contact(Document, BaseUtil):
     org_id = StringField(required=True)
-    created_on = DateTimeField()
-    modified_on = DateTimeField()
     uuid = StringField()
     name = StringField()
+    language = StringField()
     urns = ListField(EmbeddedDocumentField(Urn))
     groups = ListField(ReferenceField('Group'))
-    language = StringField()
     fields = DictField()
+    blocked = BooleanField()
+    stopped = BooleanField()
+    created_on = DateTimeField()
+    modified_on = DateTimeField()
 
     meta = {'collection': 'contacts'}
 
