@@ -135,8 +135,6 @@ class BaseUtil(object):
                 setattr(obj, key, value)
 
         obj.org_id = str(org['id'])
-
-        # import pdb; pdb.set_trace()
         obj.save()
         return obj
 
@@ -239,10 +237,11 @@ class EmbeddedUtil(object):
 
 class Group(Document, BaseUtil):
     org_id = StringField(required=True)
-    # created_on = DateTimeField()
-    # modified_on = DateTimeField()
+    created_on = DateTimeField()
+    modified_on = DateTimeField()
     uuid = StringField()
     name = StringField()
+    query = StringField()
     count = IntField()
 
     meta = {'collection': 'groups'}
@@ -272,7 +271,7 @@ class Contact(Document, BaseUtil):
     uuid = StringField()
     name = StringField()
     urns = ListField(EmbeddedDocumentField(Urn))
-    groups = ListField(DictField())
+    groups = ListField(ReferenceField('Group'))
     language = StringField()
     fields = DictField()
 

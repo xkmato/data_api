@@ -1,14 +1,14 @@
 import codecs
 import json
 import os
+from unittest import skip
 from mock import patch
 import six
 from temba_client.tests import TembaTest, MockResponse
 from temba_client.v2 import TembaClient
 import uuid
-from ..models import Org, Boundary
+from ..models import Org, Boundary, Broadcast, Contact, Group
 from data_api.api.tasks import fetch_entity
-
 
 
 @patch('temba_client.clients.request')
@@ -35,6 +35,11 @@ class V2TembaTest(TembaTest):
         cls.client = TembaClient('example.com', '1234567890', user_agent='test/0.1')
         cls.org = Org.create(name='test org', api_token=cls.api_token, timezone=None)
 
+    @classmethod
+    def tearDownClass(cls):
+        Broadcast.objects.all().delete()
+        Group.objects.all().delete()
+
     def _run_test(self, mock_request, obj_class):
         api_results_text = self.read_json(obj_class._meta['collection'])
         api_results = json.loads(api_results_text)
@@ -45,8 +50,28 @@ class V2TembaTest(TembaTest):
 
         return api_results['results'], objs_made
 
-    def test_get_boundaries(self, mock_request):
+    def test_import_boundaries(self, mock_request):
         api_results, objs_made = self._run_test(mock_request, Boundary)
+        self.assertEqual(2, len(objs_made))
+        for i, obj in enumerate(objs_made):
+            self.assertEqual(obj.name, api_results[i]['name'])
+
+    @skip("Related objects are not working yet")
+    def test_import_broadcasts(self, mock_request):
+        api_results, objs_made = self._run_test(mock_request, Broadcast)
+        self.assertEqual(2, len(objs_made))
+        for i, obj in enumerate(objs_made):
+            self.assertEqual(obj.text, api_results[i]['text'])
+
+    @skip("Related objects are not working yet (group)")
+    def test_import_contacts(self, mock_request):
+        api_results, objs_made = self._run_test(mock_request, Contact)
+        self.assertEqual(2, len(objs_made))
+        for i, obj in enumerate(objs_made):
+            self.assertEqual(obj.text, api_results[i]['text'])
+
+    def test_import_groups(self, mock_request):
+        api_results, objs_made = self._run_test(mock_request, Group)
         self.assertEqual(2, len(objs_made))
         for i, obj in enumerate(objs_made):
             self.assertEqual(obj.name, api_results[i]['name'])
