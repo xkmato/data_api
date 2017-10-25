@@ -222,6 +222,8 @@ class BaseUtil(object):
 class EmbeddedUtil(object):
     @classmethod
     def create_from_temba(cls, temba):
+        if temba is None:
+            return None
         obj = cls()
         for k, v in temba.__dict__.items():
             setattr(obj, k, v)
@@ -604,7 +606,7 @@ class Boundary(Document, BaseUtil):
     name = StringField()
     level = StringField()
     parent = StringField()
-    geometry = ListField(EmbeddedDocumentField(Geometry))
+    geometry = EmbeddedDocumentField(Geometry)
 
     meta = {'collection': 'boundaries'}
 
