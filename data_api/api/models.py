@@ -111,6 +111,7 @@ class BaseUtil(object):
         obj = cls()
         for key, value in temba.__dict__.items():
             class_attr = getattr(cls, key, None)
+            logger.debug('setting {} to {}'.format(key, value))
             if class_attr is None:
                 continue
             if isinstance(class_attr, ListField):
@@ -245,6 +246,26 @@ class Group(Document, BaseUtil):
     count = IntField()
 
     meta = {'collection': 'groups'}
+
+
+class Device(EmbeddedDocument, EmbeddedUtil):
+    power_status = StringField()
+    power_source = StringField()
+    power_level = IntField()
+    name = StringField()
+    network_type = StringField()
+
+
+class Channel(Document, BaseUtil):
+    uuid = StringField()
+    name = StringField()
+    address = StringField()
+    country = StringField()
+    device = EmbeddedDocumentField(Device)
+    last_seen = DateTimeField()
+    created_on = DateTimeField()
+
+    meta = {'collection': 'channels'}
 
 
 class Urn(EmbeddedDocument, EmbeddedUtil):
