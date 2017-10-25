@@ -238,8 +238,6 @@ class EmbeddedUtil(object):
 
 class Group(Document, BaseUtil):
     org_id = StringField(required=True)
-    created_on = DateTimeField()
-    modified_on = DateTimeField()
     uuid = StringField()
     name = StringField()
     query = StringField()
