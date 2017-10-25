@@ -61,8 +61,9 @@ class V2TembaTest(TembaTest):
         for i, obj in enumerate(objs_made):
             self.assertEqual(obj.name, api_results[i]['name'])
 
-    @skip("Related objects are not working yet")
     def test_import_broadcasts(self, mock_request):
+        Contact(org_id=str(self.org.id), uuid='5079cb96-a1d8-4f47-8c87-d8c7bb6ddab9').save()
+        Group(org_id=str(self.org.id), uuid='04a4752b-0f49-480e-ae60-3a3f2bea485c').save()
         api_results, objs_made = self._run_test(mock_request, Broadcast)
         self.assertEqual(2, len(objs_made))
         for i, obj in enumerate(objs_made):
