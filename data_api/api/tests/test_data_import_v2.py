@@ -39,6 +39,7 @@ class V2TembaTest(TembaTest):
     def tearDownClass(cls):
         Broadcast.objects.all().delete()
         Group.objects.all().delete()
+        Contact.objects.all().delete()
 
     def _run_test(self, mock_request, obj_class):
         api_results_text = self.read_json(obj_class._meta['collection'])
@@ -63,12 +64,19 @@ class V2TembaTest(TembaTest):
         for i, obj in enumerate(objs_made):
             self.assertEqual(obj.text, api_results[i]['text'])
 
-    @skip("Related objects are not working yet (group)")
     def test_import_contacts(self, mock_request):
+        # todo: find a more generic way to bootstrap related models
+        Group(org_id=str(self.org.id), uuid='d29eca7c-a475-4d8d-98ca-bff968341356').save()
         api_results, objs_made = self._run_test(mock_request, Contact)
+        self.assertEqual(3, len(objs_made))
+        for i, obj in enumerate(objs_made):
+            self.assertEqual(obj.name, api_results[i]['name'])
+
+    def test_import_groups(self, mock_request):
+        api_results, objs_made = self._run_test(mock_request, Group)
         self.assertEqual(2, len(objs_made))
         for i, obj in enumerate(objs_made):
-            self.assertEqual(obj.text, api_results[i]['text'])
+            self.assertEqual(obj.name, api_results[i]['name'])
 
     def test_import_groups(self, mock_request):
         api_results, objs_made = self._run_test(mock_request, Group)
