@@ -315,14 +315,12 @@ class Contact(Document, BaseUtil):
 
 class Broadcast(Document, BaseUtil):
     org_id = StringField(required=True)
-    created_on = DateTimeField()
-    modified_on = DateTimeField()
     tid = IntField()
     urns = ListField(EmbeddedDocumentField(Urn))
     contacts = ListField(ReferenceField('Contact'))
     groups = ListField(ReferenceField('Group'))
     text = DynamicField()
-    status = StringField()
+    created_on = DateTimeField()
 
     meta = {'collection': 'broadcasts'}
 
