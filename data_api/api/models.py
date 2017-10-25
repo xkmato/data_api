@@ -152,7 +152,7 @@ class BaseUtil(object):
         if not obj:
             try:
                 obj = cls.fetch(org, uuid)
-            except (TembaNoSuchObjectError, TembaException):
+            except (TembaNoSuchObjectError, TembaException, AttributeError):
                 obj = None
         return obj
 
