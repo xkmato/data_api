@@ -117,7 +117,7 @@ class BaseUtil(object):
             if isinstance(class_attr, ListField):
                 item_class = class_attr.field
                 if isinstance(item_class, EmbeddedDocumentField):
-                    item_class = item_class.document_type_obj
+                    item_class = item_class.document_type
                     setattr(obj, key, item_class.create_from_temba_list(getattr(temba, key)))
                 elif isinstance(item_class, ReferenceField):
                     uuids = [v.uuid for v in getattr(temba, key)]
@@ -125,10 +125,10 @@ class BaseUtil(object):
                 else:
                     setattr(obj, key, value)
             elif isinstance(class_attr, ReferenceField):
-                item_class = class_attr.document_type_obj
-                setattr(obj, key, item_class.get_or_fetch(org, getattr(temba, key)))
+                item_class = class_attr.document_type
+                setattr(obj, key, item_class.get_or_fetch(org, getattr(temba, key).uuid))
             elif isinstance(class_attr, EmbeddedDocumentField):
-                item_class = class_attr.document_type_obj
+                item_class = class_attr.document_type
                 setattr(obj, key, item_class.create_from_temba(getattr(temba, key)))
             else:
                 if key == 'id':
@@ -300,7 +300,7 @@ class Campaign(Document, BaseUtil):
     modified_on = DateTimeField()
     uuid = StringField()
     name = StringField()
-    group = DictField()
+    group = ReferenceField('Group')
 
     meta = {'collection': 'campaigns'}
 
