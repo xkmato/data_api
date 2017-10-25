@@ -72,8 +72,7 @@ class Org(Document):
     meta = {'collection': 'orgs'}
 
     @classmethod
-    def create(cls, *args):
-        name, api_token, timezone = tuple(args)
+    def create(cls, name, api_token, timezone):
         o = cls(name=name, api_token=api_token, timezone=timezone)
         o.save()
         return o
