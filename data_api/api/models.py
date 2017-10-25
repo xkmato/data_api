@@ -340,6 +340,24 @@ class Campaign(Document, BaseUtil):
     meta = {'collection': 'campaigns'}
 
 
+class FieldRef(EmbeddedDocument, EmbeddedUtil):
+    key = StringField()
+    label = StringField()
+
+
+class CampaignEvent(Document, BaseUtil):
+    uuid = StringField()
+    campaign = ReferenceField(Campaign)
+    relative_to = EmbeddedDocumentField(FieldRef)
+    offset = IntField()
+    unit = StringField()
+    delivery_hour = IntField()
+    flow = ReferenceField('Flow')
+    message = StringField()
+    created_on = DateTimeField()
+
+    meta = {'collection': 'campaign_events'}
+
 class Ruleset(EmbeddedDocument, EmbeddedUtil):
     uuid = StringField()
     label = StringField()
