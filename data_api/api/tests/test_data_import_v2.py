@@ -10,6 +10,7 @@ from ..models import Org, Boundary
 from data_api.api.tasks import fetch_entity
 
 
+
 @patch('temba_client.clients.request')
 class V2TembaTest(TembaTest):
     # this class heavily inspired by temba_client.v2.tests.TembaClientTest
@@ -34,12 +35,18 @@ class V2TembaTest(TembaTest):
         cls.client = TembaClient('example.com', '1234567890', user_agent='test/0.1')
         cls.org = Org.create(name='test org', api_token=cls.api_token, timezone=None)
 
-    def test_get_boundaries(self, mock_request):
-        api_results_text = self.read_json('boundaries')
+    def _run_test(self, mock_request, obj_class):
+        api_results_text = self.read_json(obj_class._meta['collection'])
         api_results = json.loads(api_results_text)
         mock_request.return_value = MockResponse(200, api_results_text)
-        objs_made = fetch_entity(Boundary, self.org)
+        objs_made = fetch_entity(obj_class, self.org)
+        for obj in objs_made:
+            self.assertTrue(isinstance(obj, obj_class))
+
+        return api_results['results'], objs_made
+
+    def test_get_boundaries(self, mock_request):
+        api_results, objs_made = self._run_test(mock_request, Boundary)
         self.assertEqual(2, len(objs_made))
         for i, obj in enumerate(objs_made):
-            self.assertTrue(isinstance(obj, Boundary))
-            self.assertEqual(obj.name, api_results['results'][i]['name'])
+            self.assertEqual(obj.name, api_results[i]['name'])
