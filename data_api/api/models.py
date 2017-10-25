@@ -8,7 +8,7 @@ from django.db import models
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from mongoengine import connect, Document, StringField, BooleanField, ReferenceField, DateTimeField, IntField, \
-    EmbeddedDocument, ListField, EmbeddedDocumentField, DictField, DynamicDocument, FloatField
+    EmbeddedDocument, ListField, EmbeddedDocumentField, DictField, DynamicDocument, FloatField, DynamicField
 from rest_framework.authtoken.models import Token
 from temba_client.exceptions import TembaNoSuchObjectError, TembaException
 from temba_client.v2 import TembaClient
@@ -287,7 +287,7 @@ class Broadcast(Document, BaseUtil):
     urns = ListField(EmbeddedDocumentField(Urn))
     contacts = ListField(ReferenceField('Contact'))
     groups = ListField(ReferenceField('Group'))
-    text = DictField()
+    text = DynamicField()
     status = StringField()
 
     meta = {'collection': 'broadcasts'}
