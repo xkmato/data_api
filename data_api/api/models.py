@@ -8,7 +8,7 @@ from django.db import models
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from mongoengine import connect, Document, StringField, BooleanField, ReferenceField, DateTimeField, IntField, \
-    EmbeddedDocument, ListField, EmbeddedDocumentField, DictField, DynamicDocument
+    EmbeddedDocument, ListField, EmbeddedDocumentField, DictField, DynamicDocument, FloatField, DynamicField
 from rest_framework.authtoken.models import Token
 from temba_client.exceptions import TembaNoSuchObjectError, TembaException
 from temba_client.v2 import TembaClient
@@ -72,8 +72,7 @@ class Org(Document):
     meta = {'collection': 'orgs'}
 
     @classmethod
-    def create(cls, *args):
-        name, api_token, timezone = tuple(args)
+    def create(cls, name, api_token, timezone):
         o = cls(name=name, api_token=api_token, timezone=timezone)
         o.save()
         return o
@@ -112,23 +111,24 @@ class BaseUtil(object):
         obj = cls()
         for key, value in temba.__dict__.items():
             class_attr = getattr(cls, key, None)
+            logger.debug('setting {} to {}'.format(key, value))
             if class_attr is None:
                 continue
             if isinstance(class_attr, ListField):
                 item_class = class_attr.field
                 if isinstance(item_class, EmbeddedDocumentField):
-                    item_class = item_class.document_type_obj
+                    item_class = item_class.document_type
                     setattr(obj, key, item_class.create_from_temba_list(getattr(temba, key)))
                 elif isinstance(item_class, ReferenceField):
                     uuids = [v.uuid for v in getattr(temba, key)]
                     setattr(obj, key, item_class.document_type.get_objects_from_uuids(org, uuids))
                 else:
                     setattr(obj, key, value)
-            elif isinstance(class_attr, ReferenceField):
-                item_class = class_attr.document_type_obj
-                setattr(obj, key, item_class.get_or_fetch(org, getattr(temba, key)))
+            elif isinstance(class_attr, ReferenceField) and getattr(temba, key) is not None:
+                item_class = class_attr.document_type
+                setattr(obj, key, item_class.get_or_fetch(org, getattr(temba, key).uuid))
             elif isinstance(class_attr, EmbeddedDocumentField):
-                item_class = class_attr.document_type_obj
+                item_class = class_attr.document_type
                 setattr(obj, key, item_class.create_from_temba(getattr(temba, key)))
             else:
                 if key == 'id':
@@ -136,7 +136,6 @@ class BaseUtil(object):
                 setattr(obj, key, value)
 
         obj.org_id = str(org['id'])
-        # import pdb; pdb.set_trace()
         obj.save()
         return obj
 
@@ -152,7 +151,7 @@ class BaseUtil(object):
         if not obj:
             try:
                 obj = cls.fetch(org, uuid)
-            except (TembaNoSuchObjectError, TembaException):
+            except (TembaNoSuchObjectError, TembaException, AttributeError):
                 obj = None
         return obj
 
@@ -222,6 +221,8 @@ class BaseUtil(object):
 class EmbeddedUtil(object):
     @classmethod
     def create_from_temba(cls, temba):
+        if temba is None:
+            return None
         obj = cls()
         for k, v in temba.__dict__.items():
             setattr(obj, k, v)
@@ -237,13 +238,44 @@ class EmbeddedUtil(object):
 
 class Group(Document, BaseUtil):
     org_id = StringField(required=True)
-    # created_on = DateTimeField()
-    # modified_on = DateTimeField()
     uuid = StringField()
     name = StringField()
+    query = StringField()
     count = IntField()
 
     meta = {'collection': 'groups'}
+
+
+class Device(EmbeddedDocument, EmbeddedUtil):
+    power_status = StringField()
+    power_source = StringField()
+    power_level = IntField()
+    name = StringField()
+    network_type = StringField()
+
+
+class Channel(Document, BaseUtil):
+    uuid = StringField()
+    name = StringField()
+    address = StringField()
+    country = StringField()
+    device = EmbeddedDocumentField(Device)
+    last_seen = DateTimeField()
+    created_on = DateTimeField()
+
+    meta = {'collection': 'channels'}
+
+
+class ChannelEvent(Document, BaseUtil):
+    tid = IntField()
+    type = StringField()
+    contact = ReferenceField('Contact')
+    channel = ReferenceField('Channel')
+    time = DateTimeField()
+    duration = IntField()
+    created_on = DateTimeField()
+
+    meta = {'collection': 'channel_events'}
 
 
 class Urn(EmbeddedDocument, EmbeddedUtil):
@@ -260,33 +292,33 @@ class Urn(EmbeddedDocument, EmbeddedUtil):
         return urn
 
     def __unicode__(self):
-        return self.identity
+        return u'{}:{}'.format(self.type, self.identity)
 
 
 class Contact(Document, BaseUtil):
     org_id = StringField(required=True)
-    created_on = DateTimeField()
-    modified_on = DateTimeField()
     uuid = StringField()
     name = StringField()
-    urns = ListField(EmbeddedDocumentField(Urn))
-    groups = ListField(DictField())
     language = StringField()
+    urns = ListField(EmbeddedDocumentField(Urn))
+    groups = ListField(ReferenceField('Group'))
     fields = DictField()
+    blocked = BooleanField()
+    stopped = BooleanField()
+    created_on = DateTimeField()
+    modified_on = DateTimeField()
 
     meta = {'collection': 'contacts'}
 
 
 class Broadcast(Document, BaseUtil):
     org_id = StringField(required=True)
-    created_on = DateTimeField()
-    modified_on = DateTimeField()
     tid = IntField()
     urns = ListField(EmbeddedDocumentField(Urn))
     contacts = ListField(ReferenceField('Contact'))
     groups = ListField(ReferenceField('Group'))
-    text = DictField()
-    status = StringField()
+    text = DynamicField()
+    created_on = DateTimeField()
 
     meta = {'collection': 'broadcasts'}
 
@@ -296,14 +328,31 @@ class Broadcast(Document, BaseUtil):
 
 class Campaign(Document, BaseUtil):
     org_id = StringField(required=True)
-    created_on = DateTimeField()
-    modified_on = DateTimeField()
     uuid = StringField()
+    group = ReferenceField('Group')
+    created_on = DateTimeField()
     name = StringField()
-    group = DictField()
 
     meta = {'collection': 'campaigns'}
 
+
+class FieldRef(EmbeddedDocument, EmbeddedUtil):
+    key = StringField()
+    label = StringField()
+
+
+class CampaignEvent(Document, BaseUtil):
+    uuid = StringField()
+    campaign = ReferenceField(Campaign)
+    relative_to = EmbeddedDocumentField(FieldRef)
+    offset = IntField()
+    unit = StringField()
+    delivery_hour = IntField()
+    flow = ReferenceField('Flow')
+    message = StringField()
+    created_on = DateTimeField()
+
+    meta = {'collection': 'campaign_events'}
 
 class Ruleset(EmbeddedDocument, EmbeddedUtil):
     uuid = StringField()
@@ -478,8 +527,8 @@ class Run(Document, BaseUtil):
     created_on = DateTimeField()
     modified_on = DateTimeField()
     tid = IntField()
-    flow = DictField()
-    contact = DictField()
+    flow = ReferenceField('Flow')
+    contact = ReferenceField('Contact')
     steps = ListField(EmbeddedDocumentField(FlowStep))
     values = ListField(EmbeddedDocumentField(RunValueSet))
     completed = StringField()
@@ -588,9 +637,14 @@ class Result(Document):
         return "%s - %s" % (self.label, self.org)
 
 
+class BoundaryRef(EmbeddedDocument, EmbeddedUtil):
+    osm_id = StringField()
+    name = StringField()
+
+
 class Geometry(EmbeddedDocument, EmbeddedUtil):
     type = StringField()
-    coordinates = StringField()
+    coordinates = ListField(ListField(ListField(ListField(FloatField()))))  # turtles all the way down
 
     def __unicode__(self):
         return self.coordinates
@@ -600,11 +654,12 @@ class Boundary(Document, BaseUtil):
     org_id = StringField(required=True)
     created_on = DateTimeField()
     modified_on = DateTimeField()
-    boundary = StringField()
+    osm_id = StringField(required=True)
     name = StringField()
-    level = StringField()
-    parent = StringField()
-    geometry = ListField(EmbeddedDocumentField(Geometry))
+    level = IntField()
+    parent = EmbeddedDocumentField(BoundaryRef)
+    aliases = ListField(StringField())
+    geometry = EmbeddedDocumentField(Geometry)
 
     meta = {'collection': 'boundaries'}
 

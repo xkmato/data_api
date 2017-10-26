@@ -27,7 +27,7 @@ def retry_if_temba_api_or_connection_error(exception):
        wait_fixed=settings.RETRY_WAIT_FIXED)
 def fetch_entity(entity, org):
     logger.info("Fetching Object of type: %s for Org: %s", str(entity), org.name)
-    entity.fetch_objects(org)
+    return entity.fetch_objects(org)
 
 
 @task
