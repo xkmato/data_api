@@ -712,11 +712,22 @@ class Resthook(Document, BaseUtil):
 
 
 class ResthookEvent(Document, BaseUtil):
+    org_id = StringField(required=True)
     resthook = StringField(required=True)
     data = DictField()
     created_on = DateTimeField()
 
     meta = {'collection': 'resthook_events'}
+
+
+class ResthookSubscriber(Document, BaseUtil):
+    org_id = StringField(required=True)
+    tid = IntField(required=True)
+    resthook = StringField(required=True)
+    target_url = StringField()
+    created_on = DateTimeField()
+
+    meta = {'collection': 'resthook_subscribers'}
 
 
 @receiver(post_save, sender=settings.AUTH_USER_MODEL)

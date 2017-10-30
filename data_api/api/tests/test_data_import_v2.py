@@ -8,7 +8,7 @@ from temba_client.tests import TembaTest, MockResponse
 from temba_client.v2 import TembaClient
 import uuid
 from ..models import Org, Boundary, Broadcast, Contact, Group, Channel, ChannelEvent, Campaign, CampaignEvent, \
-    Field, Flow, Label, FlowStart, Run, Resthook, ResthookEvent
+    Field, Flow, Label, FlowStart, Run, Resthook, ResthookEvent, ResthookSubscriber
 from data_api.api.tasks import fetch_entity
 
 
@@ -169,6 +169,12 @@ class V2TembaTest(TembaTest):
 
     def test_import_resthook_events(self, mock_request):
         api_results, objs_made = self._run_test(mock_request, ResthookEvent)
+        self.assertEqual(2, len(objs_made))
+        for i, obj in enumerate(objs_made):
+            self.assertEqual(obj.resthook, api_results[i]['resthook'])
+
+    def test_import_resthook_subscribers(self, mock_request):
+        api_results, objs_made = self._run_test(mock_request, ResthookSubscriber)
         self.assertEqual(2, len(objs_made))
         for i, obj in enumerate(objs_made):
             self.assertEqual(obj.resthook, api_results[i]['resthook'])
