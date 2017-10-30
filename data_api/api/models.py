@@ -8,7 +8,8 @@ from django.db import models
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from mongoengine import connect, Document, StringField, BooleanField, ReferenceField, DateTimeField, IntField, \
-    EmbeddedDocument, ListField, EmbeddedDocumentField, DictField, DynamicDocument, FloatField, DynamicField
+    EmbeddedDocument, ListField, EmbeddedDocumentField, DictField, DynamicDocument, FloatField, DynamicField, \
+    MapField
 from rest_framework.authtoken.models import Token
 from temba_client.exceptions import TembaNoSuchObjectError, TembaException
 from temba_client.v2 import TembaClient
@@ -138,6 +139,13 @@ class BaseUtil(object):
                     setattr(obj, key, item_class.document_type.get_objects_from_uuids(org, uuids))
                 else:
                     setattr(obj, key, value)
+            elif isinstance(class_attr, MapField):
+                item_class = class_attr.field
+                assert isinstance(item_class, EmbeddedDocumentField)
+                setattr(obj, key, {
+                    k: item_class.document_type.create_from_temba(v) for k, v in getattr(temba, key).items()
+                })
+
             elif isinstance(class_attr, ReferenceField) and getattr(temba, key) is not None:
                 item_class = class_attr.document_type
                 setattr(obj, key, item_class.get_or_fetch(org, getattr(temba, key).uuid))
@@ -532,26 +540,19 @@ class Message(Document):
             file_number += 1
 
 
-class RunValueSet(EmbeddedDocument, EmbeddedUtil):
-    node = StringField()
-    category = DictField()
-    text = StringField()
-    rule_value = StringField()
-    label = StringField()
+class Value(EmbeddedDocument, EmbeddedUtil):
     value = StringField()
+    category = StringField()
+    node = StringField()
     time = DateTimeField()
 
     def __unicode__(self):
-        return self.text[:7]
+        return self.value[:7]
 
 
-class FlowStep(EmbeddedDocument, EmbeddedUtil):
+class Step(EmbeddedDocument, EmbeddedUtil):
     node = StringField()
-    text = StringField()
-    value = StringField()
-    type = StringField()
-    arrived_on = DateTimeField()
-    left_on = DateTimeField()
+    time = DateTimeField()
 
     def __unicode__(self):
         return self.text[:7]
@@ -559,14 +560,16 @@ class FlowStep(EmbeddedDocument, EmbeddedUtil):
 
 class Run(Document, BaseUtil):
     org_id = StringField(required=True)
-    created_on = DateTimeField()
-    modified_on = DateTimeField()
     tid = IntField()
     flow = ReferenceField('Flow')
     contact = ReferenceField('Contact')
-    steps = ListField(EmbeddedDocumentField(FlowStep))
-    values = ListField(EmbeddedDocumentField(RunValueSet))
-    completed = StringField()
+    responded = BooleanField()
+    path = ListField(EmbeddedDocumentField(Step))
+    values = MapField(EmbeddedDocumentField(Value))
+    created_on = DateTimeField()
+    modified_on = DateTimeField()
+    exited_on = DateTimeField()
+    exit_type = StringField()
 
     meta = {'collection': 'runs'}
 
