@@ -144,3 +144,12 @@ class V2TembaTest(TembaTest):
         for i, obj in enumerate(objs_made):
             self.assertEqual(obj.name, api_results[i]['name'])
 
+    def test_import_org(self, mock_request):
+        api_results_text = self.read_json('org')
+        api_results = json.loads(api_results_text)
+        mock_request.return_value = MockResponse(200, api_results_text)
+        api_key = 'token'
+        client = TembaClient('host', api_key)
+        org = Org.import_from_temba(client, api_key)
+        self.assertEqual(api_key, org.api_token)
+        self.assertEqual(org.name, api_results['name'])
