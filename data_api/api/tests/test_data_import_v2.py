@@ -48,6 +48,10 @@ class V2TembaTest(TembaTest):
         FlowStart.objects.all().delete()
         Label.objects.all().delete()
         Run.objects.all().delete()
+        Resthook.objects.all().delete()
+        ResthookEvent.objects.all().delete()
+        ResthookSubscriber.objects.all().delete()
+
 
     def _run_test(self, mock_request, obj_class):
         api_results_text = self.read_json(obj_class._meta['collection'])
