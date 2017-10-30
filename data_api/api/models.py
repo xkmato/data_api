@@ -178,10 +178,11 @@ class BaseUtil(object):
     def get_objects_from_uuids(cls, org, uuids):
         objs = []
         for uuid in uuids:
-            try:
-                objs.append(cls.get_or_fetch(org, uuid))
-            except TembaNoSuchObjectError:
+            obj = cls.get_or_fetch(org, uuid)
+            if obj is None:
                 continue
+            else:
+                objs.append(cls.get_or_fetch(org, uuid))
         return objs
 
     @classmethod
