@@ -35,8 +35,7 @@ class V2TembaTest(TembaTest):
         cls.client = TembaClient('example.com', '1234567890', user_agent='test/0.1')
         cls.org = Org.create(name='test org', api_token=cls.api_token, timezone=None)
 
-    @classmethod
-    def tearDownClass(cls):
+    def tearDown(self):
         Broadcast.objects.all().delete()
         Campaign.objects.all().delete()
         CampaignEvent.objects.all().delete()
