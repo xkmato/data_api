@@ -8,7 +8,7 @@ from temba_client.tests import TembaTest, MockResponse
 from temba_client.v2 import TembaClient
 import uuid
 from ..models import Org, Boundary, Broadcast, Contact, Group, Channel, ChannelEvent, Campaign, CampaignEvent, \
-    Field
+    Field, Flow, Label
 from data_api.api.tasks import fetch_entity
 
 
@@ -44,6 +44,7 @@ class V2TembaTest(TembaTest):
         ChannelEvent.objects.all().delete()
         Contact.objects.all().delete()
         Group.objects.all().delete()
+        Label.objects.all().delete()
 
     def _run_test(self, mock_request, obj_class):
         api_results_text = self.read_json(obj_class._meta['collection'])
@@ -115,3 +116,10 @@ class V2TembaTest(TembaTest):
         self.assertEqual(2, len(objs_made))
         for i, obj in enumerate(objs_made):
             self.assertEqual(obj.name, api_results[i]['name'])
+
+    def test_import_labels(self, mock_request):
+        api_results, objs_made = self._run_test(mock_request, Label)
+        self.assertEqual(2, len(objs_made))
+        for i, obj in enumerate(objs_made):
+            self.assertEqual(obj.name, api_results[i]['name'])
+

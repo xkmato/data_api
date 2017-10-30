@@ -394,6 +394,15 @@ class Runs(EmbeddedDocument, EmbeddedUtil):
         return self.label
 
 
+class Label(Document, BaseUtil):
+    org_id = StringField(required=True)
+    uuid = StringField()
+    name = StringField()
+    count = IntField()
+
+    meta = {'collection': 'labels'}
+
+
 class Flow(Document, BaseUtil):
     org_id = StringField(required=True)
     created_on = DateTimeField()
