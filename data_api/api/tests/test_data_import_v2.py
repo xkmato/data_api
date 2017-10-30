@@ -113,6 +113,11 @@ class V2TembaTest(TembaTest):
         for i, obj in enumerate(objs_made):
             self.assertEqual(obj.key, api_results[i]['key'])
 
+    @skip('import currently succeeds on bad object references because errors are swallowed')
+    def test_import_fails_if_no_related_object(self, mock_request):
+        api_results, objs_made = self._run_test(mock_request, FlowStart)
+        self.assertEqual(0, len(objs_made))
+
     def test_import_flow_starts(self, mock_request):
         Flow(org_id=str(self.org.id), uuid='f5901b62-ba76-4003-9c62-72fdacc1b7b7', name='Registration').save()
         Flow(org_id=str(self.org.id), uuid='f5901b62-ba76-4003-9c62-72fdacc1b7b8', name='Thrift Shop').save()
