@@ -187,7 +187,7 @@ class BaseUtil(object):
     @classmethod
     def fetch_objects(cls, org, pager=None):
         func = "get_%s" % cls._meta['collection']
-        ls = LastSaved.objects.filter(**{'coll': cls._meta['collection'], 'org.id': org.id}).first()
+        ls = LastSaved.objects.filter(**{'coll': cls._meta['collection'], 'org__id': org.id}).first()
         after = getattr(ls, 'last_saved', None)
         fetch_all = getattr(org.get_temba_client(), func)
         try:
