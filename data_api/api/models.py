@@ -68,6 +68,7 @@ class Org(Document):
     api_token = StringField(required=True)
     is_active = BooleanField(default=False)
     name = StringField(required=True)
+    country = StringField()
     languages = ListField(StringField())
     primary_language = StringField()
     timezone = StringField(default="UTC")
