@@ -410,6 +410,21 @@ class Flow(Document, BaseUtil):
         return Run.objects.filter(flow__id=self.id)
 
 
+class FlowStart(Document, BaseUtil):
+    org_id = StringField(required=True)
+    uuid = StringField()
+    flow = ReferenceField(Flow)
+    groups = ListField(ReferenceField('Group'))
+    contacts = ListField(ReferenceField('Contact'))
+    restart_participants = BooleanField()
+    status = StringField()
+    extra = DictField()
+    created_on = DateTimeField()
+    modified_on = DateTimeField()
+
+    meta = {'collection': 'flow_starts'}
+
+
 class Event(Document, BaseUtil):
     # todo: rename to CampaignEvent?
     org_id = StringField(required=True)
