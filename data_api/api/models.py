@@ -375,8 +375,6 @@ class Ruleset(EmbeddedDocument, EmbeddedUtil):
 
 class Label(Document, BaseUtil):
     org_id = StringField(required=True)
-    created_on = DateTimeField()
-    modified_on = DateTimeField()
     uuid = StringField()
     name = StringField()
     count = IntField()
@@ -392,15 +390,6 @@ class Runs(EmbeddedDocument, EmbeddedUtil):
 
     def __unicode__(self):
         return self.label
-
-
-class Label(Document, BaseUtil):
-    org_id = StringField(required=True)
-    uuid = StringField()
-    name = StringField()
-    count = IntField()
-
-    meta = {'collection': 'labels'}
 
 
 class Flow(Document, BaseUtil):
