@@ -312,6 +312,15 @@ class Contact(Document, BaseUtil):
     meta = {'collection': 'contacts'}
 
 
+class Field(Document, BaseUtil):
+    org_id = StringField(required=True)
+    key = StringField()
+    label = StringField()
+    value_type = StringField()
+
+    meta = {'collection': 'fields'}
+
+
 class Broadcast(Document, BaseUtil):
     org_id = StringField(required=True)
     tid = IntField()
