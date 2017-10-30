@@ -702,6 +702,15 @@ class Boundary(Document, BaseUtil):
     meta = {'collection': 'boundaries'}
 
 
+class Resthook(Document, BaseUtil):
+    org_id = StringField(required=True)
+    resthook = StringField(required=True)
+    created_on = DateTimeField()
+    modified_on = DateTimeField()
+
+    meta = {'collection': 'resthooks'}
+
+
 @receiver(post_save, sender=settings.AUTH_USER_MODEL)
 def create_auth_token(sender, instance=None, created=False, **kwargs):
     if created:
