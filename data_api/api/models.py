@@ -393,15 +393,14 @@ class Runs(EmbeddedDocument, EmbeddedUtil):
 
 class Flow(Document, BaseUtil):
     org_id = StringField(required=True)
-    created_on = DateTimeField()
-    modified_on = DateTimeField()
     uuid = StringField()
     name = StringField()
     archived = BooleanField()
-    labels = ListField(StringField())
-    participants = IntField()
+    labels = ListField(ReferenceField('Label'))
+    expires = IntField()
+    created_on = DateTimeField()
+    modified_on = DateTimeField()
     runs = EmbeddedDocumentField(Runs)
-    rulesets = ListField(EmbeddedDocumentField(Ruleset))
 
     meta = {'collection': 'flows'}
 
