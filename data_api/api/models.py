@@ -711,6 +711,14 @@ class Resthook(Document, BaseUtil):
     meta = {'collection': 'resthooks'}
 
 
+class ResthookEvent(Document, BaseUtil):
+    resthook = StringField(required=True)
+    data = DictField()
+    created_on = DateTimeField()
+
+    meta = {'collection': 'resthook_events'}
+
+
 @receiver(post_save, sender=settings.AUTH_USER_MODEL)
 def create_auth_token(sender, instance=None, created=False, **kwargs):
     if created:
