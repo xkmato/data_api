@@ -144,8 +144,6 @@ class BaseUtil(object):
         if uuid == None: return None
         if hasattr(cls, 'uuid'):
             obj = cls.objects.filter(uuid=uuid).first()
-            if cls == Label:
-                obj = cls.objects.filter(name=uuid).first()
         else:
             obj = cls.objects.filter(tid=uuid).first()
         if not obj:
