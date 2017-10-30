@@ -255,6 +255,7 @@ class Device(EmbeddedDocument, EmbeddedUtil):
 
 
 class Channel(Document, BaseUtil):
+    org_id = StringField(required=True)
     uuid = StringField()
     name = StringField()
     address = StringField()
