@@ -12,11 +12,11 @@ ecdsa==0.13
 Fabric==1.11.1
 kombu==3.0.36
 Markdown==2.6.2
-mongoengine==0.8.7
+mongoengine==0.14.3
 paramiko==1.17.1
 psycopg2==2.6.1
 pycrypto==2.6.1
-pymongo==2.8
+pymongo==3.5.1
 pytz==2017.2
 PyYAML==3.11
 rapidpro-python==2.1.8

@@ -20,7 +20,7 @@
         },
         {
             "uuid": "ed209f7d-ba00-4fb7-af82-e97b3c56842f",
-            "flow": {"uuid": "f5901b62-ba76-4003-9c62-72fdacc1b7b7", "name": "Thrift Shop"},
+            "flow": {"uuid": "f5901b62-ba76-4003-9c62-72fdacc1b7b8", "name": "Thrift Shop"},
             "groups": [
                 {"uuid": "f5901b62-ba76-4003-9c62-72fdacc1b7b7", "name": "Ryan & Macklemore"}
             ],

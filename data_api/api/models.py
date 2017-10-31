@@ -8,7 +8,8 @@ from django.db import models
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from mongoengine import connect, Document, StringField, BooleanField, ReferenceField, DateTimeField, IntField, \
-    EmbeddedDocument, ListField, EmbeddedDocumentField, DictField, DynamicDocument, FloatField, DynamicField
+    EmbeddedDocument, ListField, EmbeddedDocumentField, DictField, DynamicDocument, FloatField, DynamicField, \
+    MapField
 from rest_framework.authtoken.models import Token
 from temba_client.exceptions import TembaNoSuchObjectError, TembaException
 from temba_client.v2 import TembaClient
@@ -64,12 +65,27 @@ class CSVExport(models.Model):
 
 
 class Org(Document):
-    name = StringField(required=True)
-    language = StringField()
-    timezone = StringField(default="UTC")
     api_token = StringField(required=True)
     is_active = BooleanField(default=False)
+    name = StringField(required=True)
+    country = StringField()
+    languages = ListField(StringField())
+    primary_language = StringField()
+    timezone = StringField(default="UTC")
+    date_style = StringField()
+    credits = DictField()
+    anon = BooleanField()
     meta = {'collection': 'orgs'}
+
+    @classmethod
+    def import_from_temba(cls, temba_client, api_key):
+        org = temba_client.get_org()
+        org_dict = org.serialize()
+        org_dict['api_token'] = api_key
+        local_org = Org(**org_dict)
+        local_org.save()
+        return local_org
+
 
     @classmethod
     def create(cls, name, api_token, timezone):
@@ -124,6 +140,13 @@ class BaseUtil(object):
                     setattr(obj, key, item_class.document_type.get_objects_from_uuids(org, uuids))
                 else:
                     setattr(obj, key, value)
+            elif isinstance(class_attr, MapField):
+                item_class = class_attr.field
+                assert isinstance(item_class, EmbeddedDocumentField)
+                setattr(obj, key, {
+                    k: item_class.document_type.create_from_temba(v) for k, v in getattr(temba, key).items()
+                })
+
             elif isinstance(class_attr, ReferenceField) and getattr(temba, key) is not None:
                 item_class = class_attr.document_type
                 setattr(obj, key, item_class.get_or_fetch(org, getattr(temba, key).uuid))
@@ -144,8 +167,6 @@ class BaseUtil(object):
         if uuid == None: return None
         if hasattr(cls, 'uuid'):
             obj = cls.objects.filter(uuid=uuid).first()
-            if cls == Label:
-                obj = cls.objects.filter(name=uuid).first()
         else:
             obj = cls.objects.filter(tid=uuid).first()
         if not obj:
@@ -178,16 +199,17 @@ class BaseUtil(object):
     def get_objects_from_uuids(cls, org, uuids):
         objs = []
         for uuid in uuids:
-            try:
-                objs.append(cls.get_or_fetch(org, uuid))
-            except TembaNoSuchObjectError:
+            obj = cls.get_or_fetch(org, uuid)
+            if obj is None:
                 continue
+            else:
+                objs.append(cls.get_or_fetch(org, uuid))
         return objs
 
     @classmethod
     def fetch_objects(cls, org, pager=None):
         func = "get_%s" % cls._meta['collection']
-        ls = LastSaved.objects.filter(**{'coll': cls._meta['collection'], 'org.id': org.id}).first()
+        ls = LastSaved.objects.filter(**{'coll': cls._meta['collection'], 'org__id': org.id}).first()
         after = getattr(ls, 'last_saved', None)
         fetch_all = getattr(org.get_temba_client(), func)
         try:
@@ -255,6 +277,7 @@ class Device(EmbeddedDocument, EmbeddedUtil):
 
 
 class Channel(Document, BaseUtil):
+    org_id = StringField(required=True)
     uuid = StringField()
     name = StringField()
     address = StringField()
@@ -311,6 +334,15 @@ class Contact(Document, BaseUtil):
     meta = {'collection': 'contacts'}
 
 
+class Field(Document, BaseUtil):
+    org_id = StringField(required=True)
+    key = StringField()
+    label = StringField()
+    value_type = StringField()
+
+    meta = {'collection': 'fields'}
+
+
 class Broadcast(Document, BaseUtil):
     org_id = StringField(required=True)
     tid = IntField()
@@ -365,8 +397,6 @@ class Ruleset(EmbeddedDocument, EmbeddedUtil):
 
 class Label(Document, BaseUtil):
     org_id = StringField(required=True)
-    created_on = DateTimeField()
-    modified_on = DateTimeField()
     uuid = StringField()
     name = StringField()
     count = IntField()
@@ -386,15 +416,14 @@ class Runs(EmbeddedDocument, EmbeddedUtil):
 
 class Flow(Document, BaseUtil):
     org_id = StringField(required=True)
-    created_on = DateTimeField()
-    modified_on = DateTimeField()
     uuid = StringField()
     name = StringField()
     archived = BooleanField()
-    labels = ListField(StringField())
-    participants = IntField()
+    labels = ListField(ReferenceField('Label'))
+    expires = IntField()
+    created_on = DateTimeField()
+    modified_on = DateTimeField()
     runs = EmbeddedDocumentField(Runs)
-    rulesets = ListField(EmbeddedDocumentField(Ruleset))
 
     meta = {'collection': 'flows'}
 
@@ -402,6 +431,21 @@ class Flow(Document, BaseUtil):
         if queryset:
             return queryset.filter(flow__id=self.id)
         return Run.objects.filter(flow__id=self.id)
+
+
+class FlowStart(Document, BaseUtil):
+    org_id = StringField(required=True)
+    uuid = StringField()
+    flow = ReferenceField(Flow)
+    groups = ListField(ReferenceField('Group'))
+    contacts = ListField(ReferenceField('Contact'))
+    restart_participants = BooleanField()
+    status = StringField()
+    extra = DictField()
+    created_on = DateTimeField()
+    modified_on = DateTimeField()
+
+    meta = {'collection': 'flow_starts'}
 
 
 class Event(Document, BaseUtil):
@@ -497,26 +541,19 @@ class Message(Document):
             file_number += 1
 
 
-class RunValueSet(EmbeddedDocument, EmbeddedUtil):
-    node = StringField()
-    category = DictField()
-    text = StringField()
-    rule_value = StringField()
-    label = StringField()
+class Value(EmbeddedDocument, EmbeddedUtil):
     value = StringField()
+    category = StringField()
+    node = StringField()
     time = DateTimeField()
 
     def __unicode__(self):
-        return self.text[:7]
+        return self.value[:7]
 
 
-class FlowStep(EmbeddedDocument, EmbeddedUtil):
+class Step(EmbeddedDocument, EmbeddedUtil):
     node = StringField()
-    text = StringField()
-    value = StringField()
-    type = StringField()
-    arrived_on = DateTimeField()
-    left_on = DateTimeField()
+    time = DateTimeField()
 
     def __unicode__(self):
         return self.text[:7]
@@ -524,14 +561,16 @@ class FlowStep(EmbeddedDocument, EmbeddedUtil):
 
 class Run(Document, BaseUtil):
     org_id = StringField(required=True)
-    created_on = DateTimeField()
-    modified_on = DateTimeField()
     tid = IntField()
     flow = ReferenceField('Flow')
     contact = ReferenceField('Contact')
-    steps = ListField(EmbeddedDocumentField(FlowStep))
-    values = ListField(EmbeddedDocumentField(RunValueSet))
-    completed = StringField()
+    responded = BooleanField()
+    path = ListField(EmbeddedDocumentField(Step))
+    values = MapField(EmbeddedDocumentField(Value))
+    created_on = DateTimeField()
+    modified_on = DateTimeField()
+    exited_on = DateTimeField()
+    exit_type = StringField()
 
     meta = {'collection': 'runs'}
 
@@ -662,6 +701,34 @@ class Boundary(Document, BaseUtil):
     geometry = EmbeddedDocumentField(Geometry)
 
     meta = {'collection': 'boundaries'}
+
+
+class Resthook(Document, BaseUtil):
+    org_id = StringField(required=True)
+    resthook = StringField(required=True)
+    created_on = DateTimeField()
+    modified_on = DateTimeField()
+
+    meta = {'collection': 'resthooks'}
+
+
+class ResthookEvent(Document, BaseUtil):
+    org_id = StringField(required=True)
+    resthook = StringField(required=True)
+    data = DictField()
+    created_on = DateTimeField()
+
+    meta = {'collection': 'resthook_events'}
+
+
+class ResthookSubscriber(Document, BaseUtil):
+    org_id = StringField(required=True)
+    tid = IntField(required=True)
+    resthook = StringField(required=True)
+    target_url = StringField()
+    created_on = DateTimeField()
+
+    meta = {'collection': 'resthook_subscribers'}
 
 
 @receiver(post_save, sender=settings.AUTH_USER_MODEL)

@@ -7,7 +7,8 @@ import six
 from temba_client.tests import TembaTest, MockResponse
 from temba_client.v2 import TembaClient
 import uuid
-from ..models import Org, Boundary, Broadcast, Contact, Group, Channel, ChannelEvent, Campaign, CampaignEvent
+from ..models import Org, Boundary, Broadcast, Contact, Group, Channel, ChannelEvent, Campaign, CampaignEvent, \
+    Field, Flow, Label, FlowStart, Run, Resthook, ResthookEvent, ResthookSubscriber
 from data_api.api.tasks import fetch_entity
 
 
@@ -35,8 +36,7 @@ class V2TembaTest(TembaTest):
         cls.client = TembaClient('example.com', '1234567890', user_agent='test/0.1')
         cls.org = Org.create(name='test org', api_token=cls.api_token, timezone=None)
 
-    @classmethod
-    def tearDownClass(cls):
+    def tearDown(self):
         Broadcast.objects.all().delete()
         Campaign.objects.all().delete()
         CampaignEvent.objects.all().delete()
@@ -44,6 +44,14 @@ class V2TembaTest(TembaTest):
         ChannelEvent.objects.all().delete()
         Contact.objects.all().delete()
         Group.objects.all().delete()
+        Flow.objects.all().delete()
+        FlowStart.objects.all().delete()
+        Label.objects.all().delete()
+        Run.objects.all().delete()
+        Resthook.objects.all().delete()
+        ResthookEvent.objects.all().delete()
+        ResthookSubscriber.objects.all().delete()
+
 
     def _run_test(self, mock_request, obj_class):
         api_results_text = self.read_json(obj_class._meta['collection'])
@@ -104,8 +112,73 @@ class V2TembaTest(TembaTest):
         for i, obj in enumerate(objs_made):
             self.assertEqual(obj.name, api_results[i]['name'])
 
+    def test_import_fields(self, mock_request):
+        api_results, objs_made = self._run_test(mock_request, Field)
+        self.assertEqual(2, len(objs_made))
+        for i, obj in enumerate(objs_made):
+            self.assertEqual(obj.key, api_results[i]['key'])
+
+    @skip('import currently succeeds on bad object references because errors are swallowed')
+    def test_import_fails_if_no_related_object(self, mock_request):
+        api_results, objs_made = self._run_test(mock_request, FlowStart)
+        self.assertEqual(0, len(objs_made))
+
+    def test_import_flow_starts(self, mock_request):
+        Flow(org_id=str(self.org.id), uuid='f5901b62-ba76-4003-9c62-72fdacc1b7b7', name='Registration').save()
+        Flow(org_id=str(self.org.id), uuid='f5901b62-ba76-4003-9c62-72fdacc1b7b8', name='Thrift Shop').save()
+        api_results, objs_made = self._run_test(mock_request, FlowStart)
+        self.assertEqual(2, len(objs_made))
+        for i, obj in enumerate(objs_made):
+            self.assertEqual(obj.flow.name, api_results[i]['flow']['name'])
+
+    def test_import_flows(self, mock_request):
+        api_results, objs_made = self._run_test(mock_request, Flow)
+        self.assertEqual(2, len(objs_made))
+        for i, obj in enumerate(objs_made):
+            self.assertEqual(obj.name, api_results[i]['name'])
+
     def test_import_groups(self, mock_request):
         api_results, objs_made = self._run_test(mock_request, Group)
         self.assertEqual(2, len(objs_made))
         for i, obj in enumerate(objs_made):
             self.assertEqual(obj.name, api_results[i]['name'])
+
+    def test_import_labels(self, mock_request):
+        api_results, objs_made = self._run_test(mock_request, Label)
+        self.assertEqual(2, len(objs_made))
+        for i, obj in enumerate(objs_made):
+            self.assertEqual(obj.name, api_results[i]['name'])
+
+    def test_import_org(self, mock_request):
+        api_results_text = self.read_json('org')
+        api_results = json.loads(api_results_text)
+        mock_request.return_value = MockResponse(200, api_results_text)
+        api_key = 'token'
+        client = TembaClient('host', api_key)
+        org = Org.import_from_temba(client, api_key)
+        self.assertEqual(api_key, org.api_token)
+        self.assertEqual(org.name, api_results['name'])
+
+    def test_import_runs(self, mock_request):
+        api_results, objs_made = self._run_test(mock_request, Run)
+        self.assertEqual(2, len(objs_made))
+        for i, obj in enumerate(objs_made):
+            self.assertEqual(obj.tid, api_results[i]['id'])
+
+    def test_import_resthooks(self, mock_request):
+        api_results, objs_made = self._run_test(mock_request, Resthook)
+        self.assertEqual(2, len(objs_made))
+        for i, obj in enumerate(objs_made):
+            self.assertEqual(obj.resthook, api_results[i]['resthook'])
+
+    def test_import_resthook_events(self, mock_request):
+        api_results, objs_made = self._run_test(mock_request, ResthookEvent)
+        self.assertEqual(2, len(objs_made))
+        for i, obj in enumerate(objs_made):
+            self.assertEqual(obj.resthook, api_results[i]['resthook'])
+
+    def test_import_resthook_subscribers(self, mock_request):
+        api_results, objs_made = self._run_test(mock_request, ResthookSubscriber)
+        self.assertEqual(2, len(objs_made))
+        for i, obj in enumerate(objs_made):
+            self.assertEqual(obj.resthook, api_results[i]['resthook'])
