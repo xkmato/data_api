@@ -498,6 +498,18 @@ class Message(Document, BaseUtil):
         return "%s - %s" % (self.text[:7], self.org)
 
     @classmethod
+    def sync_temba_objects(cls, org, last_saved):
+        fetch_objects = cls.get_fetch_method(org)
+        folders = [
+            'inbox', 'flows', 'archived', 'outbox', 'incoming', 'sent',
+        ]
+        objs = []
+        for folder in folders:
+            temba_objs = fetch_objects(folder=folder)
+            objs.extend(cls.create_from_temba_list(org, temba_objs))
+        return objs
+
+    @classmethod
     def generate_csv(cls, from_date=None, org_id=None, contact_fields=None):
         if not from_date:
             from_date = datetime(2016, 1, 1)
