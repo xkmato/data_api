@@ -381,7 +381,7 @@ class CampaignEvent(Document, BaseUtil):
     unit = StringField()
     delivery_hour = IntField()
     flow = ReferenceField('Flow')
-    message = StringField()
+    message = DynamicField()
     created_on = DateTimeField()
 
     meta = {'collection': 'campaign_events'}
