@@ -271,7 +271,6 @@ class OrgDocument(Document, BaseUtil):
     first_synced = DateTimeField()
     last_synced = DateTimeField()
 
-
     meta = {'abstract': True}
 
 
