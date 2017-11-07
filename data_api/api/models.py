@@ -468,22 +468,21 @@ class Event(Document, BaseUtil):
         return "%s - %s" % (self.uuid, self.org)
 
 
-class Message(Document):
-    # todo: add back inheritance from BaseUtil once figure out how to get all messages
+class Message(Document, BaseUtil):
     org_id = StringField(required=True)
+    tid = IntField()
+    broadcast = IntField()
+    contact = ReferenceField('Contact')
+    urn = EmbeddedDocumentField(Urn)
+    channel = ReferenceField('Channel')
+    direction = StringField()
+    type = StringField()
+    status = StringField()
+    visibility = StringField()
+    text = StringField()
+    labels = ListField(ReferenceField('Label'))
     created_on = DateTimeField()
     modified_on = DateTimeField()
-    tid = IntField()
-    broadcast = DictField()
-    contact = DictField()
-    urn = EmbeddedDocumentField(Urn)
-    status = StringField()
-    type = StringField()
-    labels = ListField(StringField())
-    direction = StringField()
-    archived = StringField()
-    text = StringField()
-    delivered_on = DateTimeField()
     sent_on = DateTimeField()
 
     meta = {'collection': 'messages'}
