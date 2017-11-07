@@ -264,8 +264,13 @@ class EmbeddedUtil(object):
         return obj_list
 
 
-class Group(Document, BaseUtil):
+class OrgDocument(Document, BaseUtil):
     org_id = StringField(required=True)
+
+    meta = {'abstract': True}
+
+
+class Group(OrgDocument):
     uuid = StringField()
     name = StringField()
     query = StringField()
@@ -282,8 +287,7 @@ class Device(EmbeddedDocument, EmbeddedUtil):
     network_type = StringField()
 
 
-class Channel(Document, BaseUtil):
-    org_id = StringField(required=True)
+class Channel(OrgDocument):
     uuid = StringField()
     name = StringField()
     address = StringField()
@@ -295,7 +299,7 @@ class Channel(Document, BaseUtil):
     meta = {'collection': 'channels'}
 
 
-class ChannelEvent(Document, BaseUtil):
+class ChannelEvent(OrgDocument):
     tid = IntField()
     type = StringField()
     contact = ReferenceField('Contact')
@@ -324,8 +328,7 @@ class Urn(EmbeddedDocument, EmbeddedUtil):
         return u'{}:{}'.format(self.type, self.identity)
 
 
-class Contact(Document, BaseUtil):
-    org_id = StringField(required=True)
+class Contact(OrgDocument):
     uuid = StringField()
     name = StringField()
     language = StringField()
@@ -340,8 +343,7 @@ class Contact(Document, BaseUtil):
     meta = {'collection': 'contacts'}
 
 
-class Field(Document, BaseUtil):
-    org_id = StringField(required=True)
+class Field(OrgDocument):
     key = StringField()
     label = StringField()
     value_type = StringField()
@@ -349,8 +351,7 @@ class Field(Document, BaseUtil):
     meta = {'collection': 'fields'}
 
 
-class Broadcast(Document, BaseUtil):
-    org_id = StringField(required=True)
+class Broadcast(OrgDocument):
     tid = IntField()
     urns = ListField(EmbeddedDocumentField(Urn))
     contacts = ListField(ReferenceField('Contact'))
@@ -364,8 +365,7 @@ class Broadcast(Document, BaseUtil):
         return "%s - %s" % (self.text[:7], self.org)
 
 
-class Campaign(Document, BaseUtil):
-    org_id = StringField(required=True)
+class Campaign(OrgDocument):
     uuid = StringField()
     group = ReferenceField('Group')
     created_on = DateTimeField()
@@ -379,7 +379,7 @@ class FieldRef(EmbeddedDocument, EmbeddedUtil):
     label = StringField()
 
 
-class CampaignEvent(Document, BaseUtil):
+class CampaignEvent(OrgDocument):
     uuid = StringField()
     campaign = ReferenceField(Campaign)
     relative_to = EmbeddedDocumentField(FieldRef)
@@ -405,8 +405,7 @@ class Ruleset(EmbeddedDocument, EmbeddedUtil):
         return self.label
 
 
-class Label(Document, BaseUtil):
-    org_id = StringField(required=True)
+class Label(OrgDocument):
     uuid = StringField()
     name = StringField()
     count = IntField()
@@ -424,8 +423,7 @@ class Runs(EmbeddedDocument, EmbeddedUtil):
         return self.label
 
 
-class Flow(Document, BaseUtil):
-    org_id = StringField(required=True)
+class Flow(OrgDocument):
     uuid = StringField()
     name = StringField()
     archived = BooleanField()
@@ -443,8 +441,7 @@ class Flow(Document, BaseUtil):
         return Run.objects.filter(flow__id=self.id)
 
 
-class FlowStart(Document, BaseUtil):
-    org_id = StringField(required=True)
+class FlowStart(OrgDocument):
     uuid = StringField()
     flow = ReferenceField(Flow)
     groups = ListField(ReferenceField('Group'))
@@ -458,8 +455,7 @@ class FlowStart(Document, BaseUtil):
     meta = {'collection': 'flow_starts'}
 
 
-class Message(Document, BaseUtil):
-    org_id = StringField(required=True)
+class Message(OrgDocument):
     tid = IntField()
     broadcast = IntField()
     contact = ReferenceField('Contact')
@@ -560,8 +556,7 @@ class Step(EmbeddedDocument, EmbeddedUtil):
         return self.text[:7]
 
 
-class Run(Document, BaseUtil):
-    org_id = StringField(required=True)
+class Run(OrgDocument):
     tid = IntField()
     flow = ReferenceField('Flow')
     contact = ReferenceField('Contact')
@@ -690,8 +685,7 @@ class Geometry(EmbeddedDocument, EmbeddedUtil):
         return self.coordinates
 
 
-class Boundary(Document, BaseUtil):
-    org_id = StringField(required=True)
+class Boundary(OrgDocument):
     created_on = DateTimeField()
     modified_on = DateTimeField()
     osm_id = StringField(required=True)
@@ -704,8 +698,7 @@ class Boundary(Document, BaseUtil):
     meta = {'collection': 'boundaries'}
 
 
-class Resthook(Document, BaseUtil):
-    org_id = StringField(required=True)
+class Resthook(OrgDocument):
     resthook = StringField(required=True)
     created_on = DateTimeField()
     modified_on = DateTimeField()
@@ -713,8 +706,7 @@ class Resthook(Document, BaseUtil):
     meta = {'collection': 'resthooks'}
 
 
-class ResthookEvent(Document, BaseUtil):
-    org_id = StringField(required=True)
+class ResthookEvent(OrgDocument):
     resthook = StringField(required=True)
     data = DictField()
     created_on = DateTimeField()
@@ -722,8 +714,7 @@ class ResthookEvent(Document, BaseUtil):
     meta = {'collection': 'resthook_events'}
 
 
-class ResthookSubscriber(Document, BaseUtil):
-    org_id = StringField(required=True)
+class ResthookSubscriber(OrgDocument):
     tid = IntField(required=True)
     resthook = StringField(required=True)
     target_url = StringField()
