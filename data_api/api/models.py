@@ -10,6 +10,7 @@ from django.dispatch import receiver
 from mongoengine import connect, Document, StringField, BooleanField, ReferenceField, DateTimeField, IntField, \
     EmbeddedDocument, ListField, EmbeddedDocumentField, DictField, DynamicDocument, FloatField, DynamicField, \
     MapField
+import pytz
 from rest_framework.authtoken.models import Token
 from temba_client.exceptions import TembaNoSuchObjectError, TembaException
 from temba_client.v2 import TembaClient
@@ -116,8 +117,8 @@ class Org(Document):
 
 
 class LastSaved(DynamicDocument):
+    org_id = StringField(required=True)
     coll = StringField()
-    org = DictField()
     last_saved = DateTimeField()
 
 
@@ -207,24 +208,17 @@ class BaseUtil(object):
         return objs
 
     @classmethod
-    def fetch_objects(cls, org, pager=None):
+    def fetch_objects(cls, org):
         func = "get_%s" % cls._meta['collection']
-        ls = LastSaved.objects.filter(**{'coll': cls._meta['collection'], 'org__id': org.id}).first()
-        after = getattr(ls, 'last_saved', None)
+        ls = LastSaved.objects.filter(**{'coll': cls._meta['collection'], 'org_id': org.id}).first()
         fetch_all = getattr(org.get_temba_client(), func)
-        try:
-            objs = cls.create_from_temba_list(org, fetch_all(after=after, pager=pager))
-            if not ls:
-                ls = LastSaved()
-                ls.org = org
-            ls.coll = cls._meta['collection']
-            ls.last_saved = datetime.now(tz=org.timezone)
-            ls.save()
-        except TypeError:
-            try:
-                objs = cls.create_from_temba_list(org, fetch_all(pager=pager))
-            except TypeError:
-                objs = cls.create_from_temba_list(org, fetch_all())
+        objs = cls.create_from_temba_list(org, fetch_all())
+        if not ls:
+            ls = LastSaved()
+            ls.org_id = str(org['id'])
+        ls.coll = cls._meta['collection']
+        ls.last_saved = datetime.now(tz=pytz.timezone(org.timezone))
+        ls.save()
         return objs
 
     # def __unicode__(self):
@@ -385,6 +379,7 @@ class CampaignEvent(Document, BaseUtil):
     created_on = DateTimeField()
 
     meta = {'collection': 'campaign_events'}
+
 
 class Ruleset(EmbeddedDocument, EmbeddedUtil):
     uuid = StringField()
