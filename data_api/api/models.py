@@ -224,9 +224,13 @@ class BaseUtil(object):
 
     @classmethod
     def sync_temba_objects(cls, org, last_saved):
-        func = "get_%s" % cls._meta['collection']
-        fetch_all = getattr(org.get_temba_client(), func)
+        fetch_all = cls.get_fetch_method(org)
         return cls.create_from_temba_list(org, fetch_all())
+
+    @classmethod
+    def get_fetch_method(cls, org):
+        func = "get_%s" % cls._meta['collection']
+        return getattr(org.get_temba_client(), func)
 
 
     # def __unicode__(self):
