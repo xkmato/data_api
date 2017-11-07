@@ -2,6 +2,7 @@ import codecs
 import json
 import os
 from unittest import skip
+from datetime import datetime
 from mock import patch
 import six
 from temba_client.tests import TembaTest, MockResponse
@@ -53,14 +54,18 @@ class V2TembaTest(TembaTest):
         ResthookEvent.objects.all().delete()
         ResthookSubscriber.objects.all().delete()
 
-
     def _run_test(self, mock_request, obj_class):
         api_results_text = self.read_json(obj_class._meta['collection'])
         api_results = json.loads(api_results_text)
         mock_request.return_value = MockResponse(200, api_results_text)
+        before = datetime.utcnow()
         objs_made = fetch_entity(obj_class, self.org)
+        after = datetime.utcnow()
         for obj in objs_made:
             self.assertTrue(isinstance(obj, obj_class))
+            self.assertEqual(str(self.org.id), obj.org_id)
+            self.assertTrue(before <= obj.first_synced <= after)
+            self.assertTrue(before <= obj.last_synced <= after)
 
         return api_results['results'], objs_made
 

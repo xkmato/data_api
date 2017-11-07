@@ -160,6 +160,8 @@ class BaseUtil(object):
                 setattr(obj, key, value)
 
         obj.org_id = str(org['id'])
+        obj.first_synced = datetime.utcnow()
+        obj.last_synced = datetime.utcnow()
         obj.save()
         return obj
 
@@ -266,6 +268,9 @@ class EmbeddedUtil(object):
 
 class OrgDocument(Document, BaseUtil):
     org_id = StringField(required=True)
+    first_synced = DateTimeField()
+    last_synced = DateTimeField()
+
 
     meta = {'abstract': True}
 
