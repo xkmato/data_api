@@ -209,10 +209,11 @@ class BaseUtil(object):
 
     @classmethod
     def fetch_objects(cls, org):
-        func = "get_%s" % cls._meta['collection']
+        """
+        Syncs all objects of this type from the provided org.
+        """
         ls = LastSaved.objects.filter(**{'coll': cls._meta['collection'], 'org_id': org.id}).first()
-        fetch_all = getattr(org.get_temba_client(), func)
-        objs = cls.create_from_temba_list(org, fetch_all())
+        objs = cls.sync_temba_objects(org, ls)
         if not ls:
             ls = LastSaved()
             ls.org_id = str(org['id'])
@@ -220,6 +221,13 @@ class BaseUtil(object):
         ls.last_saved = datetime.now(tz=pytz.timezone(org.timezone))
         ls.save()
         return objs
+
+    @classmethod
+    def sync_temba_objects(cls, org, last_saved):
+        func = "get_%s" % cls._meta['collection']
+        fetch_all = getattr(org.get_temba_client(), func)
+        return cls.create_from_temba_list(org, fetch_all())
+
 
     # def __unicode__(self):
     # if hasattr(self, 'name'):
