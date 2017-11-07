@@ -392,6 +392,9 @@ class CampaignEvent(Document, BaseUtil):
 
     meta = {'collection': 'campaign_events'}
 
+    def __unicode__(self):
+        return "%s - %s" % (self.uuid, self.org)
+
 
 class Ruleset(EmbeddedDocument, EmbeddedUtil):
     uuid = StringField()
@@ -453,26 +456,6 @@ class FlowStart(Document, BaseUtil):
     modified_on = DateTimeField()
 
     meta = {'collection': 'flow_starts'}
-
-
-class Event(Document, BaseUtil):
-    # todo: rename to CampaignEvent?
-    org_id = StringField(required=True)
-    created_on = DateTimeField()
-    modified_on = DateTimeField()
-    uuid = StringField()
-    campaign = DictField()
-    relative_to = StringField()
-    offset = IntField()
-    unit = StringField()
-    delivery_hour = IntField()
-    message = StringField()
-    flow = DictField()
-
-    meta = {'collection': 'campaign_events'}
-
-    def __unicode__(self):
-        return "%s - %s" % (self.uuid, self.org)
 
 
 class Message(Document, BaseUtil):
