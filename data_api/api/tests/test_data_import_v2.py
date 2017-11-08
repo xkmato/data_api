@@ -2,13 +2,14 @@ import codecs
 import json
 import os
 from unittest import skip
+from datetime import datetime
 from mock import patch
 import six
 from temba_client.tests import TembaTest, MockResponse
 from temba_client.v2 import TembaClient
 import uuid
 from ..models import Org, Boundary, Broadcast, Contact, Group, Channel, ChannelEvent, Campaign, CampaignEvent, \
-    Field, Flow, Label, FlowStart, Run, Resthook, ResthookEvent, ResthookSubscriber
+    Field, Flow, Label, FlowStart, Run, Resthook, ResthookEvent, ResthookSubscriber, Message
 from data_api.api.tasks import fetch_entity
 
 
@@ -47,19 +48,24 @@ class V2TembaTest(TembaTest):
         Flow.objects.all().delete()
         FlowStart.objects.all().delete()
         Label.objects.all().delete()
+        Message.objects.all().delete()
         Run.objects.all().delete()
         Resthook.objects.all().delete()
         ResthookEvent.objects.all().delete()
         ResthookSubscriber.objects.all().delete()
 
-
     def _run_test(self, mock_request, obj_class):
         api_results_text = self.read_json(obj_class._meta['collection'])
         api_results = json.loads(api_results_text)
         mock_request.return_value = MockResponse(200, api_results_text)
+        before = datetime.utcnow()
         objs_made = fetch_entity(obj_class, self.org)
+        after = datetime.utcnow()
         for obj in objs_made:
             self.assertTrue(isinstance(obj, obj_class))
+            self.assertEqual(str(self.org.id), obj.org_id)
+            self.assertTrue(before <= obj.first_synced <= after)
+            self.assertTrue(before <= obj.last_synced <= after)
 
         return api_results['results'], objs_made
 
@@ -148,6 +154,12 @@ class V2TembaTest(TembaTest):
         self.assertEqual(2, len(objs_made))
         for i, obj in enumerate(objs_made):
             self.assertEqual(obj.name, api_results[i]['name'])
+
+    def test_import_messages(self, mock_request):
+        api_results, objs_made = self._run_test(mock_request, Message)
+        self.assertEqual(2, len(objs_made))
+        for i, obj in enumerate(objs_made):
+            self.assertEqual(obj.text, api_results[i]['text'])
 
     def test_import_org(self, mock_request):
         api_results_text = self.read_json('org')

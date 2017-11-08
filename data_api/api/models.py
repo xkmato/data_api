@@ -10,6 +10,7 @@ from django.dispatch import receiver
 from mongoengine import connect, Document, StringField, BooleanField, ReferenceField, DateTimeField, IntField, \
     EmbeddedDocument, ListField, EmbeddedDocumentField, DictField, DynamicDocument, FloatField, DynamicField, \
     MapField
+import pytz
 from rest_framework.authtoken.models import Token
 from temba_client.exceptions import TembaNoSuchObjectError, TembaException
 from temba_client.v2 import TembaClient
@@ -116,8 +117,8 @@ class Org(Document):
 
 
 class LastSaved(DynamicDocument):
+    org_id = StringField(required=True)
     coll = StringField()
-    org = DictField()
     last_saved = DateTimeField()
 
 
@@ -159,6 +160,8 @@ class BaseUtil(object):
                 setattr(obj, key, value)
 
         obj.org_id = str(org['id'])
+        obj.first_synced = datetime.utcnow()
+        obj.last_synced = datetime.utcnow()
         obj.save()
         return obj
 
@@ -207,25 +210,30 @@ class BaseUtil(object):
         return objs
 
     @classmethod
-    def fetch_objects(cls, org, pager=None):
-        func = "get_%s" % cls._meta['collection']
-        ls = LastSaved.objects.filter(**{'coll': cls._meta['collection'], 'org__id': org.id}).first()
-        after = getattr(ls, 'last_saved', None)
-        fetch_all = getattr(org.get_temba_client(), func)
-        try:
-            objs = cls.create_from_temba_list(org, fetch_all(after=after, pager=pager))
-            if not ls:
-                ls = LastSaved()
-                ls.org = org
-            ls.coll = cls._meta['collection']
-            ls.last_saved = datetime.now(tz=org.timezone)
-            ls.save()
-        except TypeError:
-            try:
-                objs = cls.create_from_temba_list(org, fetch_all(pager=pager))
-            except TypeError:
-                objs = cls.create_from_temba_list(org, fetch_all())
+    def fetch_objects(cls, org):
+        """
+        Syncs all objects of this type from the provided org.
+        """
+        ls = LastSaved.objects.filter(**{'coll': cls._meta['collection'], 'org_id': org.id}).first()
+        objs = cls.sync_temba_objects(org, ls)
+        if not ls:
+            ls = LastSaved()
+            ls.org_id = str(org['id'])
+        ls.coll = cls._meta['collection']
+        ls.last_saved = datetime.now(tz=pytz.timezone(org.timezone))
+        ls.save()
         return objs
+
+    @classmethod
+    def sync_temba_objects(cls, org, last_saved):
+        fetch_all = cls.get_fetch_method(org)
+        return cls.create_from_temba_list(org, fetch_all())
+
+    @classmethod
+    def get_fetch_method(cls, org):
+        func = "get_%s" % cls._meta['collection']
+        return getattr(org.get_temba_client(), func)
+
 
     # def __unicode__(self):
     # if hasattr(self, 'name'):
@@ -258,8 +266,15 @@ class EmbeddedUtil(object):
         return obj_list
 
 
-class Group(Document, BaseUtil):
+class OrgDocument(Document, BaseUtil):
     org_id = StringField(required=True)
+    first_synced = DateTimeField()
+    last_synced = DateTimeField()
+
+    meta = {'abstract': True}
+
+
+class Group(OrgDocument):
     uuid = StringField()
     name = StringField()
     query = StringField()
@@ -276,8 +291,7 @@ class Device(EmbeddedDocument, EmbeddedUtil):
     network_type = StringField()
 
 
-class Channel(Document, BaseUtil):
-    org_id = StringField(required=True)
+class Channel(OrgDocument):
     uuid = StringField()
     name = StringField()
     address = StringField()
@@ -289,7 +303,7 @@ class Channel(Document, BaseUtil):
     meta = {'collection': 'channels'}
 
 
-class ChannelEvent(Document, BaseUtil):
+class ChannelEvent(OrgDocument):
     tid = IntField()
     type = StringField()
     contact = ReferenceField('Contact')
@@ -318,8 +332,7 @@ class Urn(EmbeddedDocument, EmbeddedUtil):
         return u'{}:{}'.format(self.type, self.identity)
 
 
-class Contact(Document, BaseUtil):
-    org_id = StringField(required=True)
+class Contact(OrgDocument):
     uuid = StringField()
     name = StringField()
     language = StringField()
@@ -334,8 +347,7 @@ class Contact(Document, BaseUtil):
     meta = {'collection': 'contacts'}
 
 
-class Field(Document, BaseUtil):
-    org_id = StringField(required=True)
+class Field(OrgDocument):
     key = StringField()
     label = StringField()
     value_type = StringField()
@@ -343,8 +355,7 @@ class Field(Document, BaseUtil):
     meta = {'collection': 'fields'}
 
 
-class Broadcast(Document, BaseUtil):
-    org_id = StringField(required=True)
+class Broadcast(OrgDocument):
     tid = IntField()
     urns = ListField(EmbeddedDocumentField(Urn))
     contacts = ListField(ReferenceField('Contact'))
@@ -358,8 +369,7 @@ class Broadcast(Document, BaseUtil):
         return "%s - %s" % (self.text[:7], self.org)
 
 
-class Campaign(Document, BaseUtil):
-    org_id = StringField(required=True)
+class Campaign(OrgDocument):
     uuid = StringField()
     group = ReferenceField('Group')
     created_on = DateTimeField()
@@ -373,7 +383,7 @@ class FieldRef(EmbeddedDocument, EmbeddedUtil):
     label = StringField()
 
 
-class CampaignEvent(Document, BaseUtil):
+class CampaignEvent(OrgDocument):
     uuid = StringField()
     campaign = ReferenceField(Campaign)
     relative_to = EmbeddedDocumentField(FieldRef)
@@ -381,10 +391,14 @@ class CampaignEvent(Document, BaseUtil):
     unit = StringField()
     delivery_hour = IntField()
     flow = ReferenceField('Flow')
-    message = StringField()
+    message = DynamicField()
     created_on = DateTimeField()
 
     meta = {'collection': 'campaign_events'}
+
+    def __unicode__(self):
+        return "%s - %s" % (self.uuid, self.org)
+
 
 class Ruleset(EmbeddedDocument, EmbeddedUtil):
     uuid = StringField()
@@ -395,8 +409,7 @@ class Ruleset(EmbeddedDocument, EmbeddedUtil):
         return self.label
 
 
-class Label(Document, BaseUtil):
-    org_id = StringField(required=True)
+class Label(OrgDocument):
     uuid = StringField()
     name = StringField()
     count = IntField()
@@ -414,8 +427,7 @@ class Runs(EmbeddedDocument, EmbeddedUtil):
         return self.label
 
 
-class Flow(Document, BaseUtil):
-    org_id = StringField(required=True)
+class Flow(OrgDocument):
     uuid = StringField()
     name = StringField()
     archived = BooleanField()
@@ -433,8 +445,7 @@ class Flow(Document, BaseUtil):
         return Run.objects.filter(flow__id=self.id)
 
 
-class FlowStart(Document, BaseUtil):
-    org_id = StringField(required=True)
+class FlowStart(OrgDocument):
     uuid = StringField()
     flow = ReferenceField(Flow)
     groups = ListField(ReferenceField('Group'))
@@ -448,48 +459,38 @@ class FlowStart(Document, BaseUtil):
     meta = {'collection': 'flow_starts'}
 
 
-class Event(Document, BaseUtil):
-    # todo: rename to CampaignEvent?
-    org_id = StringField(required=True)
-    created_on = DateTimeField()
-    modified_on = DateTimeField()
-    uuid = StringField()
-    campaign = DictField()
-    relative_to = StringField()
-    offset = IntField()
-    unit = StringField()
-    delivery_hour = IntField()
-    message = StringField()
-    flow = DictField()
-
-    meta = {'collection': 'campaign_events'}
-
-    def __unicode__(self):
-        return "%s - %s" % (self.uuid, self.org)
-
-
-class Message(Document):
-    # todo: add back inheritance from BaseUtil once figure out how to get all messages
-    org_id = StringField(required=True)
-    created_on = DateTimeField()
-    modified_on = DateTimeField()
+class Message(OrgDocument):
     tid = IntField()
-    broadcast = DictField()
-    contact = DictField()
+    broadcast = IntField()
+    contact = ReferenceField('Contact')
     urn = EmbeddedDocumentField(Urn)
-    status = StringField()
-    type = StringField()
-    labels = ListField(StringField())
+    channel = ReferenceField('Channel')
     direction = StringField()
-    archived = StringField()
+    type = StringField()
+    status = StringField()
+    visibility = StringField()
     text = StringField()
-    delivered_on = DateTimeField()
+    labels = ListField(ReferenceField('Label'))
+    created_on = DateTimeField()
+    modified_on = DateTimeField()
     sent_on = DateTimeField()
 
     meta = {'collection': 'messages'}
 
     def __unicode__(self):
         return "%s - %s" % (self.text[:7], self.org)
+
+    @classmethod
+    def sync_temba_objects(cls, org, last_saved):
+        fetch_objects = cls.get_fetch_method(org)
+        folders = [
+            'inbox', 'flows', 'archived', 'outbox', 'incoming', 'sent',
+        ]
+        objs = []
+        for folder in folders:
+            temba_objs = fetch_objects(folder=folder)
+            objs.extend(cls.create_from_temba_list(org, temba_objs))
+        return objs
 
     @classmethod
     def generate_csv(cls, from_date=None, org_id=None, contact_fields=None):
@@ -559,8 +560,7 @@ class Step(EmbeddedDocument, EmbeddedUtil):
         return self.text[:7]
 
 
-class Run(Document, BaseUtil):
-    org_id = StringField(required=True)
+class Run(OrgDocument):
     tid = IntField()
     flow = ReferenceField('Flow')
     contact = ReferenceField('Contact')
@@ -659,7 +659,7 @@ class CategoryStats(EmbeddedDocument, EmbeddedUtil):
 
 
 class Result(Document):
-    # todo: add back inheritance from BaseUtil once we figure out where this model went
+    # todo: add back inheritance from BaseUtil once we figure out where this model went (or delete it)
     org_id = StringField(required=True)
     created_on = DateTimeField()
     modified_on = DateTimeField()
@@ -689,8 +689,7 @@ class Geometry(EmbeddedDocument, EmbeddedUtil):
         return self.coordinates
 
 
-class Boundary(Document, BaseUtil):
-    org_id = StringField(required=True)
+class Boundary(OrgDocument):
     created_on = DateTimeField()
     modified_on = DateTimeField()
     osm_id = StringField(required=True)
@@ -703,8 +702,7 @@ class Boundary(Document, BaseUtil):
     meta = {'collection': 'boundaries'}
 
 
-class Resthook(Document, BaseUtil):
-    org_id = StringField(required=True)
+class Resthook(OrgDocument):
     resthook = StringField(required=True)
     created_on = DateTimeField()
     modified_on = DateTimeField()
@@ -712,8 +710,7 @@ class Resthook(Document, BaseUtil):
     meta = {'collection': 'resthooks'}
 
 
-class ResthookEvent(Document, BaseUtil):
-    org_id = StringField(required=True)
+class ResthookEvent(OrgDocument):
     resthook = StringField(required=True)
     data = DictField()
     created_on = DateTimeField()
@@ -721,8 +718,7 @@ class ResthookEvent(Document, BaseUtil):
     meta = {'collection': 'resthook_events'}
 
 
-class ResthookSubscriber(Document, BaseUtil):
-    org_id = StringField(required=True)
+class ResthookSubscriber(OrgDocument):
     tid = IntField(required=True)
     resthook = StringField(required=True)
     target_url = StringField()
