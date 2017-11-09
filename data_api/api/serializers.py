@@ -5,17 +5,59 @@ from data_api.api.models import Run, Flow, Contact, Org, Message, Broadcast, Cam
 __author__ = 'kenneth'
 
 
-ALWAYS_EXCLUDE = ('org_id', 'last_synced')
+ALWAYS_EXCLUDE = ('org_id', 'last_synced', 'first_synced')
 
 
 class BaseDocumentSerializer(serializers.DocumentSerializer):
-    org_id = SerializerMethodField()
+    # todo: it may be possible to remove this field?
+    pass
 
 
 class OrgReadSerializer(serializers.DocumentSerializer):
     class Meta:
         model = Org
         exclude = ('api_token', 'is_active')
+
+
+class BroadcastReadSerializer(BaseDocumentSerializer):
+    groups = SerializerMethodField()
+    contacts = SerializerMethodField()
+
+    class Meta:
+        model = Broadcast
+        exclude = ALWAYS_EXCLUDE + ('tid', 'urns')  # todo: why are these excluded?
+
+    def get_groups(self, obj):
+        if obj.groups:
+            return [g['name'] for g in obj.groups]
+        return []
+
+    def get_contacts(self, obj):
+        if obj.contacts:
+            return [
+                {
+                    'id': str(c['id']),
+                    'name': c['name']
+                }
+                for c in obj.contacts
+            ]
+        return []
+
+
+class CampaignReadSerializer(BaseDocumentSerializer):
+    group = SerializerMethodField()
+
+    class Meta:
+        model = Campaign
+        exclude = ALWAYS_EXCLUDE
+
+    def get_group(self, obj):
+        if obj.group:
+            return {
+                'id': str(obj.group.id),
+                'name': obj.group.name,
+            }
+
 
 # class FlowStepReadSerializer(serializers.EmbeddedDocumentSerializer):
 #     text = SerializerMethodField()
@@ -174,36 +216,6 @@ class MessageReadSerializer(BaseDocumentSerializer):
 
     def get_contact(self, obj):
         return str(obj.contact.get('id', '')) or None
-
-
-class BroadcastReadSerializer(BaseDocumentSerializer):
-    groups = SerializerMethodField()
-    contacts = SerializerMethodField()
-
-    class Meta:
-        model = Broadcast
-        exclude = ALWAYS_EXCLUDE + ('tid', 'urns')
-
-    def get_groups(self, obj):
-        if obj.groups:
-            return [g['name'] for g in obj.groups]
-        return []
-
-    def get_contacts(self, obj):
-        if obj.contacts:
-            return [c['name'] for c in obj.contacts]
-        return []
-
-
-class CampaignReadSerializer(BaseDocumentSerializer):
-    group = SerializerMethodField()
-
-    class Meta:
-        model = Campaign
-        exclude = ALWAYS_EXCLUDE
-
-    def get_group(self, obj):
-        return str(obj.group.get('id', '')) or None
 
 
 # class EventReadSerializer(BaseDocumentSerializer):

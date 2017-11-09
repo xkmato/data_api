@@ -243,7 +243,7 @@ class BaseUtil(object):
     @classmethod
     def get_for_org(cls, org):
         try:
-            return cls.objects.filter(org__id=ObjectId(org))
+            return cls.objects.filter(org_id=org)
         except InvalidId:
             return cls.objects.none()
 
@@ -366,12 +366,13 @@ class Broadcast(OrgDocument):
     meta = {'collection': 'broadcasts'}
 
     def __unicode__(self):
-        return "%s - %s" % (self.text[:7], self.org)
+        return "{} - {}".format(self.text, self.org_id)
 
 
 class Campaign(OrgDocument):
     uuid = StringField()
     group = ReferenceField('Group')
+    archived = BooleanField()
     created_on = DateTimeField()
     name = StringField()
 
