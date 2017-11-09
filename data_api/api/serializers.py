@@ -28,20 +28,10 @@ class BroadcastReadSerializer(BaseDocumentSerializer):
         exclude = ALWAYS_EXCLUDE + ('tid', 'urns')  # todo: why are these excluded?
 
     def get_groups(self, obj):
-        if obj.groups:
-            return [g['name'] for g in obj.groups]
-        return []
+        return _serialize_list(obj.groups)
 
     def get_contacts(self, obj):
-        if obj.contacts:
-            return [
-                {
-                    'id': str(c['id']),
-                    'name': c['name']
-                }
-                for c in obj.contacts
-            ]
-        return []
+        return _serialize_list(obj.contacts)
 
 
 class CampaignReadSerializer(BaseDocumentSerializer):
@@ -52,11 +42,7 @@ class CampaignReadSerializer(BaseDocumentSerializer):
         exclude = ALWAYS_EXCLUDE
 
     def get_group(self, obj):
-        if obj.group:
-            return {
-                'id': str(obj.group.id),
-                'name': obj.group.name,
-            }
+        return _serialize_doc(obj.group)
 
 
 # class FlowStepReadSerializer(serializers.EmbeddedDocumentSerializer):
@@ -231,3 +217,18 @@ class MessageReadSerializer(BaseDocumentSerializer):
 #
 #     def get_campaign(self, obj):
 #         return str(obj.campaign.get('id', '')) or None
+
+
+def _serialize_list(doc_list, display_field='name'):
+    if doc_list:
+        return [_serialize_doc(doc, display_field) for doc in doc_list]
+    else:
+        return []
+
+
+def _serialize_doc(doc, display_field='name'):
+    if doc:
+        return {
+            'id': str(doc['id']),
+            'name': doc[display_field],
+        }
