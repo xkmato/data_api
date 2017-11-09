@@ -4,8 +4,8 @@ from django.conf import settings
 from retrying import retry
 from temba_client.exceptions import TembaConnectionError, TembaBadRequestError, TembaTokenError, \
     TembaRateExceededError, TembaException
-from data_api.api.models import BaseUtil, Org, Message, Run
-from djcelery_transactions import task
+from data_api.api.models import BaseUtil, Org, Message, Run, OrgDocument
+from celery import task
 
 __author__ = 'kenneth'
 
@@ -33,7 +33,7 @@ def fetch_entity(entity, org):
 @task
 def fetch_all(entities=None, orgs=None):
     if not entities:
-        entities = BaseUtil.__subclasses__()
+        entities = OrgDocument.__subclasses__()
     if not orgs:
         orgs = Org.objects.filter(is_active=True)
     else:
