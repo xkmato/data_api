@@ -56,6 +56,17 @@ class ContactReadSerializer(BaseDocumentSerializer):
         return _serialize_list(obj.groups)
 
 
+class FlowReadSerializer(BaseDocumentSerializer):
+    labels = SerializerMethodField()
+
+    class Meta:
+        model = Flow
+        exclude = ALWAYS_EXCLUDE
+
+    def get_labels(self, obj):
+        return _serialize_list(obj.labels)
+
+
 class MessageReadSerializer(BaseDocumentSerializer):
     contact = SerializerMethodField()
     labels = SerializerMethodField()
@@ -193,13 +204,6 @@ class RunReadSerializer(BaseDocumentSerializer):
             return eval(obj.completed)
         except TypeError:
             return None
-
-
-class FlowReadSerializer(BaseDocumentSerializer):
-    class Meta:
-        model = Flow
-        depth = 3
-        exclude = ALWAYS_EXCLUDE
 
 
 # class EventReadSerializer(BaseDocumentSerializer):
