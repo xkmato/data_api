@@ -45,6 +45,17 @@ class CampaignReadSerializer(BaseDocumentSerializer):
         return _serialize_doc(obj.group)
 
 
+class ContactReadSerializer(BaseDocumentSerializer):
+    groups = SerializerMethodField()
+
+    class Meta:
+        model = Contact
+        exclude = ALWAYS_EXCLUDE
+
+    def get_groups(self, obj):
+        return _serialize_list(obj.groups)
+
+
 # class FlowStepReadSerializer(serializers.EmbeddedDocumentSerializer):
 #     text = SerializerMethodField()
 #
@@ -121,23 +132,6 @@ class CampaignReadSerializer(BaseDocumentSerializer):
 #             if obj.category == "All Responses":
 #                 return None
 #             return obj.rule_value
-
-
-class ContactReadSerializer(BaseDocumentSerializer):
-    groups = SerializerMethodField()
-    contact_fields = SerializerMethodField('get_eval_fields')
-
-    class Meta:
-        model = Contact
-        fields = ('id', 'groups', 'contact_fields', 'language', 'org_id')
-
-    def get_groups(self, obj):
-        if obj.groups:
-            return [g.get('name') for g in obj.groups if isinstance(g, dict)]
-        return []
-
-    def get_eval_fields(self, obj):
-        return eval(obj.fields)
 
 
 class RunReadSerializer(BaseDocumentSerializer):
