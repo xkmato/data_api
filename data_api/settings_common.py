@@ -18,8 +18,8 @@ import datetime
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 
-import djcelery
-djcelery.setup_loader()
+# import djcelery
+# djcelery.setup_loader()
 
 
 # Quick-start development settings - unsuitable for production
@@ -47,7 +47,7 @@ INSTALLED_APPS = (
     'raven.contrib.django.raven_compat',
 
     'data_api.api',
-    'djcelery',
+    # 'djcelery',
     'rest_framework',
     'rest_framework.authtoken',
     'rest_framework_mongoengine',

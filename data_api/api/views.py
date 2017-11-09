@@ -1,13 +1,13 @@
 from bson import ObjectId
 from django.conf import settings
-from mongoengine.django.shortcuts import get_document_or_404
 from rest_framework.permissions import IsAuthenticated
 from rest_framework_mongoengine.generics import ListAPIView, RetrieveAPIView
-from data_api.api.models import Run, Contact, Flow, Org, Message, Broadcast, Campaign, Event
+from data_api.api.models import Run, Contact, Flow, Org, Message, Broadcast, Campaign
 from data_api.api.permissions import ContactAccessPermissions, MessageAccessPermissions, OrgAccessPermissions
 from data_api.api.serializers import RunReadSerializer, ContactReadSerializer, FlowReadSerializer, OrgReadSerializer, \
     MessageReadSerializer, BroadcastReadSerializer, CampaignReadSerializer, EventReadSerializer
 from data_api.api.utils import get_date_from_param
+from data_api.mongo_utils.shortcuts import get_document_or_404
 
 __author__ = 'kenneth'
 
@@ -473,7 +473,7 @@ class EventList(DataListAPIView):
     ## Listing Events
     """
     serializer_class = EventReadSerializer
-    object_model = Event
+    # object_model = Event
 
 
 class EventDetails(RetrieveAPIView):
@@ -491,5 +491,5 @@ class EventDetails(RetrieveAPIView):
         GET /api/v1/events/xxxxxxxxxxxxx/
     """
     serializer_class = EventReadSerializer
-    queryset = Event
+    # queryset = Event
 

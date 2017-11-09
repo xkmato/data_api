@@ -1,6 +1,6 @@
 from rest_framework.fields import SerializerMethodField
 from rest_framework_mongoengine import serializers
-from data_api.api.models import Run, Flow, Contact, FlowStep, RunValueSet, Org, Message, Broadcast, Campaign, Event
+from data_api.api.models import Run, Flow, Contact, Org, Message, Broadcast, Campaign
 
 __author__ = 'kenneth'
 
@@ -27,7 +27,7 @@ class FlowStepReadSerializer(serializers.EmbeddedDocumentSerializer):
     text = SerializerMethodField()
 
     class Meta:
-        model = FlowStep
+        # model = FlowStep
         exclude = ('value',)
 
     def get_text(self, obj):
@@ -63,7 +63,7 @@ class RunValueSetReadSerializer(serializers.EmbeddedDocumentSerializer):
     rule_value = SerializerMethodField()
 
     class Meta:
-        model = RunValueSet
+        # model = RunValueSet
         exclude = ('text',)
 
     def get_category(self, obj):
@@ -135,11 +135,11 @@ class RunReadSerializer(BaseDocumentSerializer):
         steps = validated_data.pop('steps')
         updated_instance = super(RunReadSerializer, self).update(instance, validated_data)
 
-        for value_data in values:
-            updated_instance.values.append(RunValueSet(**value_data))
-
-        for step_data in steps:
-            updated_instance.steps.append(FlowStep(**step_data))
+        # for value_data in values:
+        #     updated_instance.values.append(RunValueSet(**value_data))
+        #
+        # for step_data in steps:
+        #     updated_instance.steps.append(FlowStep(**step_data))
 
         updated_instance.save()
         return updated_instance
@@ -217,7 +217,7 @@ class EventReadSerializer(BaseDocumentSerializer):
     campaign = SerializerMethodField()
 
     class Meta:
-        model = Event
+        # model = Event
         exclude = ALWAYS_EXCLUDE
 
     def get_flow(self, obj):
