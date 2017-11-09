@@ -5,16 +5,11 @@ from data_api.api.models import Run, Flow, Contact, Org, Message, Broadcast, Cam
 __author__ = 'kenneth'
 
 
-ALWAYS_EXCLUDE = ('org', 'modified_on')
+ALWAYS_EXCLUDE = ('org_id', 'last_synced')
 
 
 class BaseDocumentSerializer(serializers.DocumentSerializer):
     org_id = SerializerMethodField()
-
-    def get_org_id(self, obj):
-        if obj.org:
-            return unicode(obj.org['id'])
-        return None
 
 
 class OrgReadSerializer(serializers.DocumentSerializer):
@@ -23,82 +18,82 @@ class OrgReadSerializer(serializers.DocumentSerializer):
         fields = ('name', 'id', 'timezone')
 
 
-class FlowStepReadSerializer(serializers.EmbeddedDocumentSerializer):
-    text = SerializerMethodField()
+# class FlowStepReadSerializer(serializers.EmbeddedDocumentSerializer):
+#     text = SerializerMethodField()
+#
+#     class Meta:
+#         # model = FlowStep
+#         exclude = ('value',)
+#
+#     def get_text(self, obj):
+#         if not obj.text:
+#             return None
+#         if obj.type == 'R':
+#             return "#hidden#"
+#         return FlowStepReadSerializer.remove_word_before_or_after(obj.text.lower())
+#
+#     @classmethod
+#     def remove_word_before_or_after(cls, text):
+#         x = text.split()
+#         g = 'nothing'
+#         if len(x) > 1:
+#             if ',' in x:
+#                 i = x.index(',')
+#                 if i > 0 and x[i-1] not in ['hello', 'hi']:
+#                     g = x.pop(i-1)
+#             if 'hi' in x:
+#                 i = x.index('hi')
+#                 if i < len(x) -1 and x[i+1] not in [',', '.', '?']:
+#                     g = x.pop(i+1)
+#             if 'hello' in x:
+#                 i = x.index('hello')
+#                 if i < len(x) -1 and x[i+1] not in [',', '.', '?']:
+#                     g = x.pop(i+1)
+#         return " ".join(x).capitalize()
 
-    class Meta:
-        # model = FlowStep
-        exclude = ('value',)
 
-    def get_text(self, obj):
-        if not obj.text:
-            return None
-        if obj.type == 'R':
-            return "#hidden#"
-        return FlowStepReadSerializer.remove_word_before_or_after(obj.text.lower())
-
-    @classmethod
-    def remove_word_before_or_after(cls, text):
-        x = text.split()
-        g = 'nothing'
-        if len(x) > 1:
-            if ',' in x:
-                i = x.index(',')
-                if i > 0 and x[i-1] not in ['hello', 'hi']:
-                    g = x.pop(i-1)
-            if 'hi' in x:
-                i = x.index('hi')
-                if i < len(x) -1 and x[i+1] not in [',', '.', '?']:
-                    g = x.pop(i+1)
-            if 'hello' in x:
-                i = x.index('hello')
-                if i < len(x) -1 and x[i+1] not in [',', '.', '?']:
-                    g = x.pop(i+1)
-        return " ".join(x).capitalize()
-
-
-class RunValueSetReadSerializer(serializers.EmbeddedDocumentSerializer):
-    category = SerializerMethodField()
-    value = SerializerMethodField('get_parsed_value')
-    rule_value = SerializerMethodField()
-
-    class Meta:
-        # model = RunValueSet
-        exclude = ('text',)
-
-    def get_category(self, obj):
-        try:
-            return eval(obj.category)
-        except Exception as e:
-            return {'base': obj.category}
-
-    def get_parsed_value(self, obj):
-        try:
-            if hasattr(obj, 'category') and obj.category:
-                category = eval(obj.category)
-                if 'eng' in category and category['eng'] == "All Responses":
-                    return None
-                if 'base' in category and category['base'] == "All Responses":
-                    return None
-            return obj.value
-        except Exception as e:
-            if obj.category == "All Responses":
-                return None
-            return obj.value
-
-    def get_rule_value(self, obj):
-        try:
-            if hasattr(obj, 'category') and obj.category:
-                category = eval(obj.category)
-                if 'eng' in category and category['eng'] == "All Responses":
-                    return None
-                if 'base' in category and category['base'] == "All Responses":
-                    return None
-            return obj.rule_value
-        except Exception as e:
-            if obj.category == "All Responses":
-                return None
-            return obj.rule_value
+# class RunValueSetReadSerializer(serializers.EmbeddedDocumentSerializer):
+#     category = SerializerMethodField()
+#     value = SerializerMethodField('get_parsed_value')
+#     rule_value = SerializerMethodField()
+#
+#     class Meta:
+#         # model = RunValueSet
+#         exclude = ('text',)
+#
+#     def get_category(self, obj):
+#         try:
+#             return eval(obj.category)
+#         except Exception as e:
+#             return {'base': obj.category}
+#
+#     def get_parsed_value(self, obj):
+#         try:
+#             if hasattr(obj, 'category') and obj.category:
+#                 category = eval(obj.category)
+#                 if 'eng' in category and category['eng'] == "All Responses":
+#                     return None
+#                 if 'base' in category and category['base'] == "All Responses":
+#                     return None
+#             return obj.value
+#         except Exception as e:
+#             if obj.category == "All Responses":
+#                 return None
+#             return obj.value
+#
+#     def get_rule_value(self, obj):
+#         try:
+#             if hasattr(obj, 'category') and obj.category:
+#                 category = eval(obj.category)
+#                 if 'eng' in category and category['eng'] == "All Responses":
+#                     return None
+#                 if 'base' in category and category['base'] == "All Responses":
+#                     return None
+#             return obj.rule_value
+#         except Exception as e:
+#             if obj.category == "All Responses":
+#                 return None
+#             return obj.rule_value
 
 
 class ContactReadSerializer(BaseDocumentSerializer):
@@ -119,8 +114,8 @@ class ContactReadSerializer(BaseDocumentSerializer):
 
 
 class RunReadSerializer(BaseDocumentSerializer):
-    values = RunValueSetReadSerializer(many=True)
-    steps = FlowStepReadSerializer(many=True)
+    # values = RunValueSetReadSerializer(many=True)
+    # steps = FlowStepReadSerializer(many=True)
     contact_id = SerializerMethodField()
     flow_id = SerializerMethodField()
     completed = SerializerMethodField()
@@ -128,7 +123,7 @@ class RunReadSerializer(BaseDocumentSerializer):
     class Meta:
         model = Run
         depth = 3
-        exclude = ('tid', 'modified_on', 'contact', 'flow', 'org')
+        exclude = ALWAYS_EXCLUDE + ('tid', 'modified_on', 'contact', 'flow')
 
     def update(self, instance, validated_data):
         values = validated_data.pop('values')
@@ -212,18 +207,16 @@ class CampaignReadSerializer(BaseDocumentSerializer):
         return str(obj.group.get('id', '')) or None
 
 
-class EventReadSerializer(BaseDocumentSerializer):
-    flow = SerializerMethodField()
-    campaign = SerializerMethodField()
-
-    class Meta:
-        # model = Event
-        exclude = ALWAYS_EXCLUDE
-
-    def get_flow(self, obj):
-        return str(obj.flow.get('id', '')) or None
-
-    def get_campaign(self, obj):
-        return str(obj.campaign.get('id', '')) or None
-
-
+# class EventReadSerializer(BaseDocumentSerializer):
+#     flow = SerializerMethodField()
+#     campaign = SerializerMethodField()
+#
+#     class Meta:
+#         # model = Event
+#         exclude = ALWAYS_EXCLUDE
+#
+#     def get_flow(self, obj):
+#         return str(obj.flow.get('id', '')) or None
+#
+#     def get_campaign(self, obj):
+#         return str(obj.campaign.get('id', '')) or None

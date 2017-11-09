@@ -5,7 +5,7 @@ from rest_framework_mongoengine.generics import ListAPIView, RetrieveAPIView
 from data_api.api.models import Run, Contact, Flow, Org, Message, Broadcast, Campaign
 from data_api.api.permissions import ContactAccessPermissions, MessageAccessPermissions, OrgAccessPermissions
 from data_api.api.serializers import RunReadSerializer, ContactReadSerializer, FlowReadSerializer, OrgReadSerializer, \
-    MessageReadSerializer, BroadcastReadSerializer, CampaignReadSerializer, EventReadSerializer
+    MessageReadSerializer, BroadcastReadSerializer, CampaignReadSerializer
 from data_api.api.utils import get_date_from_param
 from data_api.mongo_utils.shortcuts import get_document_or_404
 
@@ -460,36 +460,35 @@ class CampaignDetails(RetrieveAPIView):
     queryset = Campaign
 
 
-class EventList(DataListAPIView):
-    """
-    This endpoint allows you to list Events.
-
-    ## Filters
-
-    You can use the filters below in the url query string(```?filter=value```) to filter the data
-
-    * **page_size** - Determine number of results per page. Maximum 1000, default 10 (int)
-
-    ## Listing Events
-    """
-    serializer_class = EventReadSerializer
-    # object_model = Event
-
-
-class EventDetails(RetrieveAPIView):
-    """
-    This endpoint allows you to a single Event.
-
-    ## Filters
-
-    You can use the filters below in the url query string(```?filter=value```) to filter the data
-
-    * **page_size** - Determine number of results per page. Maximum 1000, default 10 (int)
-
-    Example:
-
-        GET /api/v1/events/xxxxxxxxxxxxx/
-    """
-    serializer_class = EventReadSerializer
-    # queryset = Event
-
+# class EventList(DataListAPIView):
+#     """
+#     This endpoint allows you to list Events.
+#
+#     ## Filters
+#
+#     You can use the filters below in the url query string(```?filter=value```) to filter the data
+#
+#     * **page_size** - Determine number of results per page. Maximum 1000, default 10 (int)
+#
+#     ## Listing Events
+#     """
+#     serializer_class = EventReadSerializer
+#     object_model = Event
+#
+#
+# class EventDetails(RetrieveAPIView):
+#     """
+#     This endpoint allows you to a single Event.
+#
+#     ## Filters
+#
+#     You can use the filters below in the url query string(```?filter=value```) to filter the data
+#
+#     * **page_size** - Determine number of results per page. Maximum 1000, default 10 (int)
+#
+#     Example:
+#
+#         GET /api/v1/events/xxxxxxxxxxxxx/
+#     """
+#     serializer_class = EventReadSerializer
+#     queryset = Event
