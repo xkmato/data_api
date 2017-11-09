@@ -56,6 +56,21 @@ class ContactReadSerializer(BaseDocumentSerializer):
         return _serialize_list(obj.groups)
 
 
+class MessageReadSerializer(BaseDocumentSerializer):
+    contact = SerializerMethodField()
+    labels = SerializerMethodField()
+
+    class Meta:
+        model = Message
+        exclude = ALWAYS_EXCLUDE
+
+    def get_contact(self, obj):
+        return _serialize_doc(obj.contact)
+
+    def get_labels(self, obj):
+        return _serialize_list(obj.labels)
+
+
 # class FlowStepReadSerializer(serializers.EmbeddedDocumentSerializer):
 #     text = SerializerMethodField()
 #
@@ -185,17 +200,6 @@ class FlowReadSerializer(BaseDocumentSerializer):
         model = Flow
         depth = 3
         exclude = ALWAYS_EXCLUDE
-
-
-class MessageReadSerializer(BaseDocumentSerializer):
-    contact = SerializerMethodField()
-
-    class Meta:
-        model = Message
-        exclude = ALWAYS_EXCLUDE + ('tid', 'urn', 'broadcast', 'labels')
-
-    def get_contact(self, obj):
-        return str(obj.contact.get('id', '')) or None
 
 
 # class EventReadSerializer(BaseDocumentSerializer):
