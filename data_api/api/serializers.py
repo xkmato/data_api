@@ -15,8 +15,7 @@ class BaseDocumentSerializer(serializers.DocumentSerializer):
 class OrgReadSerializer(serializers.DocumentSerializer):
     class Meta:
         model = Org
-        fields = ('name', 'id', 'timezone')
-
+        exclude = ('api_token', 'is_active')
 
 # class FlowStepReadSerializer(serializers.EmbeddedDocumentSerializer):
 #     text = SerializerMethodField()
