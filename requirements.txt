@@ -3,7 +3,6 @@ anyjson==0.3.3
 billiard==3.5.0.3
 celery==4.1.0
 Django==1.9.13
-django-celery-transactions==0.3.2  # todo: can this be removed?
 django-rest-framework-mongoengine==3.3.1
 django-rest-swagger==0.3.4
 djangorestframework==3.7.3
