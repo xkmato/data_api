@@ -109,7 +109,9 @@ class RunList(DataListAPIView):
         if self.kwargs.get('flow_uuid'):
             flow = get_document_or_404(Flow.objects.all(), uuid=self.kwargs.get('flow_uuid'))
             return q.filter(flow__id=flow.id)
-        return q.filter(flow__id__ne=ObjectId(settings.EXCLUDED_FLOWS))
+        # todo: understand what this was for and whether it needs to be supported
+        # return q.filter(flow__id__ne=ObjectId(settings.EXCLUDED_FLOWS))
+        return q
 
 
 class RunDetails(RetrieveAPIView):

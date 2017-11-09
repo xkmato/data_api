@@ -82,6 +82,21 @@ class MessageReadSerializer(BaseDocumentSerializer):
         return _serialize_list(obj.labels)
 
 
+class RunReadSerializer(BaseDocumentSerializer):
+    contact = SerializerMethodField()
+    flow = SerializerMethodField()
+
+    class Meta:
+        model = Run
+        exclude = ALWAYS_EXCLUDE
+
+    def get_contact(self, obj):
+        return _serialize_doc(obj.contact)
+
+    def get_flow(self, obj):
+        return _serialize_doc(obj.flow)
+
+
 # class FlowStepReadSerializer(serializers.EmbeddedDocumentSerializer):
 #     text = SerializerMethodField()
 #
@@ -158,52 +173,6 @@ class MessageReadSerializer(BaseDocumentSerializer):
 #             if obj.category == "All Responses":
 #                 return None
 #             return obj.rule_value
-
-
-class RunReadSerializer(BaseDocumentSerializer):
-    # values = RunValueSetReadSerializer(many=True)
-    # steps = FlowStepReadSerializer(many=True)
-    contact_id = SerializerMethodField()
-    flow_id = SerializerMethodField()
-    completed = SerializerMethodField()
-
-    class Meta:
-        model = Run
-        depth = 3
-        exclude = ALWAYS_EXCLUDE + ('tid', 'modified_on', 'contact', 'flow')
-
-    def update(self, instance, validated_data):
-        values = validated_data.pop('values')
-        steps = validated_data.pop('steps')
-        updated_instance = super(RunReadSerializer, self).update(instance, validated_data)
-
-        # for value_data in values:
-        #     updated_instance.values.append(RunValueSet(**value_data))
-        #
-        # for step_data in steps:
-        #     updated_instance.steps.append(FlowStep(**step_data))
-
-        updated_instance.save()
-        return updated_instance
-
-    def get_contact_id(self, obj):
-        if obj.contact.has_key("id"):
-            return unicode(obj.contact['id'])
-        return None
-
-    def get_flow_id(self, obj):
-        try:
-            if obj.flow.has_key("id"):
-                return unicode(obj.flow['id'])
-        except AttributeError:
-            return obj.flow
-        return None
-
-    def get_completed(self, obj):
-        try:
-            return eval(obj.completed)
-        except TypeError:
-            return None
 
 
 # class EventReadSerializer(BaseDocumentSerializer):
