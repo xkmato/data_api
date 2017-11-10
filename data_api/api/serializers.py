@@ -1,6 +1,7 @@
 from rest_framework.fields import SerializerMethodField
 from rest_framework_mongoengine import serializers
-from data_api.api.models import Run, Flow, Contact, Org, Message, Broadcast, Campaign, Boundary, CampaignEvent
+from data_api.api.models import Run, Flow, Contact, Org, Message, Broadcast, Campaign, Boundary, CampaignEvent, \
+    Channel
 
 __author__ = 'kenneth'
 
@@ -64,6 +65,13 @@ class CampaignEventReadSerializer(BaseDocumentSerializer):
 
     def get_flow(self, obj):
         return _serialize_doc(obj.flow)
+
+
+class ChannelReadSerializer(BaseDocumentSerializer):
+
+    class Meta:
+        model = Channel
+        exclude = ALWAYS_EXCLUDE
 
 
 class ContactReadSerializer(BaseDocumentSerializer):
