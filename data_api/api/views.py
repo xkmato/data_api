@@ -1,13 +1,13 @@
 from bson import ObjectId
 from django.conf import settings
-from mongoengine.django.shortcuts import get_document_or_404
 from rest_framework.permissions import IsAuthenticated
 from rest_framework_mongoengine.generics import ListAPIView, RetrieveAPIView
-from data_api.api.models import Run, Contact, Flow, Org, Message, Broadcast, Campaign, Event
+from data_api.api.models import Run, Contact, Flow, Org, Message, Broadcast, Campaign
 from data_api.api.permissions import ContactAccessPermissions, MessageAccessPermissions, OrgAccessPermissions
 from data_api.api.serializers import RunReadSerializer, ContactReadSerializer, FlowReadSerializer, OrgReadSerializer, \
-    MessageReadSerializer, BroadcastReadSerializer, CampaignReadSerializer, EventReadSerializer
+    MessageReadSerializer, BroadcastReadSerializer, CampaignReadSerializer
 from data_api.api.utils import get_date_from_param
+from data_api.mongo_utils.shortcuts import get_document_or_404
 
 __author__ = 'kenneth'
 
@@ -109,7 +109,9 @@ class RunList(DataListAPIView):
         if self.kwargs.get('flow_uuid'):
             flow = get_document_or_404(Flow.objects.all(), uuid=self.kwargs.get('flow_uuid'))
             return q.filter(flow__id=flow.id)
-        return q.filter(flow__id__ne=ObjectId(settings.EXCLUDED_FLOWS))
+        # todo: understand what this was for and whether it needs to be supported
+        # return q.filter(flow__id__ne=ObjectId(settings.EXCLUDED_FLOWS))
+        return q
 
 
 class RunDetails(RetrieveAPIView):
@@ -460,36 +462,35 @@ class CampaignDetails(RetrieveAPIView):
     queryset = Campaign
 
 
-class EventList(DataListAPIView):
-    """
-    This endpoint allows you to list Events.
-
-    ## Filters
-
-    You can use the filters below in the url query string(```?filter=value```) to filter the data
-
-    * **page_size** - Determine number of results per page. Maximum 1000, default 10 (int)
-
-    ## Listing Events
-    """
-    serializer_class = EventReadSerializer
-    object_model = Event
-
-
-class EventDetails(RetrieveAPIView):
-    """
-    This endpoint allows you to a single Event.
-
-    ## Filters
-
-    You can use the filters below in the url query string(```?filter=value```) to filter the data
-
-    * **page_size** - Determine number of results per page. Maximum 1000, default 10 (int)
-
-    Example:
-
-        GET /api/v1/events/xxxxxxxxxxxxx/
-    """
-    serializer_class = EventReadSerializer
-    queryset = Event
-
+# class EventList(DataListAPIView):
+#     """
+#     This endpoint allows you to list Events.
+#
+#     ## Filters
+#
+#     You can use the filters below in the url query string(```?filter=value```) to filter the data
+#
+#     * **page_size** - Determine number of results per page. Maximum 1000, default 10 (int)
+#
+#     ## Listing Events
+#     """
+#     serializer_class = EventReadSerializer
+#     object_model = Event
+#
+#
+# class EventDetails(RetrieveAPIView):
+#     """
+#     This endpoint allows you to a single Event.
+#
+#     ## Filters
+#
+#     You can use the filters below in the url query string(```?filter=value```) to filter the data
+#
+#     * **page_size** - Determine number of results per page. Maximum 1000, default 10 (int)
+#
+#     Example:
+#
+#         GET /api/v1/events/xxxxxxxxxxxxx/
+#     """
+#     serializer_class = EventReadSerializer
+#     queryset = Event

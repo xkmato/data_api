@@ -21,7 +21,7 @@ from data_api.api import urls
 urlpatterns = [
     url(r'^api-token-auth/', views.obtain_auth_token),
     url(r'^admin/', include(admin.site.urls)),
-    url(r'^api/v1/', include(urls)),
+    url(r'^api/v2/', include(urls)),
     url(r'^', include('rest_framework_swagger.urls')),
 ]
 
