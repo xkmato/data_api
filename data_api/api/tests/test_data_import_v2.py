@@ -264,9 +264,6 @@ def _massage_data(value):
         # mongo strips microseconds so we have to as well.
         # todo: This could be drastically improved.
         return value[:23]
-    elif isinstance(value, basestring) and value.endswith('Z'):
-        import pdb; pdb.set_trace()
-
     return value
 
 
