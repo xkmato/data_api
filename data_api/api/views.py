@@ -3,12 +3,12 @@ from django.conf import settings
 from rest_framework.permissions import IsAuthenticated
 from rest_framework_mongoengine.generics import ListAPIView, RetrieveAPIView
 from data_api.api.models import Run, Contact, Flow, Org, Message, Broadcast, Campaign, Boundary, CampaignEvent, \
-    Channel, ChannelEvent, Field, FlowStart
+    Channel, ChannelEvent, Field, FlowStart, Group
 from data_api.api.permissions import ContactAccessPermissions, MessageAccessPermissions, OrgAccessPermissions
 from data_api.api.serializers import RunReadSerializer, ContactReadSerializer, FlowReadSerializer, OrgReadSerializer, \
     MessageReadSerializer, BroadcastReadSerializer, CampaignReadSerializer, BoundaryReadSerializer, \
     CampaignEventReadSerializer, ChannelReadSerializer, ChannelEventReadSerializer, FieldReadSerializer, \
-    FlowStartReadSerializer
+    FlowStartReadSerializer, GroupReadSerializer
 from data_api.api.utils import get_date_from_param
 from data_api.mongo_utils.shortcuts import get_document_or_404
 
@@ -209,11 +209,11 @@ class FieldList(DataListAPIView):
 
 class FlowStartList(DataListAPIView):
     """
-    This endpoint allows you to list Fields.
+    This endpoint allows you to list Flow Starts.
 
     ## Filters
 
-    ## Listing Fields
+    ## Listing Flow Starts
     """
     serializer_class = FlowStartReadSerializer
     object_model = FlowStart
@@ -304,6 +304,18 @@ class FlowDetails(RetrieveAPIView):
         if self.kwargs.get('uuid', None):
             return get_document_or_404(self.get_queryset(), uuid=self.kwargs.get('uuid'))
         return super(FlowDetails, self).get_object()
+
+
+class GroupList(DataListAPIView):
+    """
+    This endpoint allows you to list Groups.
+
+    ## Filters
+
+    ## Listing Groups
+    """
+    serializer_class = GroupReadSerializer
+    object_model = Group
 
 
 class OrgList(ListAPIView):
