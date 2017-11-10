@@ -1,7 +1,7 @@
 from django.conf.urls import patterns, url
 from data_api.api.views import RunList, RunDetails, ContactDetails, ContactList, FlowList, FlowDetails, OrgDetails, \
     OrgList, MessageList, MessageDetails, BroadcastList, BroadcastDetails, CampaignDetails, CampaignList, \
-    BoundaryList, CampaignEventList, ChannelList, ChannelEventList, FieldList
+    BoundaryList, CampaignEventList, ChannelList, ChannelEventList, FieldList, FlowStartList
 
 __author__ = 'kenneth'
 
@@ -28,6 +28,8 @@ urlpatterns = patterns('',
                        url(r'^contacts/(?P<id>[\w]+)/$', ContactDetails.as_view()),
 
                        url(r'^fields/org/(?P<org>[\w]+)/$', FieldList.as_view()),
+
+                       url(r'^flow_starts/org/(?P<org>[\w]+)/$', FlowStartList.as_view()),
 
                        url(r'^flows/$', FlowList.as_view()),
                        url(r'^flows/org/(?P<org>[\w]+)/$', FlowList.as_view()),

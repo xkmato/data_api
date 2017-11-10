@@ -1,7 +1,7 @@
 from rest_framework.fields import SerializerMethodField
 from rest_framework_mongoengine import serializers
 from data_api.api.models import Run, Flow, Contact, Org, Message, Broadcast, Campaign, Boundary, CampaignEvent, \
-    Channel, ChannelEvent, Field
+    Channel, ChannelEvent, Field, FlowStart
 
 __author__ = 'kenneth'
 
@@ -96,6 +96,13 @@ class FieldReadSerializer(BaseDocumentSerializer):
 
     class Meta:
         model = Field
+        exclude = ALWAYS_EXCLUDE
+
+
+class FlowStartReadSerializer(BaseDocumentSerializer):
+
+    class Meta:
+        model = FlowStart
         exclude = ALWAYS_EXCLUDE
 
 

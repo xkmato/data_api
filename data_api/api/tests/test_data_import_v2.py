@@ -264,10 +264,13 @@ def _massage_data(value):
         # mongo strips microseconds so we have to as well.
         # todo: This could be drastically improved.
         return value[:23]
+    elif isinstance(value, basestring) and value.endswith('Z'):
+        import pdb; pdb.set_trace()
 
     return value
 
 
 def _looks_like_a_date_string(value):
     # todo: can make this more advanced as needed
-    return isinstance(value, basestring) and value.endswith('Z') and len(value) == 27
+
+    return isinstance(value, basestring) and value.endswith('Z') and (len(value) == 27 or len(value) == 24)
