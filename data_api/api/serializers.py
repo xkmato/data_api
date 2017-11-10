@@ -32,7 +32,7 @@ class BroadcastReadSerializer(BaseDocumentSerializer):
 
     class Meta:
         model = Broadcast
-        exclude = ALWAYS_EXCLUDE + ('tid', 'urns')  # todo: why are these excluded?
+        exclude = ALWAYS_EXCLUDE  # todo: why are these excluded?
 
     def get_groups(self, obj):
         return _serialize_list(obj.groups)
