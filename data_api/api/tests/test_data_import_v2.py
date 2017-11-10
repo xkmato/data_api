@@ -135,6 +135,7 @@ class V2TembaTest(TembaTest):
         self.assertEqual(2, len(objs_made))
         for i, obj in enumerate(objs_made):
             self.assertEqual(obj.name, api_results[i]['name'])
+        self._run_api_test(Campaign)
 
     def test_import_campaign_events(self, mock_request):
         Campaign(org_id=str(self.org.id), uuid='9ccae91f-b3f8-4c18-ad92-e795a2332c11').save()
