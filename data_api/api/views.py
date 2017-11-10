@@ -3,11 +3,11 @@ from django.conf import settings
 from rest_framework.permissions import IsAuthenticated
 from rest_framework_mongoengine.generics import ListAPIView, RetrieveAPIView
 from data_api.api.models import Run, Contact, Flow, Org, Message, Broadcast, Campaign, Boundary, CampaignEvent, \
-    Channel, ChannelEvent
+    Channel, ChannelEvent, Field
 from data_api.api.permissions import ContactAccessPermissions, MessageAccessPermissions, OrgAccessPermissions
 from data_api.api.serializers import RunReadSerializer, ContactReadSerializer, FlowReadSerializer, OrgReadSerializer, \
     MessageReadSerializer, BroadcastReadSerializer, CampaignReadSerializer, BoundaryReadSerializer, \
-    CampaignEventReadSerializer, ChannelReadSerializer, ChannelEventReadSerializer
+    CampaignEventReadSerializer, ChannelReadSerializer, ChannelEventReadSerializer, FieldReadSerializer
 from data_api.api.utils import get_date_from_param
 from data_api.mongo_utils.shortcuts import get_document_or_404
 
@@ -192,6 +192,18 @@ class ContactDetails(RetrieveAPIView):
     serializer_class = ContactReadSerializer
     queryset = Contact.objects.all()
     permission_classes = (IsAuthenticated, ContactAccessPermissions)
+
+
+class FieldList(DataListAPIView):
+    """
+    This endpoint allows you to list Fields.
+
+    ## Filters
+
+    ## Listing Fields
+    """
+    serializer_class = FieldReadSerializer
+    object_model = Field
 
 
 class FlowList(DataListAPIView):
