@@ -86,7 +86,14 @@ class V2TembaTest(TembaTest):
         # todo: should ideally not hard-code urls like this
         warehouse_api_results = self.client.get('/api/v2/{}/org/{}/'.format(collection_name,
                                                                             str(self.org.id))).json()
-        self.assertEqual(len(rapidpro_api_results), len(warehouse_api_results))
+        self.assertEqual(
+            len(rapidpro_api_results),
+            len(warehouse_api_results),
+            'API result lenghts were different: \nRapidPRO\n{}\nWarehouse\n{}'.format(
+                json.dumps(rapidpro_api_results, indent=2),
+                json.dumps(warehouse_api_results, indent=2)
+            )
+        )
         for i, rapidpro_result in enumerate(rapidpro_api_results):
             self.assertApiObjectsEquivalent(rapidpro_result, warehouse_api_results[i])
 
@@ -112,6 +119,7 @@ class V2TembaTest(TembaTest):
         self.assertEqual(2, len(objs_made))
         for i, obj in enumerate(objs_made):
             self.assertEqual(obj.name, api_results[i]['name'])
+        self._run_api_test(Boundary)
 
     def test_import_broadcasts(self, mock_request):
         Contact(org_id=str(self.org.id), uuid='5079cb96-a1d8-4f47-8c87-d8c7bb6ddab9').save()
