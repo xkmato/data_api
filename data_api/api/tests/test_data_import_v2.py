@@ -104,7 +104,8 @@ class V2TembaTest(TembaTest):
             rapidpro_value = rapidpro_result[key]
             if key in IGNORE_KEYS:
                 continue
-            if not isinstance(rapidpro_value, IGNORE_TYPES):
+            warehouse_value = warehouse_api_result[key]
+            if not isinstance(rapidpro_value, IGNORE_TYPES) and not isinstance(warehouse_value, IGNORE_TYPES):
                 warehouse_value = warehouse_api_result[key]
                 self.assertEqual(
                     _massage_data(rapidpro_value),
