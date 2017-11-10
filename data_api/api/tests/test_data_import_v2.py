@@ -79,7 +79,7 @@ class V2TembaTest(TembaTest):
 
         return api_results['results'], objs_made
 
-    def _run_api_test(self, obj_class, objs_made):
+    def _run_api_test(self, obj_class):
         # assumes run after an import has been done
         collection_name = obj_class._meta['collection']
         rapidpro_api_results = json.loads(self.read_json(collection_name))['results']
@@ -120,7 +120,7 @@ class V2TembaTest(TembaTest):
         self.assertEqual(2, len(objs_made))
         for i, obj in enumerate(objs_made):
             self.assertEqual(obj.text, api_results[i]['text'])
-        self._run_api_test(Broadcast, objs_made)
+        self._run_api_test(Broadcast)
 
     def test_import_campaigns(self, mock_request):
         api_results, objs_made = self._run_import_test(mock_request, Campaign)
