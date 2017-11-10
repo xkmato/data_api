@@ -1,6 +1,6 @@
 from rest_framework.fields import SerializerMethodField
 from rest_framework_mongoengine import serializers
-from data_api.api.models import Run, Flow, Contact, Org, Message, Broadcast, Campaign, Boundary
+from data_api.api.models import Run, Flow, Contact, Org, Message, Broadcast, Campaign, Boundary, CampaignEvent
 
 __author__ = 'kenneth'
 
@@ -49,6 +49,21 @@ class CampaignReadSerializer(BaseDocumentSerializer):
 
     def get_group(self, obj):
         return _serialize_doc(obj.group)
+
+
+class CampaignEventReadSerializer(BaseDocumentSerializer):
+    campaign = SerializerMethodField()
+    flow = SerializerMethodField()
+
+    class Meta:
+        model = CampaignEvent
+        exclude = ALWAYS_EXCLUDE
+
+    def get_campaign(self, obj):
+        return _serialize_doc(obj.campaign)
+
+    def get_flow(self, obj):
+        return _serialize_doc(obj.flow)
 
 
 class ContactReadSerializer(BaseDocumentSerializer):
