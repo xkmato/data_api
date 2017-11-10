@@ -1,7 +1,7 @@
 from rest_framework.fields import SerializerMethodField
 from rest_framework_mongoengine import serializers
 from data_api.api.models import Run, Flow, Contact, Org, Message, Broadcast, Campaign, Boundary, CampaignEvent, \
-    Channel, ChannelEvent, Field, FlowStart, Group
+    Channel, ChannelEvent, Field, FlowStart, Group, Label
 
 __author__ = 'kenneth'
 
@@ -121,6 +121,13 @@ class GroupReadSerializer(BaseDocumentSerializer):
 
     class Meta:
         model = Group
+        exclude = ALWAYS_EXCLUDE
+
+
+class LabelReadSerializer(BaseDocumentSerializer):
+
+    class Meta:
+        model = Label
         exclude = ALWAYS_EXCLUDE
 
 

@@ -3,12 +3,12 @@ from django.conf import settings
 from rest_framework.permissions import IsAuthenticated
 from rest_framework_mongoengine.generics import ListAPIView, RetrieveAPIView
 from data_api.api.models import Run, Contact, Flow, Org, Message, Broadcast, Campaign, Boundary, CampaignEvent, \
-    Channel, ChannelEvent, Field, FlowStart, Group
+    Channel, ChannelEvent, Field, FlowStart, Group, Label
 from data_api.api.permissions import ContactAccessPermissions, MessageAccessPermissions, OrgAccessPermissions
 from data_api.api.serializers import RunReadSerializer, ContactReadSerializer, FlowReadSerializer, OrgReadSerializer, \
     MessageReadSerializer, BroadcastReadSerializer, CampaignReadSerializer, BoundaryReadSerializer, \
     CampaignEventReadSerializer, ChannelReadSerializer, ChannelEventReadSerializer, FieldReadSerializer, \
-    FlowStartReadSerializer, GroupReadSerializer
+    FlowStartReadSerializer, GroupReadSerializer, LabelReadSerializer
 from data_api.api.utils import get_date_from_param
 from data_api.mongo_utils.shortcuts import get_document_or_404
 
@@ -316,6 +316,18 @@ class GroupList(DataListAPIView):
     """
     serializer_class = GroupReadSerializer
     object_model = Group
+
+
+class LabelList(DataListAPIView):
+    """
+    This endpoint allows you to list Label.
+
+    ## Filters
+
+    ## Listing Labels
+    """
+    serializer_class = LabelReadSerializer
+    object_model = Label
 
 
 class OrgList(ListAPIView):
