@@ -1,11 +1,14 @@
 from django.conf.urls import patterns, url
 from data_api.api.views import RunList, RunDetails, ContactDetails, ContactList, FlowList, FlowDetails, OrgDetails, \
-    OrgList, MessageList, MessageDetails, BroadcastList, BroadcastDetails, CampaignDetails, CampaignList
+    OrgList, MessageList, MessageDetails, BroadcastList, BroadcastDetails, CampaignDetails, CampaignList, \
+    BoundaryList
 
 __author__ = 'kenneth'
 
 
 urlpatterns = patterns('',
+                       url(r'^boundaries/org/(?P<org>[\w]+)/$', BoundaryList.as_view()),
+
                        url(r'^broadcasts/$', BroadcastList.as_view()),
                        url(r'^broadcasts/org/(?P<org>[\w]+)/$', BroadcastList.as_view()),
                        url(r'^broadcasts/(?P<id>[\w]+)/$', BroadcastDetails.as_view()),

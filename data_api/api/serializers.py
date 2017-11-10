@@ -1,6 +1,6 @@
 from rest_framework.fields import SerializerMethodField
 from rest_framework_mongoengine import serializers
-from data_api.api.models import Run, Flow, Contact, Org, Message, Broadcast, Campaign
+from data_api.api.models import Run, Flow, Contact, Org, Message, Broadcast, Campaign, Boundary
 
 __author__ = 'kenneth'
 
@@ -17,6 +17,12 @@ class OrgReadSerializer(serializers.DocumentSerializer):
     class Meta:
         model = Org
         exclude = ('api_token', 'is_active')
+
+
+class BoundaryReadSerializer(BaseDocumentSerializer):
+    class Meta:
+        model = Boundary
+        exclude = ALWAYS_EXCLUDE
 
 
 class BroadcastReadSerializer(BaseDocumentSerializer):
