@@ -43,7 +43,7 @@ class V2TembaTest(TembaTest):
         username = 'unicef'
         password = '4thekids'
         cls.user = User.objects.create_user(
-            username=username, email='rapidpro@unicef.org', password=password)
+            username=username, email='rapidpro@unicef.org', password=password, is_superuser=True)
         cls.client = APIClient()
         cls.client.login(username=username, password=password)
 
@@ -165,6 +165,7 @@ class V2TembaTest(TembaTest):
         self.assertEqual(3, len(objs_made))
         for i, obj in enumerate(objs_made):
             self.assertEqual(obj.name, api_results[i]['name'])
+        self._run_api_test(Contact)
 
     def test_import_fields(self, mock_request):
         api_results, objs_made = self._run_import_test(mock_request, Field)
