@@ -1,7 +1,8 @@
 from django.conf.urls import patterns, url
 from data_api.api.views import RunList, RunDetails, ContactDetails, ContactList, FlowList, FlowDetails, OrgDetails, \
     OrgList, MessageList, MessageDetails, BroadcastList, BroadcastDetails, CampaignDetails, CampaignList, \
-    BoundaryList, CampaignEventList, ChannelList, ChannelEventList, FieldList, FlowStartList, GroupList, LabelList
+    BoundaryList, CampaignEventList, ChannelList, ChannelEventList, FieldList, FlowStartList, GroupList, LabelList, \
+    ResthookSubscriberList, ResthookEventList, ResthookList
 
 __author__ = 'kenneth'
 
@@ -51,4 +52,9 @@ urlpatterns = patterns('',
                        url(r'^runs/flow/(?P<flow>[\w]+)/$', RunList.as_view()),
                        url(r'^runs/flow_uuid/(?P<flow_uuid>[\w\-]+)/$', RunList.as_view()),
                        url(r'^runs/(?P<id>[\w]+)/$', RunDetails.as_view()),
+
+                       url(r'^resthooks/org/(?P<org>[\w]+)/$', ResthookList.as_view()),
+                       url(r'^resthook_events/org/(?P<org>[\w]+)/$', ResthookEventList.as_view()),
+                       url(r'^resthook_subscribers/org/(?P<org>[\w]+)/$', ResthookSubscriberList.as_view()),
+
                        )
