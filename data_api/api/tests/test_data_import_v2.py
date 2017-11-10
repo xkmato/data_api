@@ -143,12 +143,14 @@ class V2TembaTest(TembaTest):
         self.assertEqual(2, len(objs_made))
         for i, obj in enumerate(objs_made):
             self.assertEqual(obj.message, api_results[i]['message'])
+        self._run_api_test(CampaignEvent)
 
     def test_import_channels(self, mock_request):
         api_results, objs_made = self._run_import_test(mock_request, Channel)
         self.assertEqual(2, len(objs_made))
         for i, obj in enumerate(objs_made):
             self.assertEqual(obj.name, api_results[i]['name'])
+        self._run_api_test(Channel)
 
     def test_import_channel_events(self, mock_request):
         Channel(org_id=str(self.org.id), uuid='9a8b001e-a913-486c-80f4-1356e23f582e').save()
@@ -157,6 +159,7 @@ class V2TembaTest(TembaTest):
         self.assertEqual(2, len(objs_made))
         for i, obj in enumerate(objs_made):
             self.assertEqual(obj.tid, api_results[i]['id'])
+        self._run_api_test(ChannelEvent)
 
     def test_import_contacts(self, mock_request):
         # todo: find a more generic way to bootstrap related models
@@ -172,6 +175,7 @@ class V2TembaTest(TembaTest):
         self.assertEqual(2, len(objs_made))
         for i, obj in enumerate(objs_made):
             self.assertEqual(obj.key, api_results[i]['key'])
+        self._run_api_test(Field)
 
     @skip('import currently succeeds on bad object references because errors are swallowed')
     def test_import_fails_if_no_related_object(self, mock_request):
@@ -185,30 +189,35 @@ class V2TembaTest(TembaTest):
         self.assertEqual(2, len(objs_made))
         for i, obj in enumerate(objs_made):
             self.assertEqual(obj.flow.name, api_results[i]['flow']['name'])
+        self._run_api_test(FlowStart)
 
     def test_import_flows(self, mock_request):
         api_results, objs_made = self._run_import_test(mock_request, Flow)
         self.assertEqual(2, len(objs_made))
         for i, obj in enumerate(objs_made):
             self.assertEqual(obj.name, api_results[i]['name'])
+        self._run_api_test(Flow)
 
     def test_import_groups(self, mock_request):
         api_results, objs_made = self._run_import_test(mock_request, Group)
         self.assertEqual(2, len(objs_made))
         for i, obj in enumerate(objs_made):
             self.assertEqual(obj.name, api_results[i]['name'])
+        self._run_api_test(Group)
 
     def test_import_labels(self, mock_request):
         api_results, objs_made = self._run_import_test(mock_request, Label)
         self.assertEqual(2, len(objs_made))
         for i, obj in enumerate(objs_made):
             self.assertEqual(obj.name, api_results[i]['name'])
+        self._run_api_test(Label)
 
     def test_import_messages(self, mock_request):
         api_results, objs_made = self._run_import_test(mock_request, Message)
         self.assertEqual(2, len(objs_made))
         for i, obj in enumerate(objs_made):
             self.assertEqual(obj.text, api_results[i]['text'])
+        self._run_api_test(Message)
 
     def test_import_org(self, mock_request):
         api_results_text = self.read_json('org')
@@ -225,24 +234,28 @@ class V2TembaTest(TembaTest):
         self.assertEqual(2, len(objs_made))
         for i, obj in enumerate(objs_made):
             self.assertEqual(obj.tid, api_results[i]['id'])
+        self._run_api_test(Run)
 
     def test_import_resthooks(self, mock_request):
         api_results, objs_made = self._run_import_test(mock_request, Resthook)
         self.assertEqual(2, len(objs_made))
         for i, obj in enumerate(objs_made):
             self.assertEqual(obj.resthook, api_results[i]['resthook'])
+        self._run_api_test(Resthook)
 
     def test_import_resthook_events(self, mock_request):
         api_results, objs_made = self._run_import_test(mock_request, ResthookEvent)
         self.assertEqual(2, len(objs_made))
         for i, obj in enumerate(objs_made):
             self.assertEqual(obj.resthook, api_results[i]['resthook'])
+        self._run_api_test(ResthookEvent)
 
     def test_import_resthook_subscribers(self, mock_request):
         api_results, objs_made = self._run_import_test(mock_request, ResthookSubscriber)
         self.assertEqual(2, len(objs_made))
         for i, obj in enumerate(objs_made):
             self.assertEqual(obj.resthook, api_results[i]['resthook'])
+        self._run_api_test(ResthookSubscriber)
 
 
 def _massage_data(value):
