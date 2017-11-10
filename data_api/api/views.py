@@ -3,11 +3,11 @@ from django.conf import settings
 from rest_framework.permissions import IsAuthenticated
 from rest_framework_mongoengine.generics import ListAPIView, RetrieveAPIView
 from data_api.api.models import Run, Contact, Flow, Org, Message, Broadcast, Campaign, Boundary, CampaignEvent, \
-    Channel
+    Channel, ChannelEvent
 from data_api.api.permissions import ContactAccessPermissions, MessageAccessPermissions, OrgAccessPermissions
 from data_api.api.serializers import RunReadSerializer, ContactReadSerializer, FlowReadSerializer, OrgReadSerializer, \
     MessageReadSerializer, BroadcastReadSerializer, CampaignReadSerializer, BoundaryReadSerializer, \
-    CampaignEventReadSerializer, ChannelReadSerializer
+    CampaignEventReadSerializer, ChannelReadSerializer, ChannelEventReadSerializer
 from data_api.api.utils import get_date_from_param
 from data_api.mongo_utils.shortcuts import get_document_or_404
 
@@ -488,7 +488,7 @@ class CampaignEventList(DataListAPIView):
 
 class ChannelList(DataListAPIView):
     """
-    This endpoint allows you to list Channel.
+    This endpoint allows you to list Channels.
 
     ## Filters
 
@@ -496,6 +496,18 @@ class ChannelList(DataListAPIView):
     """
     serializer_class = ChannelReadSerializer
     object_model = Channel
+
+
+class ChannelEventList(DataListAPIView):
+    """
+    This endpoint allows you to list Channel Events.
+
+    ## Filters
+
+    ## Listing Channel Events
+    """
+    serializer_class = ChannelEventReadSerializer
+    object_model = ChannelEvent
 
 # class EventList(DataListAPIView):
 #     """
