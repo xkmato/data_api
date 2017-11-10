@@ -2,10 +2,10 @@ import codecs
 import json
 import os
 from unittest import skip
-from datetime import datetime, timedelta
+from datetime import datetime
 from django.contrib.auth.models import User
 from mock import patch
-from rest_framework.test import APIRequestFactory, APIClient
+from rest_framework.test import APIClient
 import six
 from temba_client.tests import TembaTest, MockResponse
 from temba_client.v2 import TembaClient
