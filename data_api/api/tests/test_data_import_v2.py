@@ -2,8 +2,10 @@ import codecs
 import json
 import os
 from unittest import skip
-from datetime import datetime
+from datetime import datetime, timedelta
+from django.contrib.auth.models import User
 from mock import patch
+from rest_framework.test import APIRequestFactory, APIClient
 import six
 from temba_client.tests import TembaTest, MockResponse
 from temba_client.v2 import TembaClient
@@ -37,6 +39,14 @@ class V2TembaTest(TembaTest):
         cls.client = TembaClient('example.com', '1234567890', user_agent='test/0.1')
         cls.org = Org.create(name='test org', api_token=cls.api_token, timezone=None)
 
+        # for API tests
+        username = 'unicef'
+        password = '4thekids'
+        cls.user = User.objects.create_user(
+            username=username, email='rapidpro@unicef.org', password=password)
+        cls.client = APIClient()
+        cls.client.login(username=username, password=password)
+
     def tearDown(self):
         Broadcast.objects.all().delete()
         Campaign.objects.all().delete()
@@ -69,6 +79,34 @@ class V2TembaTest(TembaTest):
 
         return api_results['results'], objs_made
 
+    def _run_api_test(self, obj_class, objs_made):
+        # assumes run after an import has been done
+        collection_name = obj_class._meta['collection']
+        rapidpro_api_results = json.loads(self.read_json(collection_name))['results']
+        # todo: should ideally not hard-code urls like this
+        warehouse_api_results = self.client.get('/api/v2/{}/org/{}/'.format(collection_name,
+                                                                            str(self.org.id))).json()
+        self.assertEqual(len(rapidpro_api_results), len(warehouse_api_results))
+        for i, rapidpro_result in enumerate(rapidpro_api_results):
+            self.assertApiObjectsEquivalent(rapidpro_result, warehouse_api_results[i])
+
+    def assertApiObjectsEquivalent(self, rapidpro_result, warehouse_api_result):
+        IGNORE_KEYS = {'id'}
+        IGNORE_TYPES = (list, dict)  # todo: probably want to test these eventually
+        for key in rapidpro_result:
+            rapidpro_value = rapidpro_result[key]
+            if key in IGNORE_KEYS:
+                continue
+            if not isinstance(rapidpro_value, IGNORE_TYPES):
+                warehouse_value = warehouse_api_result[key]
+                self.assertEqual(
+                    _massage_data(rapidpro_value),
+                    _massage_data(warehouse_value),
+                    '{} was not the same (expected {}, got {})'.format(
+                        key, rapidpro_value, warehouse_value
+                    )
+                )
+
     def test_import_boundaries(self, mock_request):
         api_results, objs_made = self._run_import_test(mock_request, Boundary)
         self.assertEqual(2, len(objs_made))
@@ -82,6 +120,7 @@ class V2TembaTest(TembaTest):
         self.assertEqual(2, len(objs_made))
         for i, obj in enumerate(objs_made):
             self.assertEqual(obj.text, api_results[i]['text'])
+        self._run_api_test(Broadcast, objs_made)
 
     def test_import_campaigns(self, mock_request):
         api_results, objs_made = self._run_import_test(mock_request, Campaign)
@@ -194,3 +233,17 @@ class V2TembaTest(TembaTest):
         self.assertEqual(2, len(objs_made))
         for i, obj in enumerate(objs_made):
             self.assertEqual(obj.resthook, api_results[i]['resthook'])
+
+
+def _massage_data(value):
+    if _looks_like_a_date_string(value):
+        # mongo strips microseconds so we have to as well.
+        # todo: This could be drastically improved.
+        return value[:23]
+
+    return value
+
+
+def _looks_like_a_date_string(value):
+    # todo: can make this more advanced as needed
+    return isinstance(value, basestring) and value.endswith('Z') and len(value) == 27
