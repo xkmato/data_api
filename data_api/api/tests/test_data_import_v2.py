@@ -48,6 +48,7 @@ class V2TembaTest(TembaTest):
         cls.client.login(username=username, password=password)
 
     def tearDown(self):
+        Boundary.objects.all().delete()
         Broadcast.objects.all().delete()
         Campaign.objects.all().delete()
         CampaignEvent.objects.all().delete()
