@@ -565,6 +565,7 @@ class Run(OrgDocument):
     tid = IntField()
     flow = ReferenceField('Flow')
     contact = ReferenceField('Contact')
+    start = ReferenceField('FlowStart')
     responded = BooleanField()
     path = ListField(EmbeddedDocumentField(Step))
     values = MapField(EmbeddedDocumentField(Value))

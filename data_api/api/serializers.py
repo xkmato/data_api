@@ -1,6 +1,7 @@
 from rest_framework.fields import SerializerMethodField
 from rest_framework_mongoengine import serializers
-from data_api.api.models import Run, Flow, Contact, Org, Message, Broadcast, Campaign
+from data_api.api.models import Run, Flow, Contact, Org, Message, Broadcast, Campaign, Boundary, CampaignEvent, \
+    Channel, ChannelEvent, Field, FlowStart, Group, Label, Resthook, ResthookEvent, ResthookSubscriber
 
 __author__ = 'kenneth'
 
@@ -19,13 +20,19 @@ class OrgReadSerializer(serializers.DocumentSerializer):
         exclude = ('api_token', 'is_active')
 
 
+class BoundaryReadSerializer(BaseDocumentSerializer):
+    class Meta:
+        model = Boundary
+        exclude = ALWAYS_EXCLUDE
+
+
 class BroadcastReadSerializer(BaseDocumentSerializer):
     groups = SerializerMethodField()
     contacts = SerializerMethodField()
 
     class Meta:
         model = Broadcast
-        exclude = ALWAYS_EXCLUDE + ('tid', 'urns')  # todo: why are these excluded?
+        exclude = ALWAYS_EXCLUDE  # todo: why are these excluded?
 
     def get_groups(self, obj):
         return _serialize_list(obj.groups)
@@ -45,6 +52,35 @@ class CampaignReadSerializer(BaseDocumentSerializer):
         return _serialize_doc(obj.group)
 
 
+class CampaignEventReadSerializer(BaseDocumentSerializer):
+    campaign = SerializerMethodField()
+    flow = SerializerMethodField()
+
+    class Meta:
+        model = CampaignEvent
+        exclude = ALWAYS_EXCLUDE
+
+    def get_campaign(self, obj):
+        return _serialize_doc(obj.campaign)
+
+    def get_flow(self, obj):
+        return _serialize_doc(obj.flow)
+
+
+class ChannelReadSerializer(BaseDocumentSerializer):
+
+    class Meta:
+        model = Channel
+        exclude = ALWAYS_EXCLUDE
+
+
+class ChannelEventReadSerializer(BaseDocumentSerializer):
+
+    class Meta:
+        model = ChannelEvent
+        exclude = ALWAYS_EXCLUDE
+
+
 class ContactReadSerializer(BaseDocumentSerializer):
     groups = SerializerMethodField()
 
@@ -56,6 +92,20 @@ class ContactReadSerializer(BaseDocumentSerializer):
         return _serialize_list(obj.groups)
 
 
+class FieldReadSerializer(BaseDocumentSerializer):
+
+    class Meta:
+        model = Field
+        exclude = ALWAYS_EXCLUDE
+
+
+class FlowStartReadSerializer(BaseDocumentSerializer):
+
+    class Meta:
+        model = FlowStart
+        exclude = ALWAYS_EXCLUDE
+
+
 class FlowReadSerializer(BaseDocumentSerializer):
     labels = SerializerMethodField()
 
@@ -65,6 +115,20 @@ class FlowReadSerializer(BaseDocumentSerializer):
 
     def get_labels(self, obj):
         return _serialize_list(obj.labels)
+
+
+class GroupReadSerializer(BaseDocumentSerializer):
+
+    class Meta:
+        model = Group
+        exclude = ALWAYS_EXCLUDE
+
+
+class LabelReadSerializer(BaseDocumentSerializer):
+
+    class Meta:
+        model = Label
+        exclude = ALWAYS_EXCLUDE
 
 
 class MessageReadSerializer(BaseDocumentSerializer):
@@ -97,97 +161,25 @@ class RunReadSerializer(BaseDocumentSerializer):
         return _serialize_doc(obj.flow)
 
 
-# class FlowStepReadSerializer(serializers.EmbeddedDocumentSerializer):
-#     text = SerializerMethodField()
-#
-#     class Meta:
-#         # model = FlowStep
-#         exclude = ('value',)
-#
-#     def get_text(self, obj):
-#         if not obj.text:
-#             return None
-#         if obj.type == 'R':
-#             return "#hidden#"
-#         return FlowStepReadSerializer.remove_word_before_or_after(obj.text.lower())
-#
-#     @classmethod
-#     def remove_word_before_or_after(cls, text):
-#         x = text.split()
-#         g = 'nothing'
-#         if len(x) > 1:
-#             if ',' in x:
-#                 i = x.index(',')
-#                 if i > 0 and x[i-1] not in ['hello', 'hi']:
-#                     g = x.pop(i-1)
-#             if 'hi' in x:
-#                 i = x.index('hi')
-#                 if i < len(x) -1 and x[i+1] not in [',', '.', '?']:
-#                     g = x.pop(i+1)
-#             if 'hello' in x:
-#                 i = x.index('hello')
-#                 if i < len(x) -1 and x[i+1] not in [',', '.', '?']:
-#                     g = x.pop(i+1)
-#         return " ".join(x).capitalize()
+class ResthookReadSerializer(BaseDocumentSerializer):
+
+    class Meta:
+        model = Resthook
+        exclude = ALWAYS_EXCLUDE
 
 
-# class RunValueSetReadSerializer(serializers.EmbeddedDocumentSerializer):
-#     category = SerializerMethodField()
-#     value = SerializerMethodField('get_parsed_value')
-#     rule_value = SerializerMethodField()
-#
-#     class Meta:
-#         # model = RunValueSet
-#         exclude = ('text',)
-#
-#     def get_category(self, obj):
-#         try:
-#             return eval(obj.category)
-#         except Exception as e:
-#             return {'base': obj.category}
-#
-#     def get_parsed_value(self, obj):
-#         try:
-#             if hasattr(obj, 'category') and obj.category:
-#                 category = eval(obj.category)
-#                 if 'eng' in category and category['eng'] == "All Responses":
-#                     return None
-#                 if 'base' in category and category['base'] == "All Responses":
-#                     return None
-#             return obj.value
-#         except Exception as e:
-#             if obj.category == "All Responses":
-#                 return None
-#             return obj.value
-#
-#     def get_rule_value(self, obj):
-#         try:
-#             if hasattr(obj, 'category') and obj.category:
-#                 category = eval(obj.category)
-#                 if 'eng' in category and category['eng'] == "All Responses":
-#                     return None
-#                 if 'base' in category and category['base'] == "All Responses":
-#                     return None
-#             return obj.rule_value
-#         except Exception as e:
-#             if obj.category == "All Responses":
-#                 return None
-#             return obj.rule_value
+class ResthookEventReadSerializer(BaseDocumentSerializer):
+
+    class Meta:
+        model = ResthookEvent
+        exclude = ALWAYS_EXCLUDE
 
 
-# class EventReadSerializer(BaseDocumentSerializer):
-#     flow = SerializerMethodField()
-#     campaign = SerializerMethodField()
-#
-#     class Meta:
-#         # model = Event
-#         exclude = ALWAYS_EXCLUDE
-#
-#     def get_flow(self, obj):
-#         return str(obj.flow.get('id', '')) or None
-#
-#     def get_campaign(self, obj):
-#         return str(obj.campaign.get('id', '')) or None
+class ResthookSubscriberReadSerializer(BaseDocumentSerializer):
+
+    class Meta:
+        model = ResthookSubscriber
+        exclude = ALWAYS_EXCLUDE
 
 
 def _serialize_list(doc_list, display_field='name'):
