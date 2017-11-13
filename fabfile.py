@@ -31,7 +31,7 @@ def deploy(restart_celery=False, user='www-data', git_hash=None):
         else:
             _rapidpro_sudo("git fetch")
             _rapidpro_sudo("git checkout %s" % git_hash)
-        _rapidpro_sudo('%spip install -r requirements.txt' % workon_home)
+        _rapidpro_sudo('%spip install -r requirements.txt --no-cache-dir' % workon_home)
         _rapidpro_sudo('%spython manage.py collectstatic --noinput' % workon_home)
 
         sudo("chown -R %s:%s ." % (user, user))
