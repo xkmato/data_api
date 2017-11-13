@@ -8,5 +8,5 @@ class Command(BaseCommand):
         parser.add_argument('api_key')
 
     def handle(self, api_key, *args, **options):
-        fetch_all()
+        fetch_all(orgs=[api_key])
 
