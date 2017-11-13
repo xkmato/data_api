@@ -251,3 +251,6 @@ DEFAULT_MESSAGE_ATTRIBUTES = ['created_on', 'text', 'direction', 'status', 'sent
 DEFAULT_CONTACT_FIELDS = ['uuid', 'age_groups', 'education_level', 'village', 'occupation', 'district', 'year_born',
                               'registration_date', 'subcounty', 'gender', 'age', 'village_name', 'isfacebookuser',
                               'istwitteruser', 'isinternetuser', 'recruitment_source']
+
+
+MONGO_DBNAME = 'rapidpro'

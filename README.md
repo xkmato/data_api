@@ -1,5 +1,8 @@
 # ReadOnly API for Rapidpro data warehouse
 
+This platform allows you to import RapidPRO data from multiple projects into a single place.
+It consumes RapidPro data via APIs and and re-serves that same data via those same APIs (but in aggregate).
+The current version is based off of the [RapidPro V2 APIs](https://app.rapidpro.io/api/v2/).
 
 # Dev Setup / Installation
 
@@ -46,3 +49,27 @@ sudo -u postgres createdb rapidpro_data_api
 ## Run Server
 
 `./manage.py runserver --settings [settings module]`
+
+## Run Tests
+
+`./manage.py test`
+
+Or to run individual tests:
+
+`./manage.py test data_api.api.tests.test_data_import_v2.V2TembaTest.test_import_boundaries`
+
+# Deployment
+
+Deployment is managed with `fabric`.
+
+To deploy to the UNICEF environment run:
+
+`fab production deploy`
+
+To deploy to another environment you can run
+
+`fab deploy`
+
+and manually specify the host at runtime.
+
+For more information about the UNICEF production instance, see [production.md](../docs/production.md).
