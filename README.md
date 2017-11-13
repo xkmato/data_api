@@ -71,3 +71,5 @@ To deploy to another environment you can run
 `fab deploy`
 
 and manually specify the host at runtime.
+
+For more information about the UNICEF production instance, see [production.md](../docs/production.md).
