@@ -308,8 +308,8 @@ class ChannelEvent(OrgDocument):
     type = StringField()
     contact = ReferenceField('Contact')
     channel = ReferenceField('Channel')
-    time = DateTimeField()
-    duration = IntField()
+    extra = DictField()
+    occurred_on = DateTimeField()
     created_on = DateTimeField()
 
     meta = {'collection': 'channel_events'}
