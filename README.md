@@ -57,3 +57,17 @@ sudo -u postgres createdb rapidpro_data_api
 Or to run individual tests:
 
 `./manage.py test data_api.api.tests.test_data_import_v2.V2TembaTest.test_import_boundaries`
+
+# Deployment
+
+Deployment is managed with `fabric`.
+
+To deploy to the UNICEF environment run:
+
+`fab production deploy`
+
+To deploy to another environment you can run
+
+`fab deploy`
+
+and manually specify the host at runtime.
