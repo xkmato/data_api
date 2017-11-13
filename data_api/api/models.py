@@ -545,13 +545,13 @@ class Message(OrgDocument):
 
 
 class Value(EmbeddedDocument, EmbeddedUtil):
-    value = StringField()
+    value = DynamicField()
     category = StringField()
     node = StringField()
     time = DateTimeField()
 
     def __unicode__(self):
-        return self.value[:7]
+        return unicode(self.value)[:7]
 
 
 class Step(EmbeddedDocument, EmbeddedUtil):
