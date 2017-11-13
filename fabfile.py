@@ -1,8 +1,12 @@
 from fabric.context_managers import settings, cd
 from fabric.operations import run, sudo
+from fabric.state import env
 
 __author__ = 'kenneth'
 
+
+def production():
+    env.hosts = ['52.209.114.249']
 
 def deploy(restart_celery=False, user='www-data', git_hash=None):
     source = 'https://github.com/rapidpro/data_api.git'
