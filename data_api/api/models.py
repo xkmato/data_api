@@ -99,9 +99,6 @@ class Org(Document):
         host = getattr(settings, 'SITE_API_HOST', None)
         agent = getattr(settings, 'SITE_API_USER_AGENT', None)
 
-        if not host:
-            host = '%s/api/v1' % settings.API_ENDPOINT  # UReport sites use this
-
         return TembaClient(host, self.api_token, user_agent=agent)
 
     def __unicode__(self):
