@@ -1,3 +1,4 @@
+from __future__ import unicode_literals
 import csv
 from datetime import datetime
 import logging
@@ -308,8 +309,8 @@ class ChannelEvent(OrgDocument):
     type = StringField()
     contact = ReferenceField('Contact')
     channel = ReferenceField('Channel')
-    time = DateTimeField()
-    duration = IntField()
+    extra = DictField()
+    occurred_on = DateTimeField()
     created_on = DateTimeField()
 
     meta = {'collection': 'channel_events'}
@@ -544,13 +545,13 @@ class Message(OrgDocument):
 
 
 class Value(EmbeddedDocument, EmbeddedUtil):
-    value = StringField()
+    value = DynamicField()
     category = StringField()
     node = StringField()
     time = DateTimeField()
 
     def __unicode__(self):
-        return self.value[:7]
+        return unicode(self.value)[:7]
 
 
 class Step(EmbeddedDocument, EmbeddedUtil):
