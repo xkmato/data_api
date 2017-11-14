@@ -537,9 +537,10 @@ class Message(OrgDocument):
                             break
                     except UnicodeEncodeError as e:
                         logger.error(e)
-                        #Todo Figure out what todo here
+                        raise
                     except Exception as e:
                         logger.error(e)
+                        raise
                 CSVExport.update_for_messages(org_id, message.created_on)
             file_number += 1
 
@@ -644,9 +645,9 @@ class Run(OrgDocument):
                                 break
                         except UnicodeEncodeError as e:
                             logger.error(e)
-                            #Todo Figure out what todo here
+                            raise
                         except Exception as e:
-                            logger.error(e)
+                            raise
                     CSVExport.update_for_runs(org_id, run.created_on)
                 file_number += 1
             except Exception as e:
@@ -659,24 +660,6 @@ class CategoryStats(EmbeddedDocument, EmbeddedUtil):
 
     def __unicode__(self):
         return self.label
-
-
-class Result(Document):
-    # todo: add back inheritance from BaseUtil once we figure out where this model went (or delete it)
-    org_id = StringField(required=True)
-    created_on = DateTimeField()
-    modified_on = DateTimeField()
-    boundary = StringField()
-    set = IntField()
-    unset = IntField()
-    open_ended = StringField()
-    label = StringField()
-    categories = ListField(EmbeddedDocumentField(CategoryStats))
-
-    meta = {'collection': 'results'}
-
-    def __unicode__(self):
-        return "%s - %s" % (self.label, self.org)
 
 
 class BoundaryRef(EmbeddedDocument, EmbeddedUtil):
