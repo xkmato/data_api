@@ -68,6 +68,7 @@ class CSVExport(models.Model):
 
 class Org(Document):
     api_token = StringField(required=True)
+    server = StringField(required=True, default=settings.DEFAULT_RAPIDPRO_SITE)
     is_active = BooleanField(default=False)
     name = StringField(required=True)
     country = StringField()
@@ -96,10 +97,7 @@ class Org(Document):
         return o
 
     def get_temba_client(self):
-        host = getattr(settings, 'SITE_API_HOST', None)
-        agent = getattr(settings, 'SITE_API_USER_AGENT', None)
-
-        return TembaClient(host, self.api_token, user_agent=agent)
+        return TembaClient(self.server, self.api_token)
 
     def __unicode__(self):
         return self.name
