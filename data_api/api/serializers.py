@@ -10,7 +10,7 @@ ALWAYS_EXCLUDE = ('org_id', 'last_synced', 'first_synced')
 
 
 class BaseDocumentSerializer(serializers.DocumentSerializer):
-    # todo: it may be possible to remove this field?
+    # todo: it seems possible to remove this class
     pass
 
 
@@ -32,7 +32,7 @@ class BroadcastReadSerializer(BaseDocumentSerializer):
 
     class Meta:
         model = Broadcast
-        exclude = ALWAYS_EXCLUDE  # todo: why are these excluded?
+        exclude = ALWAYS_EXCLUDE
 
     def get_groups(self, obj):
         return _serialize_list(obj.groups)
