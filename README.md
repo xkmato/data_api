@@ -4,6 +4,20 @@ This platform allows you to import RapidPRO data from multiple projects into a s
 It consumes RapidPro data via APIs and and re-serves that same data via those same APIs (but in aggregate).
 The current version is based off of the [RapidPro V2 APIs](https://app.rapidpro.io/api/v2/).
 
+# Usage
+
+To import and organization and all its data (once) run:
+
+```
+./manage.py fetch_all [apikey]
+```
+
+or
+
+```
+./manage.py fetch_all [apikey] --server https://myinstance.rapidpro.io
+```
+
 # Dev Setup / Installation
 
 ## Prerequisites

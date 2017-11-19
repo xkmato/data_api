@@ -26,6 +26,7 @@ def import_org(server, api_key):
     org = client.get_org()
     org_dict = org.serialize()
     org_dict['api_token'] = api_key
+    org_dict['server'] = server
     local_org = Org(**org_dict)
     local_org.is_active = True
     local_org.save()
