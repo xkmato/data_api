@@ -1,5 +1,5 @@
 from django.core.management import BaseCommand
-from data_api.api.tasks import fetch_all
+from data_api.api.tasks import sync_latest_data
 from data_api.api.utils import import_org
 
 
@@ -19,4 +19,4 @@ class Command(BaseCommand):
 
     def handle(self, api_key, server, *args, **options):
         import_org(server, api_key)
-        fetch_all(orgs=[api_key])
+        sync_latest_data(orgs=[api_key])

@@ -31,7 +31,12 @@ def fetch_entity(entity, org):
 
 
 @task
-def fetch_all(entities=None, orgs=None):
+def sync_latest_data(entities=None, orgs=None):
+    """
+    Syncs the latest data from configured rapidpro Orgs.
+
+    The default value for both arguments is to sync _all_ entities/orgs.
+    """
     if not entities:
         entities = OrgDocument.__subclasses__()
     if not orgs:
