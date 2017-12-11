@@ -18,10 +18,6 @@ import datetime
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 
-# import djcelery
-# djcelery.setup_loader()
-
-
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/1.8/howto/deployment/checklist/
 
@@ -47,7 +43,6 @@ INSTALLED_APPS = (
     'raven.contrib.django.raven_compat',
 
     'data_api.api',
-    # 'djcelery',
     'rest_framework',
     'rest_framework.authtoken',
     'rest_framework_mongoengine',
@@ -104,22 +99,10 @@ REST_FRAMEWORK = {
 }
 
 
-
-
 RETRY_MAX_ATTEMPTS = int(os.environ.get('RETRY_MAX_ATTEMPTS', 10))
 RETRY_WAIT_FIXED = int(os.environ.get('RETRY_WAIT_FIXED', 15*60*1000))
 
-BROKER_URL = 'redis://'
-
-cron_minutes = int(os.environ.get('FETCH_SLEEP', 60*24*7))
-
-# CELERYBEAT_SCHEDULE = {
-#     'sync-all': {
-#         'task': 'data_api.api.tasks.fetch_all',
-#         'schedule': datetime.timedelta(minutes=cron_minutes),
-#         'args': ()
-#     }
-# }
+CELERY_BROKER_URL = 'redis://'
 
 # Database
 # https://docs.djangoproject.com/en/1.8/ref/settings/#databases
