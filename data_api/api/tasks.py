@@ -4,7 +4,6 @@ from django.conf import settings
 from retrying import retry
 from temba_client.exceptions import TembaConnectionError, TembaBadRequestError, TembaTokenError, \
     TembaRateExceededError, TembaException
-from data_api.api.models import BaseUtil, Org, Message, Run, OrgDocument
 from celery import task
 
 __author__ = 'kenneth'
@@ -37,6 +36,8 @@ def sync_latest_data(entities=None, orgs=None):
 
     The default value for both arguments is to sync _all_ entities/orgs.
     """
+    from data_api.api.models import Org, OrgDocument
+
     if not entities:
         entities = OrgDocument.__subclasses__()
     if not orgs:
@@ -61,8 +62,10 @@ def sync_latest_data(entities=None, orgs=None):
 
 @task
 def generate_message_dumps(from_date=None, org=None, contact_fields=None):
+    from data_api.api.models import Message
     Message.generate_csv(from_date=from_date, org_id=org, contact_fields=contact_fields)
 
 @task
 def generate_run_dumps(from_date=None, org=None, contact_fields=None):
+    from data_api.api.models import Run
     Run.generate_csv(from_date=from_date, org_id=org, contact_fields=contact_fields)
