@@ -145,10 +145,10 @@ ADMIN = (
     ('Admin', 'code@uniceflabs.org'),
 )
 
-DEFAULT_FROM_EMAIL = 'Data Team<no-reply@data.uniceflabs.org>'
+DEFAULT_FROM_EMAIL = 'Data Team <no-reply@data.uniceflabs.org>'
 EMAIL_HOST = '127.0.0.1'
-EMAIL_HOST_USER = 'no-reply@data.uniceflabs.org'
-SERVER_EMAIL = 'Data Team<no-reply@data.uniceflabs.org>'
+EMAIL_HOST_USER = 'Data Team <no-reply@data.uniceflabs.org>'
+SERVER_EMAIL = 'Data Team <no-reply@data.uniceflabs.org>'
 
 LOGGING = {
     'version': 1,
