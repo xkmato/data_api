@@ -1,6 +1,8 @@
 import logging
 import traceback
+from datetime import datetime
 from django.conf import settings
+from django.core.mail import mail_admins
 from retrying import retry
 from temba_client.exceptions import TembaConnectionError, TembaBadRequestError, TembaTokenError, \
     TembaRateExceededError, TembaException
@@ -37,7 +39,8 @@ def sync_latest_data(entities=None, orgs=None):
     The default value for both arguments is to sync _all_ entities/orgs.
     """
     from data_api.api.models import Org, OrgDocument
-
+    mail_admins('Starting RapidPro data sync', '')
+    start_time = datetime.now()
     if not entities:
         entities = OrgDocument.__subclasses__()
     if not orgs:
@@ -58,6 +61,9 @@ def sync_latest_data(entities=None, orgs=None):
                 if settings.DEBUG:
                     raise
                 logger.error("Things are dead: %s - No retry", str(traceback.format_exc()))
+
+    task_duration = datetime.now() - start_time
+    mail_admins('Finished RapidPro data sync in {} seconds'.format(task_duration.seconds), '')
 
 
 @task
