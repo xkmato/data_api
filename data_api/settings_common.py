@@ -117,6 +117,7 @@ DATABASES = {
 }
 
 
+RAVEN_URL = None  # override WITH https://<key>:<secret>@app.getsentry.com/<project> to enable raven
 RAVEN_CONFIG = {
     'dsn': 'https://<key>:<secret>@app.getsentry.com/<project>',
 }
