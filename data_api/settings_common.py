@@ -43,6 +43,7 @@ INSTALLED_APPS = (
     'raven.contrib.django.raven_compat',
 
     'data_api.api',
+    'data_api.ui',
     'rest_framework',
     'rest_framework.authtoken',
     'rest_framework_mongoengine',

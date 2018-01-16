@@ -22,6 +22,7 @@ urlpatterns = [
     url(r'^api-token-auth/', views.obtain_auth_token),
     url(r'^admin/', include(admin.site.urls)),
     url(r'^api/v2/', include(urls)),
+    url(r'^ui/', include('data_api.ui.urls')),
     url(r'^', include('rest_framework_swagger.urls')),
 ]
 
