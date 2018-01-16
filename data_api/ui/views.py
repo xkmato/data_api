@@ -1,8 +1,10 @@
+from django.contrib.auth.decorators import user_passes_test
 from django.shortcuts import render
 from data_api.api.utils import import_org
 from data_api.ui.forms import OrgForm
 
 
+@user_passes_test(lambda u: u.is_superuser)
 def import_org_view(request):
     form = OrgForm()
     feedback = ''

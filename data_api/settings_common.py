@@ -238,3 +238,4 @@ DEFAULT_CONTACT_FIELDS = ['uuid', 'age_groups', 'education_level', 'village', 'o
 
 
 MONGO_DBNAME = 'rapidpro'
+LOGIN_URL = '/admin/login/'
