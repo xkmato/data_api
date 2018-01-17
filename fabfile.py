@@ -10,7 +10,7 @@ def production():
     env.rapidpro_user = 'www-data'
 
 
-def deploy(restart_celery=False, user='www-data', git_hash=None):
+def deploy(restart_celery=True, user='www-data', git_hash=None):
     source = 'https://github.com/rapidpro/data_api.git'
     proc_name = 'api'
     path = '/var/www/data_api'
@@ -26,10 +26,11 @@ def deploy(restart_celery=False, user='www-data', git_hash=None):
                 run("git config core.filemode false")
     with cd(path):
         _rapidpro_sudo("git stash")
+        _rapidpro_sudo("git fetch")
         if not git_hash:
+            _rapidpro_sudo("git checkout master")
             _rapidpro_sudo("git pull %s master" % source)
         else:
-            _rapidpro_sudo("git fetch")
             _rapidpro_sudo("git checkout %s" % git_hash)
         _rapidpro_sudo('%spip install -r requirements.txt --no-cache-dir' % workon_home)
         _rapidpro_sudo('%spython manage.py collectstatic --noinput' % workon_home)
@@ -39,7 +40,7 @@ def deploy(restart_celery=False, user='www-data', git_hash=None):
 
     sudo("supervisorctl restart %s" % proc_name)
     if restart_celery:
-        sudo("supervisorctl restart %s_celery" % proc_name)
+        sudo("supervisorctl restart data_celery_workers:*")
 
 
 def _rapidpro_sudo(command):

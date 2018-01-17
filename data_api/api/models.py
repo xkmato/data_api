@@ -10,7 +10,7 @@ from django.db.models.signals import post_save
 from django.dispatch import receiver
 from mongoengine import connect, Document, StringField, BooleanField, ReferenceField, DateTimeField, IntField, \
     EmbeddedDocument, ListField, EmbeddedDocumentField, DictField, DynamicDocument, FloatField, DynamicField, \
-    MapField
+    MapField, ObjectIdField
 import pytz
 from rest_framework.authtoken.models import Token
 from temba_client.exceptions import TembaNoSuchObjectError, TembaException
@@ -263,7 +263,7 @@ class EmbeddedUtil(object):
 
 
 class OrgDocument(Document, BaseUtil):
-    org_id = StringField(required=True)
+    org_id = ObjectIdField(required=True)
     first_synced = DateTimeField()
     last_synced = DateTimeField()
 

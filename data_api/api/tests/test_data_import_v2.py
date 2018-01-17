@@ -95,8 +95,11 @@ class V2TembaTest(TembaTest):
                 json.dumps(warehouse_api_results, indent=2)
             )
         )
-        for i, rapidpro_result in enumerate(rapidpro_api_results):
-            self.assertApiObjectsEquivalent(rapidpro_result, warehouse_api_results[i])
+        sort_field = 'uuid' if 'uuid' in rapidpro_api_results[0] else rapidpro_api_results[0].keys()[0]
+        sorted_results = sorted(rapidpro_api_results, key=lambda x: x[sort_field])
+        sorted_warehouse_results = sorted(warehouse_api_results, key=lambda x: x[sort_field])
+        for i, rapidpro_result in enumerate(sorted_results):
+            self.assertApiObjectsEquivalent(rapidpro_result, sorted_warehouse_results[i])
 
     def assertApiObjectsEquivalent(self, rapidpro_result, warehouse_api_result):
         IGNORE_KEYS = {'id'}
