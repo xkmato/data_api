@@ -43,6 +43,7 @@ INSTALLED_APPS = (
     'raven.contrib.django.raven_compat',
 
     'data_api.api',
+    'data_api.ui',
     'rest_framework',
     'rest_framework.authtoken',
     'rest_framework_mongoengine',
@@ -237,3 +238,4 @@ DEFAULT_CONTACT_FIELDS = ['uuid', 'age_groups', 'education_level', 'village', 'o
 
 
 MONGO_DBNAME = 'rapidpro'
+LOGIN_URL = '/admin/login/'

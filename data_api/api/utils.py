@@ -30,3 +30,4 @@ def import_org(server, api_key):
     local_org = Org(**org_dict)
     local_org.is_active = True
     local_org.save()
+    return local_org
