@@ -1,6 +1,7 @@
 from __future__ import unicode_literals
 import csv
 from datetime import datetime
+import inspect
 import logging
 from bson.errors import InvalidId
 from bson.objectid import ObjectId
@@ -222,8 +223,9 @@ class BaseUtil(object):
 
     @classmethod
     def sync_temba_objects(cls, org, last_saved):
-        fetch_all = cls.get_fetch_method(org)
-        return cls.create_from_temba_list(org, fetch_all())
+        fetch_method = cls.get_fetch_method(org)
+        fetch_kwargs = get_fetch_kwargs(fetch_method, last_saved)
+        return cls.create_from_temba_list(org, fetch_method(**fetch_kwargs))
 
     @classmethod
     def get_fetch_method(cls, org):
@@ -712,3 +714,13 @@ class ResthookSubscriber(OrgDocument):
 def create_auth_token(sender, instance=None, created=False, **kwargs):
     if created:
         Token.objects.create(user=instance)
+
+
+def get_fetch_kwargs(fetch_method, last_saved):
+    if last_saved and last_saved.last_saved:
+        method_args = inspect.getargspec(fetch_method)[0]
+        if 'after' in method_args:
+            return {
+                'after': last_saved.last_saved
+            }
+    return {}
