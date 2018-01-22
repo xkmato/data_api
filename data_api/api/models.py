@@ -222,8 +222,8 @@ class BaseUtil(object):
 
     @classmethod
     def sync_temba_objects(cls, org, last_saved):
-        fetch_all = cls.get_fetch_method(org)
-        return cls.create_from_temba_list(org, fetch_all())
+        fetch_method = cls.get_fetch_method(org)
+        return cls.create_from_temba_list(org, fetch_method())
 
     @classmethod
     def get_fetch_method(cls, org):
