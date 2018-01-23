@@ -33,3 +33,4 @@ though a few changes were made to run it in a virtualenv.
 | Settings | /opt/redash/current/.env |
 | Supervisor Config | /etc/supervisor/conf.d/redash.conf |
 | Nginx Config | /etc/nginx/sites-available/redash |
+| Logs | /var/log/supervisor/ |
