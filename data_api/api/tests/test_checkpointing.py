@@ -1,7 +1,37 @@
 from datetime import datetime
-from django.test import SimpleTestCase
+from django.test import SimpleTestCase, TestCase
 from temba_client.v2 import TembaClient
-from data_api.api.models import get_fetch_kwargs, LastSaved
+import uuid
+from data_api.api.models import get_fetch_kwargs, LastSaved, Org, Message, Group
+
+
+class LastSavedTest(TestCase):
+    def setUp(self):
+        self.org = Org.create(name='test org', api_token=uuid.uuid4().hex, timezone=None)
+
+    def tearDown(self):
+        self.org.delete()
+
+    def test_get_none(self):
+        ls = LastSaved.get_for_org_and_collection(self.org, Message)
+        self.assertEqual(None, ls)
+
+    def test_create_and_get(self):
+        ls = LastSaved.create_for_org_and_collection(self.org, Message)
+        ls.save()
+        ls_back = LastSaved.get_for_org_and_collection(self.org, Message)
+        self.assertEqual(ls, ls_back)
+
+    def test_get_for_wrong_org(self):
+        ls = LastSaved.create_for_org_and_collection(self.org, Message)
+        ls.save()
+        org2 = Org.create(name='test org 2', api_token=uuid.uuid4().hex, timezone=None)
+        self.assertEqual(None, LastSaved.get_for_org_and_collection(org2, Message))
+
+    def test_get_for_wrong_collection(self):
+        ls = LastSaved.create_for_org_and_collection(self.org, Message)
+        ls.save()
+        self.assertEqual(None, LastSaved.get_for_org_and_collection(self.org, Group))
 
 
 class FetchArgsTest(SimpleTestCase):
