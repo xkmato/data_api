@@ -1,7 +1,26 @@
 from datetime import datetime
-from django.test import SimpleTestCase
+from django.test import SimpleTestCase, TestCase
 from temba_client.v2 import TembaClient
-from data_api.api.models import get_fetch_kwargs, LastSaved
+import uuid
+from data_api.api.models import get_fetch_kwargs, LastSaved, Org, Message
+
+
+class LastSavedTest(TestCase):
+    def setUp(self):
+        self.org = Org.create(name='test org', api_token=uuid.uuid4().hex, timezone=None)
+
+    def tearDown(self):
+        self.org.delete()
+
+    def test_get_none(self):
+        ls = LastSaved.get_for_org_and_collection(self.org, Message)
+        self.assertEqual(None, ls)
+
+    def test_create_and_get(self):
+        ls = LastSaved.create_for_org_and_collection(self.org, Message)
+        ls.save()
+        ls_back = LastSaved.get_for_org_and_collection(self.org, Message)
+        self.assertEqual(ls, ls_back)
 
 
 class FetchArgsTest(SimpleTestCase):
