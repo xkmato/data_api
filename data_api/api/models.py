@@ -122,6 +122,13 @@ class LastSaved(DynamicDocument):
     def get_for_org_and_collection(cls, org, collection_class):
         return cls.objects.filter(**{'coll': collection_class._meta['collection'], 'org_id': org.id}).first()
 
+    @classmethod
+    def create_for_org_and_collection(cls, org, collection_class):
+        ls = cls()
+        ls.org_id = str(org['id'])
+        ls.coll = collection_class._meta['collection']
+        return ls
+
 
 class BaseUtil(object):
     @classmethod
@@ -218,9 +225,7 @@ class BaseUtil(object):
         ls = LastSaved.get_for_org_and_collection(org, cls)
         objs = cls.sync_temba_objects(org, ls)
         if not ls:
-            ls = LastSaved()
-            ls.org_id = str(org['id'])
-        ls.coll = cls._meta['collection']
+            ls = LastSaved.create_for_org_and_collection(org, cls)
         ls.last_saved = datetime.now(tz=pytz.timezone(org.timezone))
         ls.save()
         return objs
