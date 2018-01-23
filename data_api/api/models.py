@@ -114,18 +114,18 @@ class Org(Document):
 
 
 class LastSaved(DynamicDocument):
-    org_id = StringField(required=True)
+    org = ReferenceField('Org')
     coll = StringField()
     last_saved = DateTimeField()
 
     @classmethod
     def get_for_org_and_collection(cls, org, collection_class):
-        return cls.objects.filter(**{'coll': collection_class._meta['collection'], 'org_id': org.id}).first()
+        return cls.objects.filter(**{'coll': collection_class._meta['collection'], 'org': org}).first()
 
     @classmethod
     def create_for_org_and_collection(cls, org, collection_class):
         ls = cls()
-        ls.org_id = str(org['id'])
+        ls.org = org
         ls.coll = collection_class._meta['collection']
         return ls
 
