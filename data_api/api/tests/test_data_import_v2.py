@@ -10,6 +10,7 @@ import six
 from temba_client.tests import TembaTest, MockResponse
 from temba_client.v2 import TembaClient
 import uuid
+from data_api.api.utils import import_org_with_client
 from ..models import Org, Boundary, Broadcast, Contact, Group, Channel, ChannelEvent, Campaign, CampaignEvent, \
     Field, Flow, Label, FlowStart, Run, Resthook, ResthookEvent, ResthookSubscriber, Message
 from data_api.api.tasks import fetch_entity
@@ -64,6 +65,10 @@ class V2TembaTest(TembaTest):
         Resthook.objects.all().delete()
         ResthookEvent.objects.all().delete()
         ResthookSubscriber.objects.all().delete()
+
+    @classmethod
+    def tearDownClass(cls):
+        Org.objects.all().delete()
 
     def _run_import_test(self, mock_request, obj_class):
         api_results_text = self.read_json(obj_class._meta['collection'])
@@ -230,7 +235,7 @@ class V2TembaTest(TembaTest):
         mock_request.return_value = MockResponse(200, api_results_text)
         api_key = 'token'
         client = TembaClient('host', api_key)
-        org = Org.import_from_temba(client, api_key)
+        org = import_org_with_client(client, 'host', api_key)
         self.assertEqual(api_key, org.api_token)
         self.assertEqual(org.name, api_results['name'])
 

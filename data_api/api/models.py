@@ -82,16 +82,6 @@ class Org(Document):
     meta = {'collection': 'orgs'}
 
     @classmethod
-    def import_from_temba(cls, temba_client, api_key):
-        org = temba_client.get_org()
-        org_dict = org.serialize()
-        org_dict['api_token'] = api_key
-        local_org = Org(**org_dict)
-        local_org.save()
-        return local_org
-
-
-    @classmethod
     def create(cls, name, api_token, timezone):
         o = cls(name=name, api_token=api_token, timezone=timezone)
         o.save()
