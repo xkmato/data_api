@@ -34,3 +34,14 @@ though a few changes were made to run it in a virtualenv.
 | Supervisor Config | /etc/supervisor/conf.d/redash.conf |
 | Nginx Config | /etc/nginx/sites-available/redash |
 | Logs | /var/log/supervisor/ |
+
+
+## Mail server
+
+The mail is being routed through a local mail server using `postfix`.
+You can use `systemd` to check its status or start/stop it. E.g.
+
+```bash
+$ sudo service postfix status
+$ sudo service postfix start
+```
