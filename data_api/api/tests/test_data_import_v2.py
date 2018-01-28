@@ -234,10 +234,21 @@ class V2TembaTest(TembaTest):
         api_results = json.loads(api_results_text)
         mock_request.return_value = MockResponse(200, api_results_text)
         api_key = 'token'
+        self.assertEqual(0, len(Org.objects.filter(**{'api_token': api_key})))
         client = TembaClient('host', api_key)
         org = import_org_with_client(client, 'host', api_key)
         self.assertEqual(api_key, org.api_token)
         self.assertEqual(org.name, api_results['name'])
+        self.assertEqual(1, len(Org.objects.filter(**{'api_token': api_key})))
+
+        # modify in place and confirm it updates instead of creating a new org
+        new_name = 'Updated Name'
+        api_results['name'] = new_name
+        mock_request.return_value = MockResponse(200, json.dumps(api_results))
+        second_org = import_org_with_client(client, 'host', api_key)
+        self.assertEqual(second_org.id, org.id)
+        self.assertEqual(1, len(Org.objects.filter(**{'api_token': api_key})))
+        self.assertEqual(new_name, second_org.name)
 
     def test_import_runs(self, mock_request):
         api_results, objs_made = self._run_import_test(mock_request, Run)

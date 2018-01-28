@@ -37,6 +37,7 @@ def import_org_with_client(client, server, api_key):
     try:
         local_org = Org.objects.get(**{'api_token': api_key})
         local_org.update(**org_dict)
+        return Org.objects.get(**{'api_token': api_key})
     except DoesNotExist:
         local_org = Org(**org_dict)
         local_org.save()
