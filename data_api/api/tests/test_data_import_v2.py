@@ -10,6 +10,7 @@ import six
 from temba_client.tests import TembaTest, MockResponse
 from temba_client.v2 import TembaClient
 import uuid
+from data_api.api.utils import import_org_with_client
 from ..models import Org, Boundary, Broadcast, Contact, Group, Channel, ChannelEvent, Campaign, CampaignEvent, \
     Field, Flow, Label, FlowStart, Run, Resthook, ResthookEvent, ResthookSubscriber, Message
 from data_api.api.tasks import fetch_entity
@@ -64,6 +65,10 @@ class V2TembaTest(TembaTest):
         Resthook.objects.all().delete()
         ResthookEvent.objects.all().delete()
         ResthookSubscriber.objects.all().delete()
+
+    @classmethod
+    def tearDownClass(cls):
+        Org.objects.all().delete()
 
     def _run_import_test(self, mock_request, obj_class):
         api_results_text = self.read_json(obj_class._meta['collection'])
@@ -229,10 +234,21 @@ class V2TembaTest(TembaTest):
         api_results = json.loads(api_results_text)
         mock_request.return_value = MockResponse(200, api_results_text)
         api_key = 'token'
+        self.assertEqual(0, len(Org.objects.filter(**{'api_token': api_key})))
         client = TembaClient('host', api_key)
-        org = Org.import_from_temba(client, api_key)
+        org = import_org_with_client(client, 'host', api_key)
         self.assertEqual(api_key, org.api_token)
         self.assertEqual(org.name, api_results['name'])
+        self.assertEqual(1, len(Org.objects.filter(**{'api_token': api_key})))
+
+        # modify in place and confirm it updates instead of creating a new org
+        new_name = 'Updated Name'
+        api_results['name'] = new_name
+        mock_request.return_value = MockResponse(200, json.dumps(api_results))
+        second_org = import_org_with_client(client, 'host', api_key)
+        self.assertEqual(second_org.id, org.id)
+        self.assertEqual(1, len(Org.objects.filter(**{'api_token': api_key})))
+        self.assertEqual(new_name, second_org.name)
 
     def test_import_runs(self, mock_request):
         api_results, objs_made = self._run_import_test(mock_request, Run)
