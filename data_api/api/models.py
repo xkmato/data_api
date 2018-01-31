@@ -216,7 +216,7 @@ class BaseUtil(object):
         objs = cls.sync_temba_objects(org, ls)
         if not ls:
             ls = LastSaved.create_for_org_and_collection(org, cls)
-        ls.last_saved = datetime.now(tz=pytz.timezone(org.timezone))
+        ls.last_saved = datetime.utcnow()
         ls.save()
         return objs
 
@@ -480,13 +480,14 @@ class Message(OrgDocument):
 
     @classmethod
     def sync_temba_objects(cls, org, last_saved):
-        fetch_objects = cls.get_fetch_method(org)
+        fetch_method = cls.get_fetch_method(org)
+        fetch_kwargs = get_fetch_kwargs(fetch_method, last_saved)
         folders = [
             'inbox', 'flows', 'archived', 'outbox', 'incoming', 'sent',
         ]
         objs = []
         for folder in folders:
-            temba_objs = fetch_objects(folder=folder)
+            temba_objs = fetch_method(folder=folder, **fetch_kwargs)
             objs.extend(cls.create_from_temba_list(org, temba_objs))
         return objs
 
@@ -720,6 +721,6 @@ def get_fetch_kwargs(fetch_method, last_saved):
         method_args = inspect.getargspec(fetch_method)[0]
         if 'after' in method_args:
             return {
-                'after': last_saved.last_saved
+                'after': pytz.utc.localize(last_saved.last_saved)
             }
     return {}
