@@ -30,6 +30,7 @@ class Command(BaseCommand):
             # create console handler with a higher log level
             console_handler = logging.StreamHandler()
             console_handler.setLevel(logging.INFO)
+            console_handler.setFormatter(logging.Formatter('%(asctime)s: %(message)s'))
             for logger in (task_logger, model_logger):
                 logger.addHandler(console_handler)
                 logger.setLevel(logging.INFO)
