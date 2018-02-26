@@ -1,8 +1,8 @@
 import logging
 from django.core.management import BaseCommand
-from data_api.api.tasks import sync_latest_data, logger
+from data_api.api.tasks import sync_latest_data, logger as task_logger
 from data_api.api.utils import import_org
-
+from data_api.api.models import logger as model_logger
 
 class Command(BaseCommand):
 
@@ -29,11 +29,12 @@ class Command(BaseCommand):
         if options['log_to_console']:
             # create console handler with a higher log level
             console_handler = logging.StreamHandler()
-            console_handler.setLevel(logging.DEBUG)
-            logger.addHandler(console_handler)
-            logger.setLevel(logging.DEBUG)
-            print('set console logging. you should see another message following this one')
-            logger.debug('console logging is working!')
+            console_handler.setLevel(logging.INFO)
+            for logger in (task_logger, model_logger):
+                logger.addHandler(console_handler)
+                logger.setLevel(logging.INFO)
+                print('set console logging. you should see another message following this one')
+                logger.info('console logging is working!')
 
         import_org(server, api_key)
         sync_latest_data(orgs=[api_key])
