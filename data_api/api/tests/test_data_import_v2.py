@@ -75,7 +75,7 @@ class V2TembaTest(TembaTest):
         api_results = json.loads(api_results_text)
         mock_request.return_value = MockResponse(200, api_results_text)
         before = datetime.utcnow()
-        objs_made = fetch_entity(obj_class, self.org)
+        objs_made = fetch_entity(obj_class, self.org, return_objs=True)
         after = datetime.utcnow()
         for obj in objs_made:
             self.assertTrue(isinstance(obj, obj_class))
