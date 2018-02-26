@@ -26,9 +26,9 @@ def retry_if_temba_api_or_connection_error(exception):
 
 @retry(retry_on_exception=retry_if_temba_api_or_connection_error, stop_max_attempt_number=settings.RETRY_MAX_ATTEMPTS,
        wait_fixed=settings.RETRY_WAIT_FIXED)
-def fetch_entity(entity, org):
+def fetch_entity(entity, org, return_objs=False):
     logger.info("Fetching objects of type: %s for Org: %s", str(entity), org.name)
-    return entity.fetch_objects(org)
+    return entity.fetch_objects(org, return_objs)
 
 
 @task

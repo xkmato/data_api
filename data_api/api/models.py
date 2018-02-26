@@ -184,7 +184,7 @@ class BaseUtil(object):
         return cls.create_from_temba(org, fetch(uuid))
 
     @classmethod
-    def create_from_temba_list(cls, org, temba_list):
+    def create_from_temba_list(cls, org, temba_list, return_objs=False):
         obj_list = []
         q = None
         for temba in temba_list.all():
@@ -194,7 +194,8 @@ class BaseUtil(object):
                 q = {'tid': temba.id}
             if not q or not cls.objects.filter(**q).first():
                 objs = cls.create_from_temba(org, temba)
-                obj_list.append(objs)
+                if return_objs:
+                    obj_list.append(objs)
         return obj_list
 
     @classmethod
@@ -209,12 +210,12 @@ class BaseUtil(object):
         return objs
 
     @classmethod
-    def fetch_objects(cls, org):
+    def fetch_objects(cls, org, return_objs=False):
         """
         Syncs all objects of this type from the provided org.
         """
         ls = LastSaved.get_for_org_and_collection(org, cls)
-        objs = cls.sync_temba_objects(org, ls)
+        objs = cls.sync_temba_objects(org, ls, return_objs)
         if not ls:
             ls = LastSaved.create_for_org_and_collection(org, cls)
         ls.last_saved = datetime.utcnow()
@@ -222,10 +223,10 @@ class BaseUtil(object):
         return objs
 
     @classmethod
-    def sync_temba_objects(cls, org, last_saved):
+    def sync_temba_objects(cls, org, last_saved, return_objs=False):
         fetch_method = cls.get_fetch_method(org)
         fetch_kwargs = get_fetch_kwargs(fetch_method, last_saved)
-        return cls.create_from_temba_list(org, fetch_method(**fetch_kwargs))
+        return cls.create_from_temba_list(org, fetch_method(**fetch_kwargs), return_objs)
 
     @classmethod
     def get_fetch_method(cls, org):
@@ -480,7 +481,7 @@ class Message(OrgDocument):
         return "%s - %s" % (self.text[:7], self.org)
 
     @classmethod
-    def sync_temba_objects(cls, org, last_saved):
+    def sync_temba_objects(cls, org, last_saved, return_objs=False):
         fetch_method = cls.get_fetch_method(org)
         fetch_kwargs = get_fetch_kwargs(fetch_method, last_saved)
         folders = [
@@ -489,7 +490,9 @@ class Message(OrgDocument):
         objs = []
         for folder in folders:
             temba_objs = fetch_method(folder=folder, **fetch_kwargs)
-            objs.extend(cls.create_from_temba_list(org, temba_objs))
+            created_objs = cls.create_from_temba_list(org, temba_objs, return_objs)
+            if return_objs:
+                objs.extend(created_objs)
         return objs
 
     @classmethod
