@@ -489,6 +489,7 @@ class Message(OrgDocument):
         ]
         objs = []
         for folder in folders:
+            logger.info('Syncing message folder {}'.format(folder))
             temba_objs = fetch_method(folder=folder, **fetch_kwargs)
             created_objs = cls.create_from_temba_list(org, temba_objs, return_objs)
             if return_objs:
