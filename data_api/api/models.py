@@ -193,7 +193,8 @@ class BaseUtil(object):
             elif hasattr(temba, 'id'):
                 q = {'tid': temba.id}
             if not q or not cls.objects.filter(**q).first():
-                obj_list.append(cls.create_from_temba(org, temba))
+                objs = cls.create_from_temba(org, temba)
+                obj_list.append(objs)
         return obj_list
 
     @classmethod
