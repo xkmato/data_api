@@ -122,7 +122,7 @@ class LastSaved(DynamicDocument):
 
 class BaseUtil(object):
     @classmethod
-    def create_from_temba(cls, org, temba):
+    def create_from_temba(cls, org, temba, do_save=True):
         obj = cls()
         for key, value in temba.__dict__.items():
             class_attr = getattr(cls, key, None)
@@ -160,7 +160,8 @@ class BaseUtil(object):
         obj.org_id = str(org['id'])
         obj.first_synced = datetime.utcnow()
         obj.last_synced = datetime.utcnow()
-        obj.save()
+        if do_save:
+            obj.save()
         return obj
 
     @classmethod
@@ -186,6 +187,8 @@ class BaseUtil(object):
     @classmethod
     def create_from_temba_list(cls, org, temba_list, return_objs=False):
         obj_list = []
+        chunk_to_save = []
+        chunk_size = 100
         q = None
         for temba in temba_list.all():
             if hasattr(temba, 'uuid'):
@@ -193,9 +196,18 @@ class BaseUtil(object):
             elif hasattr(temba, 'id'):
                 q = {'tid': temba.id}
             if not q or not cls.objects.filter(**q).first():
-                objs = cls.create_from_temba(org, temba)
+                obj = cls.create_from_temba(org, temba, do_save=False)
+                chunk_to_save.append(obj)
                 if return_objs:
-                    obj_list.append(objs)
+                    obj_list.append(obj)
+            if len(chunk_to_save) > chunk_size:
+                cls.objects.insert(chunk_to_save)
+                chunk_to_save = []
+            q = None
+
+        if chunk_to_save:
+            cls.objects.insert(chunk_to_save)
+
         return obj_list
 
     @classmethod
@@ -215,10 +227,11 @@ class BaseUtil(object):
         Syncs all objects of this type from the provided org.
         """
         ls = LastSaved.get_for_org_and_collection(org, cls)
+        checkpoint = datetime.utcnow()
         objs = cls.sync_temba_objects(org, ls, return_objs)
         if not ls:
             ls = LastSaved.create_for_org_and_collection(org, cls)
-        ls.last_saved = datetime.utcnow()
+        ls.last_saved = checkpoint
         ls.save()
         return objs
 
@@ -480,6 +493,21 @@ class Message(OrgDocument):
     def __unicode__(self):
         return "%s - %s" % (self.text[:7], self.org)
 
+    @staticmethod
+    def _get_last_saved_id(folder):
+        return 'messages:{}'.format(folder)
+
+    @staticmethod
+    def get_last_saved_for_folder(org, folder):
+        return LastSaved.objects.filter(**{'coll': Message._get_last_saved_id(folder), 'org': org}).first()
+
+    @staticmethod
+    def create_last_saved_for_folder(org, folder):
+        ls = LastSaved()
+        ls.org = org
+        ls.coll = Message._get_last_saved_id(folder)
+        return ls
+
     @classmethod
     def sync_temba_objects(cls, org, last_saved, return_objs=False):
         fetch_method = cls.get_fetch_method(org)
@@ -490,10 +518,17 @@ class Message(OrgDocument):
         objs = []
         for folder in folders:
             logger.info('Syncing message folder {}'.format(folder))
-            temba_objs = fetch_method(folder=folder, **fetch_kwargs)
+            last_saved_for_folder = cls.get_last_saved_for_folder(org, folder)
+            folder_kwargs = get_fetch_kwargs(fetch_method, last_saved_for_folder) or fetch_kwargs
+            checkpoint = datetime.utcnow()
+            temba_objs = fetch_method(folder=folder, **folder_kwargs)
             created_objs = cls.create_from_temba_list(org, temba_objs, return_objs)
             if return_objs:
                 objs.extend(created_objs)
+            if not last_saved_for_folder:
+                last_saved_for_folder = cls.create_last_saved_for_folder(org, folder)
+            last_saved_for_folder.last_saved = checkpoint
+            last_saved_for_folder.save()
         return objs
 
     @classmethod

@@ -34,6 +34,35 @@ class LastSavedTest(TestCase):
         self.assertEqual(None, LastSaved.get_for_org_and_collection(self.org, Group))
 
 
+class LastSavedMessagesTest(TestCase):
+    def setUp(self):
+        self.org = Org.create(name='test org', api_token=uuid.uuid4().hex, timezone=None)
+
+    def tearDown(self):
+        self.org.delete()
+
+    def test_get_none(self):
+        ls = Message.get_last_saved_for_folder(self.org, 'inbox')
+        self.assertEqual(None, ls)
+
+    def test_folder_uniqueness(self):
+        ls = Message.create_last_saved_for_folder(self.org, 'inbox')
+        ls.save()
+        ls_back = Message.get_last_saved_for_folder(self.org, 'sent')
+        self.assertEqual(None, ls_back)
+
+    def test_get_for_wrong_org(self):
+        ls = Message.create_last_saved_for_folder(self.org, 'inbox')
+        ls.save()
+        org2 = Org.create(name='test org 2', api_token=uuid.uuid4().hex, timezone=None)
+        self.assertEqual(None, Message.get_last_saved_for_folder(org2, 'inbox'))
+
+    def test_get_for_wrong_folder(self):
+        ls = Message.create_last_saved_for_folder(self.org, 'inbox')
+        ls.save()
+        self.assertEqual(None, Message.get_last_saved_for_folder(self.org, 'sent'))
+
+
 class FetchArgsTest(SimpleTestCase):
 
     def _method_with_after_arg(self, before=None, after=None):
