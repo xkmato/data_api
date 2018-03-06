@@ -215,10 +215,11 @@ class BaseUtil(object):
         Syncs all objects of this type from the provided org.
         """
         ls = LastSaved.get_for_org_and_collection(org, cls)
+        checkpoint = datetime.utcnow()
         objs = cls.sync_temba_objects(org, ls, return_objs)
         if not ls:
             ls = LastSaved.create_for_org_and_collection(org, cls)
-        ls.last_saved = datetime.utcnow()
+        ls.last_saved = checkpoint
         ls.save()
         return objs
 
