@@ -60,7 +60,7 @@ class LastSavedMessagesTest(TestCase):
     def test_get_for_wrong_folder(self):
         ls = Message.create_last_saved_for_folder(self.org, 'inbox')
         ls.save()
-        self.assertEqual(ls, Message.get_last_saved_for_folder(self.org, 'inbox'))
+        self.assertEqual(None, Message.get_last_saved_for_folder(self.org, 'sent'))
 
 
 class FetchArgsTest(SimpleTestCase):
