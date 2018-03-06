@@ -481,6 +481,21 @@ class Message(OrgDocument):
     def __unicode__(self):
         return "%s - %s" % (self.text[:7], self.org)
 
+    @staticmethod
+    def _get_last_saved_id(folder):
+        return 'messages:{}'.format(folder)
+
+    @staticmethod
+    def get_last_saved_for_folder(org, folder):
+        return LastSaved.objects.filter(**{'coll': Message._get_last_saved_id(folder), 'org': org}).first()
+
+    @staticmethod
+    def create_last_saved_for_folder(org, folder):
+        ls = LastSaved()
+        ls.org = org
+        ls.coll = Message._get_last_saved_id(folder)
+        return ls
+
     @classmethod
     def sync_temba_objects(cls, org, last_saved, return_objs=False):
         fetch_method = cls.get_fetch_method(org)
@@ -491,10 +506,17 @@ class Message(OrgDocument):
         objs = []
         for folder in folders:
             logger.info('Syncing message folder {}'.format(folder))
-            temba_objs = fetch_method(folder=folder, **fetch_kwargs)
+            last_saved_for_folder = cls.get_last_saved_for_folder(org, folder)
+            folder_kwargs = get_fetch_kwargs(fetch_method, last_saved_for_folder) or fetch_kwargs
+            checkpoint = datetime.utcnow()
+            temba_objs = fetch_method(folder=folder, **folder_kwargs)
             created_objs = cls.create_from_temba_list(org, temba_objs, return_objs)
             if return_objs:
                 objs.extend(created_objs)
+            if not last_saved_for_folder:
+                last_saved_for_folder = cls.create_last_saved_for_folder(folder)
+            last_saved_for_folder.last_saved = checkpoint
+            last_saved_for_folder.save()
         return objs
 
     @classmethod
