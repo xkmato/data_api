@@ -515,7 +515,7 @@ class Message(OrgDocument):
             if return_objs:
                 objs.extend(created_objs)
             if not last_saved_for_folder:
-                last_saved_for_folder = cls.create_last_saved_for_folder(folder)
+                last_saved_for_folder = cls.create_last_saved_for_folder(org, folder)
             last_saved_for_folder.last_saved = checkpoint
             last_saved_for_folder.save()
         return objs
