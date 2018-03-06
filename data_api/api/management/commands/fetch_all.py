@@ -4,6 +4,7 @@ from data_api.api.tasks import sync_latest_data, logger as task_logger
 from data_api.api.utils import import_org
 from data_api.api.models import logger as model_logger
 
+
 class Command(BaseCommand):
 
     def add_arguments(self, parser):
