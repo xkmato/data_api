@@ -122,7 +122,7 @@ class LastSaved(DynamicDocument):
 
 class BaseUtil(object):
     @classmethod
-    def create_from_temba(cls, org, temba):
+    def create_from_temba(cls, org, temba, do_save=True):
         obj = cls()
         for key, value in temba.__dict__.items():
             class_attr = getattr(cls, key, None)
@@ -160,7 +160,8 @@ class BaseUtil(object):
         obj.org_id = str(org['id'])
         obj.first_synced = datetime.utcnow()
         obj.last_synced = datetime.utcnow()
-        obj.save()
+        if do_save:
+            obj.save()
         return obj
 
     @classmethod
@@ -186,6 +187,8 @@ class BaseUtil(object):
     @classmethod
     def create_from_temba_list(cls, org, temba_list, return_objs=False):
         obj_list = []
+        chunk_to_save = []
+        chunk_size = 100
         q = None
         for temba in temba_list.all():
             if hasattr(temba, 'uuid'):
@@ -193,10 +196,18 @@ class BaseUtil(object):
             elif hasattr(temba, 'id'):
                 q = {'tid': temba.id}
             if not q or not cls.objects.filter(**q).first():
-                obj = cls.create_from_temba(org, temba)
+                obj = cls.create_from_temba(org, temba, do_save=False)
+                chunk_to_save.append(obj)
                 if return_objs:
                     obj_list.append(obj)
+            if len(chunk_to_save) > chunk_size:
+                cls.objects.insert(chunk_to_save)
+                chunk_to_save = []
             q = None
+
+        if chunk_to_save:
+            cls.objects.insert(chunk_to_save)
+
         return obj_list
 
     @classmethod
