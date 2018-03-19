@@ -200,18 +200,22 @@ class BaseUtil(object):
         obj_list = []
         chunk_to_save = []
         chunk_size = 100
-        q = None
+
+        def _object_found(temba_obj):
+            q = None
+            if hasattr(temba_obj, 'uuid'):
+                q = {'uuid': temba_obj.uuid}
+            elif hasattr(temba_obj, 'id'):
+                q = {'tid': temba_obj.id}
+            return q and cls.objects.filter(**q).first()
+
         for temba in temba_list.all():
-            if hasattr(temba, 'uuid'):
-                q = {'uuid': temba.uuid}
-            elif hasattr(temba, 'id'):
-                q = {'tid': temba.id}
             # this is an opportunity or optimization.
             # we could add a flag that for initial import doesn't bother querying for
             # existing data. we might even be able to set this at runtime based on the
             # total number of objects matching a query for the org, else could specify
             # as an argument to the import function
-            if not q or not cls.objects.filter(**q).first():
+            if not _object_found(temba):
                 obj = cls.create_from_temba(org, temba, do_save=False)
                 chunk_to_save.append(obj)
                 if return_objs:
@@ -219,7 +223,6 @@ class BaseUtil(object):
             if len(chunk_to_save) > chunk_size:
                 cls.objects.insert(chunk_to_save)
                 chunk_to_save = []
-            q = None
 
         if chunk_to_save:
             cls.objects.insert(chunk_to_save)
