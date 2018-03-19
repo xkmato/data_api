@@ -135,6 +135,15 @@ class BaseUtil(object):
                     item_class = item_class.document_type
                     setattr(obj, key, item_class.create_from_temba_list(getattr(temba, key)))
                 elif isinstance(item_class, ReferenceField):
+                    # this is an opportunity to improve performance.
+                    # rather than querying our local DB for the object and using a ReferenceField,
+                    # we could instead just set an ID on the current document and not bother with
+                    # doing explicit mongo references.
+                    # this would avoid a huge number of DB lookups.
+                    # An alternative option would be to just cache the result of this call
+                    # so that multiple queries, e.g. to the same Contact, resolve quickly.
+                    # Caching might introduce complex invalidation logic - e.g. if a model was imported
+                    # midway through a full import.
                     uuids = [v.uuid for v in getattr(temba, key)]
                     setattr(obj, key, item_class.document_type.get_objects_from_uuids(org, uuids))
                 else:
@@ -148,6 +157,7 @@ class BaseUtil(object):
 
             elif isinstance(class_attr, ReferenceField) and getattr(temba, key) is not None:
                 item_class = class_attr.document_type
+                # same note applies as above on the list version
                 setattr(obj, key, item_class.get_or_fetch(org, getattr(temba, key).uuid))
             elif isinstance(class_attr, EmbeddedDocumentField):
                 item_class = class_attr.document_type
@@ -166,7 +176,8 @@ class BaseUtil(object):
 
     @classmethod
     def get_or_fetch(cls, org, uuid):
-        if uuid == None: return None
+        if uuid is None:
+            return None
         if hasattr(cls, 'uuid'):
             obj = cls.objects.filter(uuid=uuid).first()
         else:
@@ -195,6 +206,11 @@ class BaseUtil(object):
                 q = {'uuid': temba.uuid}
             elif hasattr(temba, 'id'):
                 q = {'tid': temba.id}
+            # this is an opportunity or optimization.
+            # we could add a flag that for initial import doesn't bother querying for
+            # existing data. we might even be able to set this at runtime based on the
+            # total number of objects matching a query for the org, else could specify
+            # as an argument to the import function
             if not q or not cls.objects.filter(**q).first():
                 obj = cls.create_from_temba(org, temba, do_save=False)
                 chunk_to_save.append(obj)
