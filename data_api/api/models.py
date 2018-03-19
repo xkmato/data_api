@@ -196,7 +196,7 @@ class BaseUtil(object):
         return cls.create_from_temba(org, fetch(uuid))
 
     @classmethod
-    def create_from_temba_list(cls, org, temba_list, return_objs=False):
+    def create_from_temba_list(cls, org, temba_list, return_objs=False, is_initial_import=False):
         obj_list = []
         chunk_to_save = []
         chunk_size = 100
@@ -210,12 +210,9 @@ class BaseUtil(object):
             return q and cls.objects.filter(**q).first()
 
         for temba in temba_list.all():
-            # this is an opportunity or optimization.
-            # we could add a flag that for initial import doesn't bother querying for
-            # existing data. we might even be able to set this at runtime based on the
-            # total number of objects matching a query for the org, else could specify
-            # as an argument to the import function
-            if not _object_found(temba):
+            # only bother importing the object if either it's the first time we're importing data
+            # for this org/type or if we didn't find existing data in the DB already
+            if is_initial_import or not _object_found(temba):
                 obj = cls.create_from_temba(org, temba, do_save=False)
                 chunk_to_save.append(obj)
                 if return_objs:
@@ -258,7 +255,9 @@ class BaseUtil(object):
     def sync_temba_objects(cls, org, last_saved, return_objs=False):
         fetch_method = cls.get_fetch_method(org)
         fetch_kwargs = get_fetch_kwargs(fetch_method, last_saved)
-        return cls.create_from_temba_list(org, fetch_method(**fetch_kwargs), return_objs)
+        initial_import = cls.objects.filter(org_id=org.id).count() == 0
+        return cls.create_from_temba_list(org, fetch_method(**fetch_kwargs), return_objs,
+                                          is_initial_import=initial_import)
 
     @classmethod
     def get_fetch_method(cls, org):
@@ -535,13 +534,14 @@ class Message(OrgDocument):
             'inbox', 'flows', 'archived', 'outbox', 'incoming', 'sent',
         ]
         objs = []
+        initial_import = cls.objects.filter(org_id=org.id).count() == 0
         for folder in folders:
             logger.info('Syncing message folder {}'.format(folder))
             last_saved_for_folder = cls.get_last_saved_for_folder(org, folder)
             folder_kwargs = get_fetch_kwargs(fetch_method, last_saved_for_folder) or fetch_kwargs
             checkpoint = datetime.utcnow()
             temba_objs = fetch_method(folder=folder, **folder_kwargs)
-            created_objs = cls.create_from_temba_list(org, temba_objs, return_objs)
+            created_objs = cls.create_from_temba_list(org, temba_objs, return_objs, is_initial_import=initial_import)
             if return_objs:
                 objs.extend(created_objs)
             if not last_saved_for_folder:
