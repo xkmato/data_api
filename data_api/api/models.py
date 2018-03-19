@@ -133,7 +133,7 @@ class BaseUtil(object):
                 item_class = class_attr.field
                 if isinstance(item_class, EmbeddedDocumentField):
                     item_class = item_class.document_type
-                    setattr(obj, key, item_class.create_from_temba_list(getattr(temba, key)))
+                    setattr(obj, key, item_class.instantiate_from_temba_list(getattr(temba, key)))
                 elif isinstance(item_class, ReferenceField):
                     # this is an opportunity to improve performance.
                     # rather than querying our local DB for the object and using a ReferenceField,
@@ -152,7 +152,7 @@ class BaseUtil(object):
                 item_class = class_attr.field
                 assert isinstance(item_class, EmbeddedDocumentField)
                 setattr(obj, key, {
-                    k: item_class.document_type.create_from_temba(v) for k, v in getattr(temba, key).items()
+                    k: item_class.document_type.instantiate_from_temba(v) for k, v in getattr(temba, key).items()
                 })
 
             elif isinstance(class_attr, ReferenceField) and getattr(temba, key) is not None:
@@ -161,7 +161,7 @@ class BaseUtil(object):
                 setattr(obj, key, item_class.get_or_fetch(org, getattr(temba, key).uuid))
             elif isinstance(class_attr, EmbeddedDocumentField):
                 item_class = class_attr.document_type
-                setattr(obj, key, item_class.create_from_temba(getattr(temba, key)))
+                setattr(obj, key, item_class.instantiate_from_temba(getattr(temba, key)))
             else:
                 if key == 'id':
                     key = 'tid'
@@ -278,7 +278,7 @@ class BaseUtil(object):
 
 class EmbeddedUtil(object):
     @classmethod
-    def create_from_temba(cls, temba):
+    def instantiate_from_temba(cls, temba):
         if temba is None:
             return None
         obj = cls()
@@ -287,10 +287,10 @@ class EmbeddedUtil(object):
         return obj
 
     @classmethod
-    def create_from_temba_list(cls, temba_list):
+    def instantiate_from_temba_list(cls, temba_list):
         obj_list = []
         for temba in temba_list:
-            obj_list.append(cls.create_from_temba(temba))
+            obj_list.append(cls.instantiate_from_temba(temba))
         return obj_list
 
 
@@ -348,7 +348,7 @@ class Urn(EmbeddedDocument, EmbeddedUtil):
     identity = StringField()
 
     @classmethod
-    def create_from_temba(cls, temba):
+    def instantiate_from_temba(cls, temba):
         urn = cls()
         if temba and len(temba.split(':')) > 1:
             urn.type, urn.identity = tuple(temba.split(':'))
