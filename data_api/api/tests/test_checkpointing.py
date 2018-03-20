@@ -1,4 +1,6 @@
 from datetime import datetime
+
+import pytz
 from django.test import SimpleTestCase, TestCase
 from temba_client.v2 import TembaClient
 import uuid
@@ -81,7 +83,7 @@ class FetchArgsTest(SimpleTestCase):
         cls.last_saved_bad = LastSaved(last_saved=None)
 
     def test_method_with_after_arg(self):
-        self.assertEqual({'after': self.last_saved_good.last_saved},
+        self.assertEqual({'after': pytz.utc.localize(self.last_saved_good.last_saved)},
                          get_fetch_kwargs(self._method_with_after_arg, self.last_saved_good))
 
     def test_methods_without_after_args(self):
@@ -97,5 +99,5 @@ class FetchArgsTest(SimpleTestCase):
     def test_rapidpro_apis(self):
         client = TembaClient('example.com', 's3cret')
         self.assertEqual({}, get_fetch_kwargs(client.get_boundaries, self.last_saved_good))
-        self.assertEqual({'after': self.last_saved_good.last_saved},
+        self.assertEqual({'after': pytz.utc.localize(self.last_saved_good.last_saved)},
                          get_fetch_kwargs(client.get_broadcasts, self.last_saved_good))
