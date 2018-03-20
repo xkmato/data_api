@@ -133,8 +133,17 @@ class BaseUtil(object):
                 item_class = class_attr.field
                 if isinstance(item_class, EmbeddedDocumentField):
                     item_class = item_class.document_type
-                    setattr(obj, key, item_class.create_from_temba_list(getattr(temba, key)))
+                    setattr(obj, key, item_class.instantiate_from_temba_list(getattr(temba, key)))
                 elif isinstance(item_class, ReferenceField):
+                    # this is an opportunity to improve performance.
+                    # rather than querying our local DB for the object and using a ReferenceField,
+                    # we could instead just set an ID on the current document and not bother with
+                    # doing explicit mongo references.
+                    # this would avoid a huge number of DB lookups.
+                    # An alternative option would be to just cache the result of this call
+                    # so that multiple queries, e.g. to the same Contact, resolve quickly.
+                    # Caching might introduce complex invalidation logic - e.g. if a model was imported
+                    # midway through a full import.
                     uuids = [v.uuid for v in getattr(temba, key)]
                     setattr(obj, key, item_class.document_type.get_objects_from_uuids(org, uuids))
                 else:
@@ -143,15 +152,16 @@ class BaseUtil(object):
                 item_class = class_attr.field
                 assert isinstance(item_class, EmbeddedDocumentField)
                 setattr(obj, key, {
-                    k: item_class.document_type.create_from_temba(v) for k, v in getattr(temba, key).items()
+                    k: item_class.document_type.instantiate_from_temba(v) for k, v in getattr(temba, key).items()
                 })
 
             elif isinstance(class_attr, ReferenceField) and getattr(temba, key) is not None:
                 item_class = class_attr.document_type
+                # same note applies as above on the list version
                 setattr(obj, key, item_class.get_or_fetch(org, getattr(temba, key).uuid))
             elif isinstance(class_attr, EmbeddedDocumentField):
                 item_class = class_attr.document_type
-                setattr(obj, key, item_class.create_from_temba(getattr(temba, key)))
+                setattr(obj, key, item_class.instantiate_from_temba(getattr(temba, key)))
             else:
                 if key == 'id':
                     key = 'tid'
@@ -166,7 +176,8 @@ class BaseUtil(object):
 
     @classmethod
     def get_or_fetch(cls, org, uuid):
-        if uuid == None: return None
+        if uuid is None:
+            return None
         if hasattr(cls, 'uuid'):
             obj = cls.objects.filter(uuid=uuid).first()
         else:
@@ -185,17 +196,23 @@ class BaseUtil(object):
         return cls.create_from_temba(org, fetch(uuid))
 
     @classmethod
-    def create_from_temba_list(cls, org, temba_list, return_objs=False):
+    def create_from_temba_list(cls, org, temba_list, return_objs=False, is_initial_import=False):
         obj_list = []
         chunk_to_save = []
         chunk_size = 100
-        q = None
+
+        def _object_found(temba_obj):
+            q = None
+            if hasattr(temba_obj, 'uuid'):
+                q = {'uuid': temba_obj.uuid}
+            elif hasattr(temba_obj, 'id'):
+                q = {'tid': temba_obj.id}
+            return q and cls.objects.filter(**q).first()
+
         for temba in temba_list.all():
-            if hasattr(temba, 'uuid'):
-                q = {'uuid': temba.uuid}
-            elif hasattr(temba, 'id'):
-                q = {'tid': temba.id}
-            if not q or not cls.objects.filter(**q).first():
+            # only bother importing the object if either it's the first time we're importing data
+            # for this org/type or if we didn't find existing data in the DB already
+            if is_initial_import or not _object_found(temba):
                 obj = cls.create_from_temba(org, temba, do_save=False)
                 chunk_to_save.append(obj)
                 if return_objs:
@@ -203,7 +220,6 @@ class BaseUtil(object):
             if len(chunk_to_save) > chunk_size:
                 cls.objects.insert(chunk_to_save)
                 chunk_to_save = []
-            q = None
 
         if chunk_to_save:
             cls.objects.insert(chunk_to_save)
@@ -239,7 +255,9 @@ class BaseUtil(object):
     def sync_temba_objects(cls, org, last_saved, return_objs=False):
         fetch_method = cls.get_fetch_method(org)
         fetch_kwargs = get_fetch_kwargs(fetch_method, last_saved)
-        return cls.create_from_temba_list(org, fetch_method(**fetch_kwargs), return_objs)
+        initial_import = cls.objects.filter(org_id=org.id).count() == 0
+        return cls.create_from_temba_list(org, fetch_method(**fetch_kwargs), return_objs,
+                                          is_initial_import=initial_import)
 
     @classmethod
     def get_fetch_method(cls, org):
@@ -262,7 +280,7 @@ class BaseUtil(object):
 
 class EmbeddedUtil(object):
     @classmethod
-    def create_from_temba(cls, temba):
+    def instantiate_from_temba(cls, temba):
         if temba is None:
             return None
         obj = cls()
@@ -271,10 +289,10 @@ class EmbeddedUtil(object):
         return obj
 
     @classmethod
-    def create_from_temba_list(cls, temba_list):
+    def instantiate_from_temba_list(cls, temba_list):
         obj_list = []
         for temba in temba_list:
-            obj_list.append(cls.create_from_temba(temba))
+            obj_list.append(cls.instantiate_from_temba(temba))
         return obj_list
 
 
@@ -332,7 +350,7 @@ class Urn(EmbeddedDocument, EmbeddedUtil):
     identity = StringField()
 
     @classmethod
-    def create_from_temba(cls, temba):
+    def instantiate_from_temba(cls, temba):
         urn = cls()
         if temba and len(temba.split(':')) > 1:
             urn.type, urn.identity = tuple(temba.split(':'))
@@ -516,13 +534,14 @@ class Message(OrgDocument):
             'inbox', 'flows', 'archived', 'outbox', 'incoming', 'sent',
         ]
         objs = []
+        initial_import = cls.objects.filter(org_id=org.id).count() == 0
         for folder in folders:
             logger.info('Syncing message folder {}'.format(folder))
             last_saved_for_folder = cls.get_last_saved_for_folder(org, folder)
             folder_kwargs = get_fetch_kwargs(fetch_method, last_saved_for_folder) or fetch_kwargs
             checkpoint = datetime.utcnow()
             temba_objs = fetch_method(folder=folder, **folder_kwargs)
-            created_objs = cls.create_from_temba_list(org, temba_objs, return_objs)
+            created_objs = cls.create_from_temba_list(org, temba_objs, return_objs, is_initial_import=initial_import)
             if return_objs:
                 objs.extend(created_objs)
             if not last_saved_for_folder:

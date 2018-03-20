@@ -4,3 +4,6 @@ db.sqlite3
 celerybeat-schedule
 data_api/settings.py
 data_api/localsettings.py
+# some profiling folders used locally
+profiling
+profile.py
