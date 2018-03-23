@@ -8,6 +8,8 @@ from temba_client.exceptions import TembaConnectionError, TembaBadRequestError, 
     TembaRateExceededError, TembaException
 from celery import task
 
+from data_api.api.exceptions import ImportRunningException
+
 __author__ = 'kenneth'
 
 logging.basicConfig(format=settings.LOG_FORMAT)
@@ -52,6 +54,9 @@ def sync_latest_data(entities=None, orgs=None):
         for entity in entities:
             try:
                 fetch_entity(entity, org)
+            except ImportRunningException as e:
+                logger.error(str(e))
+                continue
             except TembaException as e:
                 if settings.DEBUG:
                     raise
