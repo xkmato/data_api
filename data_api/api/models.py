@@ -213,7 +213,7 @@ class BaseUtil(object):
                 q = {'tid': temba_obj.id}
             return q and cls.objects.filter(**q).first()
 
-        for temba in temba_list.all():
+        for temba in temba_list.all(retry_on_rate_exceed=True):
             # only bother importing the object if either it's the first time we're importing data
             # for this org/type or if we didn't find existing data in the DB already
             if is_initial_import or not _object_found(temba):
