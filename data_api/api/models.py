@@ -16,6 +16,8 @@ import pytz
 from rest_framework.authtoken.models import Token
 from temba_client.exceptions import TembaNoSuchObjectError, TembaException
 from temba_client.v2 import TembaClient
+
+from data_api.api.exceptions import ImportRunningException
 from data_api.api.utils import create_folder_for_org
 
 __author__ = 'kenneth'
@@ -107,6 +109,8 @@ class LastSaved(DynamicDocument):
     org = ReferenceField('Org')
     coll = StringField()
     last_saved = DateTimeField()
+    last_started = DateTimeField()
+    is_running = BooleanField(default=False)
 
     @classmethod
     def get_for_org_and_collection(cls, org, collection_class):
@@ -244,10 +248,18 @@ class BaseUtil(object):
         """
         ls = LastSaved.get_for_org_and_collection(org, cls)
         checkpoint = datetime.utcnow()
-        objs = cls.sync_temba_objects(org, ls, return_objs)
         if not ls:
             ls = LastSaved.create_for_org_and_collection(org, cls)
+            ls.last_started = checkpoint
+            ls.is_running = True
+            ls.save()
+        elif ls.is_running:
+            raise ImportRunningException('Import for model {} in org {} still pending!'.format(
+                cls.__name__, org.name,
+            ))
+        objs = cls.sync_temba_objects(org, ls, return_objs)
         ls.last_saved = checkpoint
+        ls.is_running = False
         ls.save()
         return objs
 
@@ -509,7 +521,7 @@ class Message(OrgDocument):
     meta = {'collection': 'messages'}
 
     def __unicode__(self):
-        return "%s - %s" % (self.text[:7], self.org)
+        return "%s - %s" % (self.text[:7], self.org_id)
 
     @staticmethod
     def _get_last_saved_id(folder):

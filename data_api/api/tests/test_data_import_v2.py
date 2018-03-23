@@ -12,7 +12,7 @@ from temba_client.v2 import TembaClient
 import uuid
 from data_api.api.utils import import_org_with_client
 from ..models import Org, Boundary, Broadcast, Contact, Group, Channel, ChannelEvent, Campaign, CampaignEvent, \
-    Field, Flow, Label, FlowStart, Run, Resthook, ResthookEvent, ResthookSubscriber, Message
+    Field, Flow, Label, FlowStart, Run, Resthook, ResthookEvent, ResthookSubscriber, Message, LastSaved
 from data_api.api.tasks import fetch_entity
 
 
@@ -83,6 +83,12 @@ class V2TembaTest(TembaTest):
             self.assertTrue(before <= obj.first_synced <= after)
             self.assertTrue(before <= obj.last_synced <= after)
 
+        # check last saved
+        ls = LastSaved.get_for_org_and_collection(self.org, obj_class)
+        self.assertIsNotNone(ls)
+        self.assertIsNotNone(ls.last_saved)
+        self.assertEqual(ls.last_saved, ls.last_started)
+        self.assertFalse(ls.is_running)
         return api_results['results'], objs_made
 
     def _run_api_test(self, obj_class):
