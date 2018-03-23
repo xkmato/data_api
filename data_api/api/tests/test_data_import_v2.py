@@ -10,6 +10,8 @@ import six
 from temba_client.tests import TembaTest, MockResponse
 from temba_client.v2 import TembaClient
 import uuid
+
+from data_api.api.exceptions import ImportRunningException
 from data_api.api.utils import import_org_with_client
 from ..models import Org, Boundary, Broadcast, Contact, Group, Channel, ChannelEvent, Campaign, CampaignEvent, \
     Field, Flow, Label, FlowStart, Run, Resthook, ResthookEvent, ResthookSubscriber, Message, LastSaved
@@ -284,6 +286,14 @@ class V2TembaTest(TembaTest):
         for i, obj in enumerate(objs_made):
             self.assertEqual(obj.resthook, api_results[i]['resthook'])
         self._run_api_test(ResthookSubscriber)
+
+    def test_disallow_import_if_running(self, mock_request):
+        ls = LastSaved.create_for_org_and_collection(self.org, ResthookSubscriber)
+        ls.is_running = True
+        ls.save()
+        with self.assertRaises(ImportRunningException):
+            self._run_import_test(mock_request, ResthookSubscriber)
+        ls.delete()
 
 
 def _massage_data(value):
