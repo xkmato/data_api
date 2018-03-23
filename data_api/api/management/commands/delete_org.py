@@ -1,4 +1,5 @@
 from django.core.management import BaseCommand
+from mongoengine import ValidationError
 from temba_client.v2 import TembaClient
 from data_api.api.models import Org, OrgDocument, LastSaved
 from data_api.api.utils import import_org
@@ -11,7 +12,11 @@ class Command(BaseCommand):
         parser.add_argument('org_id')
 
     def handle(self, org_id, *args, **options):
-        org = Org.objects.get(**{'id': org_id})
+        try:
+            org = Org.objects.get(**{'id': org_id})
+        except ValidationError:
+            # try by api token
+            org = Org.objects.get(**{'api_token': org_id})
         org_models = OrgDocument.__subclasses__()
         print('Are you sure you want to delete this organization: {} ({}) including the following models?'.format(
             org.name, org.id
