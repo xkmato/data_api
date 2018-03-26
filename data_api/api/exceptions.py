@@ -1,0 +1,4 @@
+
+
+class ImportRunningException(Exception):
+    pass
