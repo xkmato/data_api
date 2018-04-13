@@ -87,3 +87,5 @@ To deploy to another environment you can run
 and manually specify the host at runtime.
 
 For more information about the UNICEF production instance, see [production.md](../docs/production.md).
+
+For guides to accomplishing specific tasks see [cookbooks.md](../docs/cookbooks.md).
