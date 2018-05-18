@@ -45,3 +45,19 @@ You can use `systemd` to check its status or start/stop it. E.g.
 $ sudo service postfix status
 $ sudo service postfix start
 ```
+
+## Recovering from a Reboot
+
+When the machine last rebooted, the EBS data volume where mongo and log files reside did not mount, 
+resulting in nothing being able to run. 
+To fix this the drive must be remounted as per [Amazon's instructions](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ebs-using-volumes.html)
+and then the appropriate services brought online.
+
+These commands worked last time, though the location of the data volume should be confirmed
+with `lsblk` before starting.
+
+```bash
+sudo mount /dev/xvdf /mnt/data1/
+sudo service mongod start
+sudo service supervisor start
+```
