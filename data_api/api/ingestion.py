@@ -110,7 +110,7 @@ class RapidproAPIBaseModel(object):
         raise NotImplementedError()
 
     @classmethod
-    def fetch_objects(cls, org, return_objs=False):
+    def sync_all_data(cls, org, return_objs=False):
         """
         Syncs all objects of this type from the provided org.
         """
@@ -122,12 +122,12 @@ class RapidproAPIBaseModel(object):
             raise ImportRunningException('Import for model {} in org {} still pending!'.format(
                 cls.__name__, org.name,
             ))
-        objs = cls.sync_temba_objects(org, checkpoint, return_objs)
+        objs = cls.sync_data_with_checkpoint(org, checkpoint, return_objs)
         checkpoint.set_finished()
         return objs
 
     @classmethod
-    def sync_temba_objects(cls, org, checkpoint, return_objs=False):
+    def sync_data_with_checkpoint(cls, org, checkpoint, return_objs=False):
         fetch_method = cls.get_fetch_method(org)
         fetch_kwargs = get_fetch_kwargs(fetch_method, checkpoint)
         initial_import = cls.object_count(org) == 0

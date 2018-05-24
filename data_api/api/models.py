@@ -511,7 +511,7 @@ class Message(OrgDocument):
         return ls
 
     @classmethod
-    def sync_temba_objects(cls, org, checkpoint, return_objs=False):
+    def sync_data_with_checkpoint(cls, org, checkpoint, return_objs=False):
         fetch_method = cls.get_fetch_method(org)
         fetch_kwargs = get_fetch_kwargs(fetch_method, checkpoint)
         folders = [
