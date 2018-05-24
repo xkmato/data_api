@@ -1,7 +1,6 @@
 from __future__ import unicode_literals
 import csv
 from datetime import datetime
-import inspect
 import logging
 from bson.errors import InvalidId
 from bson.objectid import ObjectId
@@ -12,13 +11,12 @@ from django.dispatch import receiver
 from mongoengine import connect, Document, StringField, BooleanField, ReferenceField, DateTimeField, IntField, \
     EmbeddedDocument, ListField, EmbeddedDocumentField, DictField, DynamicDocument, FloatField, DynamicField, \
     MapField, ObjectIdField
-import pytz
 from rest_framework.authtoken.models import Token
 from temba_client.exceptions import TembaNoSuchObjectError, TembaException
 from temba_client.v2 import TembaClient
 
 from data_api.api.exceptions import ImportRunningException
-from data_api.api.ingestion import RapidproAPIBaseModel
+from data_api.api.ingestion import RapidproAPIBaseModel, get_fetch_kwargs
 from data_api.api.utils import create_folder_for_org
 
 __author__ = 'kenneth'
@@ -130,6 +128,10 @@ class BaseUtil(RapidproAPIBaseModel):
     @classmethod
     def get_collection_name(cls):
         return cls._meta['collection']
+
+    @classmethod
+    def object_count(cls, org):
+        return cls.objects.filter(org_id=org.id).count()
 
     @classmethod
     def create_from_temba(cls, org, temba, do_save=True):
@@ -246,20 +248,6 @@ class BaseUtil(RapidproAPIBaseModel):
             else:
                 objs.append(cls.get_or_fetch(org, uuid))
         return objs
-
-    @classmethod
-    def sync_temba_objects(cls, org, checkpoint, return_objs=False):
-        fetch_method = cls.get_fetch_method(org)
-        fetch_kwargs = get_fetch_kwargs(fetch_method, checkpoint)
-        initial_import = cls.objects.filter(org_id=org.id).count() == 0
-        return cls.create_from_temba_list(org, fetch_method(**fetch_kwargs), return_objs,
-                                          is_initial_import=initial_import)
-
-    @classmethod
-    def get_fetch_method(cls, org):
-        func = "get_%s" % cls.get_collection_name()
-        return getattr(org.get_temba_client(), func)
-
 
     # def __unicode__(self):
     # if hasattr(self, 'name'):
@@ -769,13 +757,3 @@ class ResthookSubscriber(OrgDocument):
 def create_auth_token(sender, instance=None, created=False, **kwargs):
     if created:
         Token.objects.create(user=instance)
-
-
-def get_fetch_kwargs(fetch_method, checkpoint):
-    if checkpoint and checkpoint.exists() and checkpoint.get_last_checkpoint_time():
-        method_args = inspect.getargspec(fetch_method)[0]
-        if 'after' in method_args:
-            return {
-                'after': pytz.utc.localize(checkpoint.get_last_checkpoint_time())
-            }
-    return {}

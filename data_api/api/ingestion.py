@@ -1,5 +1,8 @@
+import inspect
 from abc import ABCMeta, abstractmethod
 from datetime import datetime
+
+import pytz
 
 from data_api.api.exceptions import ImportRunningException
 
@@ -102,6 +105,11 @@ class RapidproAPIBaseModel(object):
         raise NotImplementedError()
 
     @classmethod
+    def object_count(cls, org):
+        # abstract method
+        raise NotImplementedError()
+
+    @classmethod
     def fetch_objects(cls, org, return_objs=False):
         """
         Syncs all objects of this type from the provided org.
@@ -117,3 +125,26 @@ class RapidproAPIBaseModel(object):
         objs = cls.sync_temba_objects(org, checkpoint, return_objs)
         checkpoint.set_finished()
         return objs
+
+    @classmethod
+    def sync_temba_objects(cls, org, checkpoint, return_objs=False):
+        fetch_method = cls.get_fetch_method(org)
+        fetch_kwargs = get_fetch_kwargs(fetch_method, checkpoint)
+        initial_import = cls.object_count(org) == 0
+        return cls.create_from_temba_list(org, fetch_method(**fetch_kwargs), return_objs,
+                                          is_initial_import=initial_import)
+
+    @classmethod
+    def get_fetch_method(cls, org):
+        func = "get_%s" % cls.get_collection_name()
+        return getattr(org.get_temba_client(), func)
+
+
+def get_fetch_kwargs(fetch_method, checkpoint):
+    if checkpoint and checkpoint.exists() and checkpoint.get_last_checkpoint_time():
+        method_args = inspect.getargspec(fetch_method)[0]
+        if 'after' in method_args:
+            return {
+                'after': pytz.utc.localize(checkpoint.get_last_checkpoint_time())
+            }
+    return {}
