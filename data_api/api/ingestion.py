@@ -18,7 +18,7 @@ class IngestionCheckpoint(object):
     @classmethod
     def get_checkpoint(self, org, collection_class, checkpoint_time):
         from data_api.api.models import Org
-        from data_api.rapidpro_staging.models import Organization
+        from data_api.staging.models import Organization
         if isinstance(org, Org):
             return MongoIngestionCheckpoint(org, collection_class, checkpoint_time)
         else:
@@ -82,7 +82,7 @@ class MongoIngestionCheckpoint(IngestionCheckpoint):
 class SqlIngestionCheckpoint(IngestionCheckpoint):
 
     def __init__(self, org, collection_class, checkpoint_time):
-        from data_api.rapidpro_staging.models import SyncCheckpoint
+        from data_api.staging.models import SyncCheckpoint
         super(SqlIngestionCheckpoint, self).__init__(org, collection_class, checkpoint_time)
         try:
             self._checkpoint = SyncCheckpoint.objects.get(
@@ -105,7 +105,7 @@ class SqlIngestionCheckpoint(IngestionCheckpoint):
         return self._checkpoint.last_saved
 
     def create_and_start(self):
-        from data_api.rapidpro_staging.models import SyncCheckpoint
+        from data_api.staging.models import SyncCheckpoint
         self._checkpoint = SyncCheckpoint.objects.create(
             organization=self.org,
             collection_name=self.collection_class.get_collection_name(),

@@ -13,8 +13,8 @@ from data_api.api.exceptions import ImportRunningException
 from data_api.api.tests.test_utils import get_api_results_from_file
 from data_api.api.models import LastSaved
 from data_api.api.tasks import fetch_entity
-from data_api.rapidpro_staging.models import Organization, Group, SyncCheckpoint
-from data_api.rapidpro_staging.utils import import_org_with_client
+from data_api.staging.models import Organization, Group, SyncCheckpoint
+from data_api.staging.utils import import_org_with_client
 
 
 @patch('temba_client.clients.request')
@@ -85,7 +85,7 @@ class DataImportTest(TembaTest):
     def _run_api_test(self, obj_class):
         # assumes run after an import has been done
         collection_name = obj_class.get_collection_name()
-        rapidpro_api_results = json.loads(self.read_json(collection_name))['results']
+        rapidpro_api_results = json.loads(get_api_results_from_file(collection_name))['results']
         # todo: should ideally not hard-code urls like this
         warehouse_api_results = self.client.get('/api/v2/{}/org/{}/'.format(collection_name,
                                                                             str(self.org.id))).json()
