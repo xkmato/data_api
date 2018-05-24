@@ -60,7 +60,7 @@ class V2TembaTest(TembaTest):
         Org.objects.all().delete()
 
     def _run_import_test(self, mock_request, obj_class):
-        api_results_text = self.read_json(obj_class._meta['collection'])
+        api_results_text = self.read_json(obj_class.get_collection_name())
         api_results = json.loads(api_results_text)
         mock_request.return_value = MockResponse(200, api_results_text)
         before = datetime.utcnow()
@@ -82,7 +82,7 @@ class V2TembaTest(TembaTest):
 
     def _run_api_test(self, obj_class):
         # assumes run after an import has been done
-        collection_name = obj_class._meta['collection']
+        collection_name = obj_class.get_collection_name()
         rapidpro_api_results = json.loads(self.read_json(collection_name))['results']
         # todo: should ideally not hard-code urls like this
         warehouse_api_results = self.client.get('/api/v2/{}/org/{}/'.format(collection_name,

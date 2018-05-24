@@ -114,17 +114,22 @@ class LastSaved(DynamicDocument):
 
     @classmethod
     def get_for_org_and_collection(cls, org, collection_class):
-        return cls.objects.filter(**{'coll': collection_class._meta['collection'], 'org': org}).first()
+        return cls.objects.filter(**{'coll': collection_class.get_collection_name(), 'org': org}).first()
 
     @classmethod
     def create_for_org_and_collection(cls, org, collection_class):
         ls = cls()
         ls.org = org
-        ls.coll = collection_class._meta['collection']
+        ls.coll = collection_class.get_collection_name()
         return ls
 
 
 class BaseUtil(object):
+
+    @classmethod
+    def get_collection_name(cls):
+        return cls._meta['collection']
+
     @classmethod
     def create_from_temba(cls, org, temba, do_save=True):
         obj = cls()
@@ -195,7 +200,7 @@ class BaseUtil(object):
 
     @classmethod
     def fetch(cls, org, uuid):
-        func = "get_%s" % cls._meta['collection']
+        func = "get_%s" % cls.get_collection_name()
         fetch = getattr(org.get_temba_client(), func.rstrip('s'))
         return cls.create_from_temba(org, fetch(uuid))
 
@@ -273,7 +278,7 @@ class BaseUtil(object):
 
     @classmethod
     def get_fetch_method(cls, org):
-        func = "get_%s" % cls._meta['collection']
+        func = "get_%s" % cls.get_collection_name()
         return getattr(org.get_temba_client(), func)
 
 
