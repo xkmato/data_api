@@ -99,16 +99,26 @@ class SqlIngestionCheckpoint(IngestionCheckpoint):
 
 class RapidproAPIBaseModel(object):
 
+    # ============ abstract methods ============
+    # due to issues with django/mongoengine relying on metaclasses, we can't easily use ABCMeta for these
+    # more info here: https://stackoverflow.com/q/8723639/8207
     @classmethod
     def get_collection_name(self):
-        # abstract method
         raise NotImplementedError()
 
     @classmethod
     def object_count(cls, org):
-        # abstract method
         raise NotImplementedError()
 
+    @classmethod
+    def create_from_temba(cls, org, temba, do_save):
+        raise NotImplementedError()
+
+    @classmethod
+    def bulk_save(cls, chunk_to_save):
+        raise NotImplementedError()
+
+    # ============ real methods ============
     @classmethod
     def sync_all_data(cls, org, return_objs=False):
         """
@@ -162,11 +172,11 @@ class RapidproAPIBaseModel(object):
                 if return_objs:
                     obj_list.append(obj)
             if len(chunk_to_save) > chunk_size:
-                cls.objects.insert(chunk_to_save)
+                cls.bulk_save(chunk_to_save)
                 chunk_to_save = []
 
         if chunk_to_save:
-            cls.objects.insert(chunk_to_save)
+            cls.bulk_save(chunk_to_save)
 
         return obj_list
 

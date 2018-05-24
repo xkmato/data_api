@@ -15,7 +15,6 @@ from rest_framework.authtoken.models import Token
 from temba_client.exceptions import TembaNoSuchObjectError, TembaException
 from temba_client.v2 import TembaClient
 
-from data_api.api.exceptions import ImportRunningException
 from data_api.api.ingestion import RapidproAPIBaseModel, get_fetch_kwargs
 from data_api.api.utils import create_folder_for_org
 
@@ -132,6 +131,10 @@ class BaseUtil(RapidproAPIBaseModel):
     @classmethod
     def object_count(cls, org):
         return cls.objects.filter(org_id=org.id).count()
+
+    @classmethod
+    def bulk_save(cls, chunk_to_save):
+        cls.objects.insert(chunk_to_save)
 
     @classmethod
     def create_from_temba(cls, org, temba, do_save=True):
