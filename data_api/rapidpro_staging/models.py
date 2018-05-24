@@ -51,6 +51,19 @@ class Organization(models.Model):
     #     return Flow.objects.filter(org__id=self.id)
 
 
+class SyncCheckpoint(models.Model):
+    organization = models.ForeignKey(Organization, db_index=True)
+    collection_name = models.CharField(max_length=100)
+    subcollection_name = models.CharField(max_length=100, null=True, blank=True)
+    last_started = models.DateTimeField()
+    last_saved = models.DateTimeField(null=True, blank=True)
+    is_running = models.BooleanField(default=False)
+
+    class Meta:
+        unique_together = ('organization', 'collection_name', 'subcollection_name')
+
+
+
 class OrganizationModel(models.Model, RapidproAPIBaseModel):
     organization = models.ForeignKey(Organization, db_index=True)
     first_synced = models.DateTimeField(auto_now_add=True)

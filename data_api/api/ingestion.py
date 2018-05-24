@@ -80,21 +80,43 @@ class MongoIngestionCheckpoint(IngestionCheckpoint):
 
 
 class SqlIngestionCheckpoint(IngestionCheckpoint):
-    # todo implement this class
+
+    def __init__(self, org, collection_class, checkpoint_time):
+        from data_api.rapidpro_staging.models import SyncCheckpoint
+        super(SqlIngestionCheckpoint, self).__init__(org, collection_class, checkpoint_time)
+        try:
+            self._checkpoint = SyncCheckpoint.objects.get(
+                organization=org, collection_name=collection_class.get_collection_name()
+            )
+            self._exists = True
+        except SyncCheckpoint.DoesNotExist:
+            self._checkpoint = None
+            self._exists = False
+
     def exists(self):
-        pass
+        return self._exists
 
     def is_running(self):
-        pass
+        return self.exists() and self._checkpoint.is_running
 
     def get_last_checkpoint_time(self):
-        pass
+        if not self.exists():
+            return None
+        return self._checkpoint.last_saved
 
     def create_and_start(self):
-        pass
+        from data_api.rapidpro_staging.models import SyncCheckpoint
+        self._checkpoint = SyncCheckpoint.objects.create(
+            organization=self.org,
+            collection_name=self.collection_class.get_collection_name(),
+            last_started=self.checkpoint_time,
+            is_running=True,
+        )
 
     def set_finished(self):
-        pass
+        self._checkpoint.last_saved = self.checkpoint_time
+        self._checkpoint.is_running = False
+        self._checkpoint.save()
 
 
 class RapidproAPIBaseModel(object):

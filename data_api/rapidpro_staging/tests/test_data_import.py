@@ -13,7 +13,7 @@ from data_api.api.exceptions import ImportRunningException
 from data_api.api.tests.test_utils import get_api_results_from_file
 from data_api.api.models import LastSaved
 from data_api.api.tasks import fetch_entity
-from data_api.rapidpro_staging.models import Organization, Group
+from data_api.rapidpro_staging.models import Organization, Group, SyncCheckpoint
 from data_api.rapidpro_staging.utils import import_org_with_client
 
 
@@ -75,12 +75,12 @@ class DataImportTest(TembaTest):
 
         # check last saved
         # todo
-        # ls = LastSaved.get_for_org_and_collection(self.org, obj_class)
-        # self.assertIsNotNone(ls)
-        # self.assertIsNotNone(ls.last_saved)
-        # self.assertEqual(ls.last_saved, ls.last_started)
-        # self.assertFalse(ls.is_running)
-        # return api_results['results'], objs_made
+        checkpoint = SyncCheckpoint.objects.get(organization=self.org,
+                                                collection_name=obj_class.get_collection_name())
+        self.assertIsNotNone(checkpoint.last_saved)
+        self.assertEqual(checkpoint.last_saved, checkpoint.last_started)
+        self.assertFalse(checkpoint.is_running)
+        return api_results['results'], objs_made
 
     def _run_api_test(self, obj_class):
         # assumes run after an import has been done
