@@ -18,6 +18,7 @@ from temba_client.exceptions import TembaNoSuchObjectError, TembaException
 from temba_client.v2 import TembaClient
 
 from data_api.api.exceptions import ImportRunningException
+from data_api.api.ingestion import RapidproAPIBaseModel
 from data_api.api.utils import create_folder_for_org
 
 __author__ = 'kenneth'
@@ -124,7 +125,7 @@ class LastSaved(DynamicDocument):
         return ls
 
 
-class BaseUtil(object):
+class BaseUtil(RapidproAPIBaseModel):
 
     @classmethod
     def get_collection_name(cls):
@@ -247,31 +248,9 @@ class BaseUtil(object):
         return objs
 
     @classmethod
-    def fetch_objects(cls, org, return_objs=False):
-        """
-        Syncs all objects of this type from the provided org.
-        """
-        ls = LastSaved.get_for_org_and_collection(org, cls)
-        checkpoint = datetime.utcnow()
-        if not ls:
-            ls = LastSaved.create_for_org_and_collection(org, cls)
-            ls.last_started = checkpoint
-            ls.is_running = True
-            ls.save()
-        elif ls.is_running:
-            raise ImportRunningException('Import for model {} in org {} still pending!'.format(
-                cls.__name__, org.name,
-            ))
-        objs = cls.sync_temba_objects(org, ls, return_objs)
-        ls.last_saved = checkpoint
-        ls.is_running = False
-        ls.save()
-        return objs
-
-    @classmethod
-    def sync_temba_objects(cls, org, last_saved, return_objs=False):
+    def sync_temba_objects(cls, org, checkpoint, return_objs=False):
         fetch_method = cls.get_fetch_method(org)
-        fetch_kwargs = get_fetch_kwargs(fetch_method, last_saved)
+        fetch_kwargs = get_fetch_kwargs(fetch_method, checkpoint)
         initial_import = cls.objects.filter(org_id=org.id).count() == 0
         return cls.create_from_temba_list(org, fetch_method(**fetch_kwargs), return_objs,
                                           is_initial_import=initial_import)
@@ -544,9 +523,9 @@ class Message(OrgDocument):
         return ls
 
     @classmethod
-    def sync_temba_objects(cls, org, last_saved, return_objs=False):
+    def sync_temba_objects(cls, org, checkpoint, return_objs=False):
         fetch_method = cls.get_fetch_method(org)
-        fetch_kwargs = get_fetch_kwargs(fetch_method, last_saved)
+        fetch_kwargs = get_fetch_kwargs(fetch_method, checkpoint)
         folders = [
             'inbox', 'flows', 'archived', 'outbox', 'incoming', 'sent',
         ]
@@ -792,11 +771,11 @@ def create_auth_token(sender, instance=None, created=False, **kwargs):
         Token.objects.create(user=instance)
 
 
-def get_fetch_kwargs(fetch_method, last_saved):
-    if last_saved and last_saved.last_saved:
+def get_fetch_kwargs(fetch_method, checkpoint):
+    if checkpoint and checkpoint.exists() and checkpoint.get_last_checkpoint_time():
         method_args = inspect.getargspec(fetch_method)[0]
         if 'after' in method_args:
             return {
-                'after': pytz.utc.localize(last_saved.last_saved)
+                'after': pytz.utc.localize(checkpoint.get_last_checkpoint_time())
             }
     return {}
