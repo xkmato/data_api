@@ -208,37 +208,6 @@ class BaseUtil(RapidproAPIBaseModel):
         return cls.create_from_temba(org, fetch(uuid))
 
     @classmethod
-    def create_from_temba_list(cls, org, temba_list, return_objs=False, is_initial_import=False):
-        obj_list = []
-        chunk_to_save = []
-        chunk_size = 100
-
-        def _object_found(temba_obj):
-            q = None
-            if hasattr(temba_obj, 'uuid'):
-                q = {'uuid': temba_obj.uuid}
-            elif hasattr(temba_obj, 'id'):
-                q = {'tid': temba_obj.id}
-            return q and cls.objects.filter(**q).first()
-
-        for temba in temba_list.all(retry_on_rate_exceed=True):
-            # only bother importing the object if either it's the first time we're importing data
-            # for this org/type or if we didn't find existing data in the DB already
-            if is_initial_import or not _object_found(temba):
-                obj = cls.create_from_temba(org, temba, do_save=False)
-                chunk_to_save.append(obj)
-                if return_objs:
-                    obj_list.append(obj)
-            if len(chunk_to_save) > chunk_size:
-                cls.objects.insert(chunk_to_save)
-                chunk_to_save = []
-
-        if chunk_to_save:
-            cls.objects.insert(chunk_to_save)
-
-        return obj_list
-
-    @classmethod
     def get_objects_from_uuids(cls, org, uuids):
         objs = []
         for uuid in uuids:
