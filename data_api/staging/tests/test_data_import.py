@@ -87,7 +87,7 @@ class DataImportTest(TembaTest):
         collection_name = obj_class.get_collection_name()
         rapidpro_api_results = json.loads(get_api_results_from_file(collection_name))['results']
         # todo: should ideally not hard-code urls like this
-        warehouse_api_results = self.client.get('/api/v2/{}/org/{}/'.format(collection_name,
+        warehouse_api_results = self.client.get('/api/v3/{}/org/{}/'.format(collection_name,
                                                                             str(self.org.id))).json()
         self.assertEqual(
             len(rapidpro_api_results),

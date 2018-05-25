@@ -44,6 +44,7 @@ INSTALLED_APPS = (
 
     'data_api.api',
     'data_api.staging',
+    'data_api.staging_api',
     'data_api.ui',
     'rest_framework',
     'rest_framework.authtoken',
