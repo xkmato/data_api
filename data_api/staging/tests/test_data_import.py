@@ -13,7 +13,7 @@ from data_api.api.exceptions import ImportRunningException
 from data_api.api.tests.test_utils import get_api_results_from_file
 from data_api.api.models import LastSaved
 from data_api.api.tasks import fetch_entity
-from data_api.staging.models import Organization, Group, SyncCheckpoint
+from data_api.staging.models import Organization, Group, SyncCheckpoint, Channel
 from data_api.staging.utils import import_org_with_client
 
 
@@ -172,13 +172,13 @@ class DataImportTest(TembaTest):
     #         self.assertEqual(obj.message, api_results[i]['message'])
     #     self._run_api_test(CampaignEvent)
     #
-    # def test_import_channels(self, mock_request):
-    #     api_results, objs_made = self._run_import_test(mock_request, Channel)
-    #     self.assertEqual(2, len(objs_made))
-    #     for i, obj in enumerate(objs_made):
-    #         self.assertEqual(obj.name, api_results[i]['name'])
-    #     self._run_api_test(Channel)
-    #
+    def test_import_channels(self, mock_request):
+        api_results, objs_made = self._run_import_test(mock_request, Channel)
+        self.assertEqual(2, len(objs_made))
+        for i, obj in enumerate(objs_made):
+            self.assertEqual(obj.name, api_results[i]['name'])
+        self._run_api_test(Channel)
+
     # def test_import_channel_events(self, mock_request):
     #     Channel(org_id=str(self.org.id), uuid='9a8b001e-a913-486c-80f4-1356e23f582e').save()
     #     Contact(org_id=str(self.org.id), uuid='d33e9ad5-5c35-414c-abd4-e7451c69ff1d').save()

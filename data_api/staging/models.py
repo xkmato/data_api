@@ -144,3 +144,16 @@ class Group(OrganizationModel):
     count = models.IntegerField()
 
     rapidpro_collection = 'groups'
+
+
+class Channel(OrganizationModel):
+    uuid = models.UUIDField()
+    name = models.CharField(max_length=100)
+    address = models.CharField(max_length=100)
+    country = models.CharField(max_length=100)
+    # todo: support devices
+    # device = EmbeddedDocumentField(Device)
+    last_seen = models.DateTimeField()
+    created_on = models.DateTimeField()
+
+    rapidpro_collection = 'channels'
