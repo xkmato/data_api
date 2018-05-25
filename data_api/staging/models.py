@@ -63,33 +63,24 @@ class SyncCheckpoint(models.Model):
         unique_together = ('organization', 'collection_name', 'subcollection_name')
 
 
-
-class OrganizationModel(models.Model, RapidproAPIBaseModel):
-    organization = models.ForeignKey(Organization, db_index=True)
-    first_synced = models.DateTimeField(auto_now_add=True)
-    last_synced = models.DateTimeField(auto_now=True)
-
-    rapidpro_collection = None  # should be overridden by subclasses
-
-    class Meta:
-        abstract = True
-
-    @classmethod
-    def get_collection_name(cls):
-        return cls.rapidpro_collection
-
-    @classmethod
-    def object_count(cls, org):
-        return cls.objects.filter(organization=org).count()
+class RapidproCreateableModelMixin(object):
+    """
+    This mixin is for anything that can be created from a rapidpro temba api object,
+    including base models and embedded/foreign-key models.
+    """
 
     @classmethod
     def create_from_temba(cls, org, temba, do_save=True):
         obj = cls()
-        for key, value in temba.__dict__.items():
+        for key, temba_value in temba.__dict__.items():
             if not hasattr(obj, key):
                 continue
-            print('setting {}: {}'.format(key, value))
-            setattr(obj, key, value)
+            field = cls._meta.get_field(key)
+            if isinstance(field, models.OneToOneField) and temba_value is not None:
+                # we have to save related models in django
+                setattr(obj, key, field.related_model.create_from_temba(org, temba_value, do_save=True))
+            else:
+                setattr(obj, key, temba_value)
             # todo: going to have to deal with all these more complex data types in SQL
             # if isinstance(class_attr, ListField):
             #     item_class = class_attr.field
@@ -130,6 +121,29 @@ class OrganizationModel(models.Model, RapidproAPIBaseModel):
             obj.save()
         return obj
 
+
+class RapidproBaseModel(models.Model, RapidproCreateableModelMixin):
+    pass
+
+
+class OrganizationModel(RapidproBaseModel, RapidproAPIBaseModel):
+    organization = models.ForeignKey(Organization, db_index=True)
+    first_synced = models.DateTimeField(auto_now_add=True)
+    last_synced = models.DateTimeField(auto_now=True)
+
+    rapidpro_collection = None  # should be overridden by subclasses
+
+    class Meta:
+        abstract = True
+
+    @classmethod
+    def get_collection_name(cls):
+        return cls.rapidpro_collection
+
+    @classmethod
+    def object_count(cls, org):
+        return cls.objects.filter(organization=org).count()
+
     @classmethod
     def bulk_save(cls, chunk_to_save):
         with transaction.atomic():
@@ -146,14 +160,22 @@ class Group(OrganizationModel):
     rapidpro_collection = 'groups'
 
 
+class Device(RapidproBaseModel):
+    power_status = models.CharField(max_length=100)
+    power_source = models.CharField(max_length=100)
+    power_level = models.PositiveIntegerField()
+    name = models.CharField(max_length=100)
+    network_type = models.CharField(max_length=100)
+
+
 class Channel(OrganizationModel):
     uuid = models.UUIDField()
     name = models.CharField(max_length=100)
     address = models.CharField(max_length=100)
     country = models.CharField(max_length=100)
-    # todo: support devices
-    # device = EmbeddedDocumentField(Device)
+    device = models.OneToOneField(Device, null=True, blank=True)
     last_seen = models.DateTimeField()
     created_on = models.DateTimeField()
 
     rapidpro_collection = 'channels'
+
