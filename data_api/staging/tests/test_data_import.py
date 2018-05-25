@@ -13,7 +13,7 @@ from data_api.api.exceptions import ImportRunningException
 from data_api.api.tests.test_utils import get_api_results_from_file
 from data_api.api.models import LastSaved
 from data_api.api.tasks import fetch_entity
-from data_api.staging.models import Organization, Group, SyncCheckpoint, Channel
+from data_api.staging.models import Organization, Group, SyncCheckpoint, Channel, Contact
 from data_api.staging.utils import import_org_with_client
 
 
@@ -109,7 +109,8 @@ class DataImportTest(TembaTest):
             rapidpro_value = rapidpro_result[key]
             if key in IGNORE_KEYS:
                 continue
-            warehouse_value = warehouse_api_result[key]
+            # todo: should switch this back to failing if key not found once dicts and lists are supported
+            warehouse_value = warehouse_api_result.get(key, None)
             if not isinstance(rapidpro_value, IGNORE_TYPES) and not isinstance(warehouse_value, IGNORE_TYPES):
                 warehouse_value = warehouse_api_result[key]
                 self.assertEqual(
@@ -188,15 +189,19 @@ class DataImportTest(TembaTest):
     #         self.assertEqual(obj.tid, api_results[i]['id'])
     #     self._run_api_test(ChannelEvent)
     #
-    # def test_import_contacts(self, mock_request):
-    #     # todo: find a more generic way to bootstrap related models
-    #     Group(org_id=str(self.org.id), uuid='d29eca7c-a475-4d8d-98ca-bff968341356').save()
-    #     api_results, objs_made = self._run_import_test(mock_request, Contact)
-    #     self.assertEqual(3, len(objs_made))
-    #     for i, obj in enumerate(objs_made):
-    #         self.assertEqual(obj.name, api_results[i]['name'])
-    #     self._run_api_test(Contact)
-    #
+    def test_import_contacts(self, mock_request):
+        # todo: find a more generic way to bootstrap related models
+        Group(
+            organization=self.org,
+            uuid='d29eca7c-a475-4d8d-98ca-bff968341356',
+            count=1,
+        ).save()
+        api_results, objs_made = self._run_import_test(mock_request, Contact)
+        self.assertEqual(3, len(objs_made))
+        for i, obj in enumerate(objs_made):
+            self.assertEqual(obj.name, api_results[i]['name'])
+        self._run_api_test(Contact)
+
     # def test_import_fields(self, mock_request):
     #     api_results, objs_made = self._run_import_test(mock_request, Field)
     #     self.assertEqual(2, len(objs_made))

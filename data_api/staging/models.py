@@ -160,6 +160,23 @@ class Group(OrganizationModel):
     rapidpro_collection = 'groups'
 
 
+class Contact(OrganizationModel):
+    uuid = models.UUIDField()
+    name = models.CharField(max_length=100, null=True, blank=True)
+    language = models.CharField(max_length=100, null=True, blank=True)
+    # todo
+    # urns = ListField(EmbeddedDocumentField(Urn))
+    groups = models.ManyToManyField(Group, null=True)
+    # todo
+    # fields = DictField()
+    blocked = models.NullBooleanField()
+    stopped = models.NullBooleanField()
+    created_on = models.DateTimeField()
+    modified_on = models.DateTimeField()
+
+    rapidpro_collection = 'contacts'
+
+
 class Device(RapidproBaseModel):
     power_status = models.CharField(max_length=100)
     power_source = models.CharField(max_length=100)

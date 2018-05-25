@@ -1,12 +1,19 @@
 from rest_framework import serializers
 
-from data_api.staging.models import Group, Channel, Device
+from data_api.staging.models import Group, Channel, Device, Contact
 
 
 class GroupSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Group
+        fields = '__all__'
+
+
+class ContactSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Contact
         fields = '__all__'
 
 

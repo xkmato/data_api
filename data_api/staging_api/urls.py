@@ -1,6 +1,6 @@
 from django.conf.urls import patterns, url
 
-from data_api.staging_api.views import GroupList, ChannelList
+from data_api.staging_api.views import GroupList, ChannelList, ContactList
 
 urlpatterns = patterns(
     '',
@@ -21,7 +21,7 @@ urlpatterns = patterns(
     # url(r'^channel_events/org/(?P<org>[\w]+)/$', ChannelEventList.as_view()),
     #
     # url(r'^contacts/$', ContactList.as_view()),
-    # url(r'^contacts/org/(?P<org>[\w]+)/$', ContactList.as_view()),
+    url(r'^contacts/org/(?P<org>[\w]+)/$', ContactList.as_view()),
     # url(r'^contacts/(?P<id>[\w]+)/$', ContactDetails.as_view()),
     #
     # url(r'^fields/org/(?P<org>[\w]+)/$', FieldList.as_view()),
