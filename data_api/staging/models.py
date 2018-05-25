@@ -73,6 +73,9 @@ class RapidproCreateableModelMixin(object):
     @classmethod
     def create_from_temba(cls, org, temba, do_save=True):
         obj = cls()
+        # will map field names to lists of fields to add, since all related models and the primary
+        # need to be saved before we can save the relationship information
+        related_models = {}
         for key, temba_value in temba.__dict__.items():
             warehouse_attr = get_warehouse_attr_for_rapidpro_key(key)
             try:
@@ -94,16 +97,19 @@ class RapidproCreateableModelMixin(object):
                 # Caching might introduce complex invalidation logic - e.g. if a model was imported
                 # midway through a full import.
                 setattr(obj, warehouse_attr, field.related_model.objects.get(uuid=temba_value.uuid))
+            elif isinstance(field, models.ManyToManyField) and temba_value is not None:
+                assert isinstance(temba_value, list)
+                warehouse_models = []
+                for nested_object in temba_value:
+                    try:
+                        warehouse_object = field.related_model.objects.get(uuid=nested_object.uuid)
+                    except field.related_model.DoesNotExist:
+                        warehouse_object = field.related_model.create_from_temba(org, nested_object, do_save=True)
+                    warehouse_models.append(warehouse_object)
+                related_models[warehouse_attr] = warehouse_models
             else:
                 setattr(obj, warehouse_attr, temba_value)
             # todo: going to have to deal with all these more complex data types in SQL
-            # if isinstance(class_attr, ListField):
-            #     item_class = class_attr.field
-            #     if isinstance(item_class, EmbeddedDocumentField):
-            #         item_class = item_class.document_type
-            #         setattr(obj, key, item_class.instantiate_from_temba_list(getattr(temba, key)))
-            #     else:
-            #         setattr(obj, key, value)
             # elif isinstance(class_attr, MapField):
             #     item_class = class_attr.field
             #     assert isinstance(item_class, EmbeddedDocumentField)
@@ -120,8 +126,11 @@ class RapidproCreateableModelMixin(object):
             #     setattr(obj, key, item_class.instantiate_from_temba(getattr(temba, key)))
 
         obj.organization = org
-        if do_save:
+        if do_save or related_models:
             obj.save()
+            for attr, related_objs in related_models.iteritems():
+                for related_obj in related_objs:
+                    getattr(obj, attr).add(related_obj)
         return obj
 
 
