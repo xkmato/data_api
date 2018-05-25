@@ -83,7 +83,7 @@ class RapidproCreateableModelMixin(object):
             if isinstance(field, models.OneToOneField) and temba_value is not None:
                 # we have to save related models in django
                 setattr(obj, warehouse_attr, field.related_model.create_from_temba(org, temba_value, do_save=True))
-            elif isinstance(field, models.ForeignKey):
+            elif isinstance(field, models.ForeignKey) and temba_value is not None:
                 # this is an opportunity to improve performance.
                 # rather than querying our local DB for the object and using a ForeignKey,
                 # we could instead just set an ID on the current document and not bother with
