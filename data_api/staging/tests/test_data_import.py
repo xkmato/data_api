@@ -46,7 +46,7 @@ class DataImportTest(TembaTest):
         # Channel.objects.all().delete()
         # ChannelEvent.objects.all().delete()
         # Contact.objects.all().delete()
-        # Group.objects.all().delete()
+        Group.objects.all().delete()
         # Flow.objects.all().delete()
         # FlowStart.objects.all().delete()
         # Label.objects.all().delete()
@@ -74,7 +74,6 @@ class DataImportTest(TembaTest):
             self.assertTrue(before <= obj.last_synced <= after)
 
         # check last saved
-        # todo
         checkpoint = SyncCheckpoint.objects.get(organization=self.org,
                                                 collection_name=obj_class.get_collection_name())
         self.assertIsNotNone(checkpoint.last_saved)
