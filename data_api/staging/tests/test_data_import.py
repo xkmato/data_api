@@ -13,7 +13,7 @@ from data_api.api.exceptions import ImportRunningException
 from data_api.api.tests.test_utils import get_api_results_from_file
 from data_api.api.models import LastSaved
 from data_api.api.tasks import fetch_entity
-from data_api.staging.models import Organization, Group, SyncCheckpoint, Channel, Contact, ChannelEvent
+from data_api.staging.models import Organization, Group, SyncCheckpoint, Channel, Contact, ChannelEvent, Field
 from data_api.staging.utils import import_org_with_client
 
 
@@ -212,13 +212,13 @@ class DataImportTest(TembaTest):
             self.assertEqual(obj.name, api_results[i]['name'])
         self._run_api_test(Contact)
 
-    # def test_import_fields(self, mock_request):
-    #     api_results, objs_made = self._run_import_test(mock_request, Field)
-    #     self.assertEqual(2, len(objs_made))
-    #     for i, obj in enumerate(objs_made):
-    #         self.assertEqual(obj.key, api_results[i]['key'])
-    #     self._run_api_test(Field)
-    #
+    def test_import_fields(self, mock_request):
+        api_results, objs_made = self._run_import_test(mock_request, Field)
+        self.assertEqual(2, len(objs_made))
+        for i, obj in enumerate(objs_made):
+            self.assertEqual(obj.key, api_results[i]['key'])
+        self._run_api_test(Field)
+
     # @skip('import currently succeeds on bad object references because errors are swallowed')
     # def test_import_fails_if_no_related_object(self, mock_request):
     #     api_results, objs_made = self._run_import_test(mock_request, FlowStart)

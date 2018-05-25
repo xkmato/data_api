@@ -180,6 +180,14 @@ class Contact(OrganizationModel):
     rapidpro_collection = 'contacts'
 
 
+class Field(OrganizationModel):
+    key = models.CharField(max_length=100)
+    label = models.CharField(max_length=100)
+    value_type = models.CharField(max_length=100)
+
+    rapidpro_collection = 'fields'
+
+
 class Device(RapidproBaseModel):
     power_status = models.CharField(max_length=100)
     power_source = models.CharField(max_length=100)
