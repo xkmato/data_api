@@ -13,7 +13,7 @@ from data_api.api.exceptions import ImportRunningException
 from data_api.api.tests.test_utils import get_api_results_from_file
 from data_api.api.models import LastSaved
 from data_api.api.tasks import fetch_entity
-from data_api.staging.models import Organization, Group, SyncCheckpoint, Channel, Contact
+from data_api.staging.models import Organization, Group, SyncCheckpoint, Channel, Contact, ChannelEvent
 from data_api.staging.utils import import_org_with_client
 
 
@@ -43,9 +43,9 @@ class DataImportTest(TembaTest):
         # Broadcast.objects.all().delete()
         # Campaign.objects.all().delete()
         # CampaignEvent.objects.all().delete()
-        # Channel.objects.all().delete()
-        # ChannelEvent.objects.all().delete()
-        # Contact.objects.all().delete()
+        Channel.objects.all().delete()
+        ChannelEvent.objects.all().delete()
+        Contact.objects.all().delete()
         Group.objects.all().delete()
         # Flow.objects.all().delete()
         # FlowStart.objects.all().delete()
@@ -96,7 +96,7 @@ class DataImportTest(TembaTest):
                 json.dumps(warehouse_api_results, indent=2)
             )
         )
-        sort_field = 'uuid' if 'uuid' in rapidpro_api_results[0] else rapidpro_api_results[0].keys()[0]
+        sort_field = _get_sort_field(rapidpro_api_results[0])
         sorted_results = sorted(rapidpro_api_results, key=lambda x: x[sort_field])
         sorted_warehouse_results = sorted(warehouse_api_results, key=lambda x: x[sort_field])
         for i, rapidpro_result in enumerate(sorted_results):
@@ -180,15 +180,25 @@ class DataImportTest(TembaTest):
             self.assertEqual(obj.name, api_results[i]['name'])
         self._run_api_test(Channel)
 
-    # def test_import_channel_events(self, mock_request):
-    #     Channel(org_id=str(self.org.id), uuid='9a8b001e-a913-486c-80f4-1356e23f582e').save()
-    #     Contact(org_id=str(self.org.id), uuid='d33e9ad5-5c35-414c-abd4-e7451c69ff1d').save()
-    #     api_results, objs_made = self._run_import_test(mock_request, ChannelEvent)
-    #     self.assertEqual(2, len(objs_made))
-    #     for i, obj in enumerate(objs_made):
-    #         self.assertEqual(obj.tid, api_results[i]['id'])
-    #     self._run_api_test(ChannelEvent)
-    #
+    def test_import_channel_events(self, mock_request):
+        Channel(
+            organization=self.org,
+            uuid='9a8b001e-a913-486c-80f4-1356e23f582e',
+            last_seen=datetime.now(),
+            created_on=datetime.now(),
+        ).save()
+        Contact(
+            organization=self.org,
+            uuid='d33e9ad5-5c35-414c-abd4-e7451c69ff1d',
+            created_on=datetime.now(),
+            modified_on=datetime.now(),
+        ).save()
+        api_results, objs_made = self._run_import_test(mock_request, ChannelEvent)
+        self.assertEqual(2, len(objs_made))
+        for i, obj in enumerate(objs_made):
+            self.assertEqual(obj.rapidpro_id, api_results[i]['id'])
+        self._run_api_test(ChannelEvent)
+
     def test_import_contacts(self, mock_request):
         # todo: find a more generic way to bootstrap related models
         Group(
@@ -287,6 +297,13 @@ class DataImportTest(TembaTest):
     #     with self.assertRaises(ImportRunningException):
     #         self._run_import_test(mock_request, ResthookSubscriber)
     #     ls.delete()
+
+
+def _get_sort_field(rapidpro_api_object):
+    for field in ['uuid', 'id']:
+        if field in rapidpro_api_object:
+            return field
+    return rapidpro_api_object.keys()[0]
 
 
 def _massage_data(value):

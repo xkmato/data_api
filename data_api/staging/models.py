@@ -1,4 +1,5 @@
 from django.conf import settings
+from django.core.exceptions import FieldDoesNotExist
 from django.db import models, transaction
 from temba_client.v2 import TembaClient
 
@@ -73,32 +74,34 @@ class RapidproCreateableModelMixin(object):
     def create_from_temba(cls, org, temba, do_save=True):
         obj = cls()
         for key, temba_value in temba.__dict__.items():
-            if not hasattr(obj, key):
+            warehouse_attr = get_warehouse_attr_for_rapidpro_key(key)
+            try:
+                field = cls._meta.get_field(warehouse_attr)
+            except FieldDoesNotExist:
                 continue
-            field = cls._meta.get_field(key)
+
             if isinstance(field, models.OneToOneField) and temba_value is not None:
                 # we have to save related models in django
-                setattr(obj, key, field.related_model.create_from_temba(org, temba_value, do_save=True))
+                setattr(obj, warehouse_attr, field.related_model.create_from_temba(org, temba_value, do_save=True))
+            elif isinstance(field, models.ForeignKey):
+                # this is an opportunity to improve performance.
+                # rather than querying our local DB for the object and using a ForeignKey,
+                # we could instead just set an ID on the current document and not bother with
+                # doing explicit foreign key references.
+                # this would avoid a huge number of DB lookups.
+                # An alternative option would be to just cache the result of this call
+                # so that multiple queries, e.g. to the same Contact, resolve quickly.
+                # Caching might introduce complex invalidation logic - e.g. if a model was imported
+                # midway through a full import.
+                setattr(obj, warehouse_attr, field.related_model.objects.get(uuid=temba_value.uuid))
             else:
-                setattr(obj, key, temba_value)
+                setattr(obj, warehouse_attr, temba_value)
             # todo: going to have to deal with all these more complex data types in SQL
             # if isinstance(class_attr, ListField):
             #     item_class = class_attr.field
             #     if isinstance(item_class, EmbeddedDocumentField):
             #         item_class = item_class.document_type
             #         setattr(obj, key, item_class.instantiate_from_temba_list(getattr(temba, key)))
-            #     elif isinstance(item_class, ReferenceField):
-            #         # this is an opportunity to improve performance.
-            #         # rather than querying our local DB for the object and using a ReferenceField,
-            #         # we could instead just set an ID on the current document and not bother with
-            #         # doing explicit mongo references.
-            #         # this would avoid a huge number of DB lookups.
-            #         # An alternative option would be to just cache the result of this call
-            #         # so that multiple queries, e.g. to the same Contact, resolve quickly.
-            #         # Caching might introduce complex invalidation logic - e.g. if a model was imported
-            #         # midway through a full import.
-            #         uuids = [v.uuid for v in getattr(temba, key)]
-            #         setattr(obj, key, item_class.document_type.get_objects_from_uuids(org, uuids))
             #     else:
             #         setattr(obj, key, value)
             # elif isinstance(class_attr, MapField):
@@ -196,3 +199,19 @@ class Channel(OrganizationModel):
 
     rapidpro_collection = 'channels'
 
+
+class ChannelEvent(OrganizationModel):
+    rapidpro_id = models.PositiveIntegerField()
+    type = models.CharField(max_length=100)
+    contact = models.ForeignKey(Contact)
+    channel = models.ForeignKey(Channel)
+    # todo:
+    # extra = DictField()
+    occurred_on = models.DateTimeField()
+    created_on = models.DateTimeField()
+
+    rapidpro_collection = 'channel_events'
+
+
+def get_warehouse_attr_for_rapidpro_key(key):
+    return 'rapidpro_id' if key == 'id' else key
