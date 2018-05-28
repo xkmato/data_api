@@ -230,5 +230,20 @@ class ChannelEvent(OrganizationModel):
     rapidpro_collection = 'channel_events'
 
 
+class Broadcast(OrganizationModel):
+    rapidpro_id = models.PositiveIntegerField()
+    # todo figure out Urns
+    # urns = models.ManyToManyField(Urn)
+    contacts = models.ManyToManyField(Contact)
+    groups = models.ManyToManyField(Group)
+    text = models.TextField()  # todo: this might need to also support dicts
+    created_on = models.DateTimeField()
+
+    rapidpro_collection = 'broadcasts'
+
+    def __unicode__(self):
+        return "{}".format(self.text)
+
+
 def get_warehouse_attr_for_rapidpro_key(key):
     return 'rapidpro_id' if key == 'id' else key

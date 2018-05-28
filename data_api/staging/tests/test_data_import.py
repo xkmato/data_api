@@ -13,7 +13,8 @@ from data_api.api.exceptions import ImportRunningException
 from data_api.api.tests.test_utils import get_api_results_from_file
 from data_api.api.models import LastSaved
 from data_api.api.tasks import fetch_entity
-from data_api.staging.models import Organization, Group, SyncCheckpoint, Channel, Contact, ChannelEvent, Field
+from data_api.staging.models import Organization, Group, SyncCheckpoint, Channel, Contact, ChannelEvent, Field, \
+    Broadcast
 from data_api.staging.utils import import_org_with_client
 
 
@@ -149,15 +150,24 @@ class DataImportTest(TembaTest):
     #         self.assertEqual(obj.name, api_results[i]['name'])
     #     self._run_api_test(Boundary)
     #
-    # def test_import_broadcasts(self, mock_request):
-    #     Contact(org_id=str(self.org.id), uuid='5079cb96-a1d8-4f47-8c87-d8c7bb6ddab9').save()
-    #     Group(org_id=str(self.org.id), uuid='04a4752b-0f49-480e-ae60-3a3f2bea485c').save()
-    #     api_results, objs_made = self._run_import_test(mock_request, Broadcast)
-    #     self.assertEqual(2, len(objs_made))
-    #     for i, obj in enumerate(objs_made):
-    #         self.assertEqual(obj.text, api_results[i]['text'])
-    #     self._run_api_test(Broadcast)
-    #
+    def test_import_broadcasts(self, mock_request):
+        Contact(
+            organization=self.org,
+            uuid='5079cb96-a1d8-4f47-8c87-d8c7bb6ddab9',
+            created_on=datetime.now(),
+            modified_on=datetime.now(),
+        ).save()
+        Group(
+            organization=self.org,
+            uuid='04a4752b-0f49-480e-ae60-3a3f2bea485c',
+            count=1,
+        ).save()
+        api_results, objs_made = self._run_import_test(mock_request, Broadcast)
+        self.assertEqual(2, len(objs_made))
+        for i, obj in enumerate(objs_made):
+            self.assertEqual(obj.text, api_results[i]['text'])
+        self._run_api_test(Broadcast)
+
     # def test_import_campaigns(self, mock_request):
     #     api_results, objs_made = self._run_import_test(mock_request, Campaign)
     #     self.assertEqual(2, len(objs_made))

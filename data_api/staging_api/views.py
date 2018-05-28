@@ -1,7 +1,7 @@
 from rest_framework import generics
 
 from data_api.staging_api.serializers import GroupSerializer, ChannelSerializer, ContactSerializer, \
-    ChannelEventSerializer, FieldSerializer
+    ChannelEventSerializer, FieldSerializer, BroadcastSerializer
 
 
 class OrganizationModelListView(generics.ListAPIView):
@@ -29,3 +29,8 @@ class ChannelList(OrganizationModelListView):
 
 class ChannelEventList(OrganizationModelListView):
     serializer_class = ChannelEventSerializer
+
+
+class BroadcastList(OrganizationModelListView):
+    serializer_class = BroadcastSerializer
+
