@@ -410,10 +410,6 @@ class Runs(EmbeddedDocument, EmbeddedUtil):
     expired = IntField()
     interrupted = IntField()
 
-    def __unicode__(self):
-        return self.label
-
-
 class Flow(OrgDocument):
     uuid = StringField()
     name = StringField()
