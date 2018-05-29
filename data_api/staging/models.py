@@ -105,7 +105,8 @@ class RapidproCreateableModelMixin(object):
                 # midway through a full import.
                 setattr(obj, warehouse_attr, field.related_model.get_or_create_from_temba(org, temba_value))
             elif isinstance(field, models.ManyToManyField) and temba_value is not None:
-                assert isinstance(temba_value, list)
+                assert isinstance(temba_value, list), 'expected list but was {} ({})'.format(type(temba_value),
+                                                                                             temba_value)
                 warehouse_models = []
                 for nested_object in temba_value:
                     warehouse_object = field.related_model.get_or_create_from_temba(org, nested_object)
