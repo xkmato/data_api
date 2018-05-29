@@ -146,7 +146,7 @@ class RapidproAPIBaseModel(object):
         """
         Syncs all objects of this type from the provided org.
         """
-        checkpoint_time = datetime.utcnow()
+        checkpoint_time = datetime.now(tz=pytz.utc)
         checkpoint = IngestionCheckpoint.get_checkpoint(org, cls, checkpoint_time)
         if not checkpoint.exists():
             checkpoint.create_and_start()
@@ -207,7 +207,11 @@ def get_fetch_kwargs(fetch_method, checkpoint):
     if checkpoint and checkpoint.exists() and checkpoint.get_last_checkpoint_time():
         method_args = inspect.getargspec(fetch_method)[0]
         if 'after' in method_args:
+            checkpoint_time = checkpoint.get_last_checkpoint_time()
+            # add timezone info if not present
+            if checkpoint_time.tzinfo is None or checkpoint_time.tzinfo.utcoffset(checkpoint_time) is None:
+                checkpoint_time = pytz.utc.localize(checkpoint_time)
             return {
-                'after': pytz.utc.localize(checkpoint.get_last_checkpoint_time())
+                'after': checkpoint_time
             }
     return {}
