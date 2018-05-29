@@ -164,11 +164,7 @@ class DataImportTest(TembaTest):
             created_on=datetime.now(),
             modified_on=datetime.now(),
         ).save()
-        Group(
-            organization=self.org,
-            uuid='04a4752b-0f49-480e-ae60-3a3f2bea485c',
-            count=1,
-        ).save()
+        self._make_group('04a4752b-0f49-480e-ae60-3a3f2bea485c')
         api_results, objs_made = self._run_import_test(mock_request, Broadcast)
         self.assertEqual(2, len(objs_made))
         for i, obj in enumerate(objs_made):
@@ -220,11 +216,7 @@ class DataImportTest(TembaTest):
 
     def test_import_contacts(self, mock_request):
         # todo: find a more generic way to bootstrap related models
-        Group(
-            organization=self.org,
-            uuid='d29eca7c-a475-4d8d-98ca-bff968341356',
-            count=1,
-        ).save()
+        self._make_group('d29eca7c-a475-4d8d-98ca-bff968341356')
         api_results, objs_made = self._run_import_test(mock_request, Contact)
         self.assertEqual(3, len(objs_made))
         for i, obj in enumerate(objs_made):
