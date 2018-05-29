@@ -290,6 +290,22 @@ class Flow(OrganizationModel):
     #     return Run.objects.filter(flow__id=self.id)
 
 
+class FlowStart(OrganizationModel):
+    uuid = models.UUIDField()
+    flow = models.ForeignKey(Flow)
+    groups = models.ManyToManyField(Group)
+    contacts = models.ManyToManyField(Contact)
+    restart_participants = models.BooleanField()
+    status = models.CharField(max_length=100)
+    # todo
+    # extra = DictField()
+    created_on = models.DateTimeField()
+    modified_on = models.DateTimeField()
+
+    rapidpro_collection = 'flow_starts'
+    UNMIGRATED_FIELDS = ['extra']
+
+
 class CampaignEvent(OrganizationModel):
     uuid = models.UUIDField()
     campaign = models.ForeignKey(Campaign)

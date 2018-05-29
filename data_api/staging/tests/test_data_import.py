@@ -14,7 +14,7 @@ from data_api.api.tests.test_utils import get_api_results_from_file
 from data_api.api.models import LastSaved
 from data_api.api.tasks import fetch_entity
 from data_api.staging.models import Organization, Group, SyncCheckpoint, Channel, Contact, ChannelEvent, Field, \
-    Broadcast, Campaign, Flow, CampaignEvent, Runs, Label
+    Broadcast, Campaign, Flow, CampaignEvent, Runs, Label, FlowStart
 from data_api.staging.utils import import_org_with_client
 
 
@@ -49,7 +49,7 @@ class DataImportTest(TembaTest):
         Contact.objects.all().delete()
         Group.objects.all().delete()
         Flow.objects.all().delete()
-        # FlowStart.objects.all().delete()
+        FlowStart.objects.all().delete()
         Label.objects.all().delete()
         # Message.objects.all().delete()
         # Run.objects.all().delete()
@@ -113,7 +113,6 @@ class DataImportTest(TembaTest):
             # todo: should switch this back to failing if key not found once dicts and lists are supported
             warehouse_value = warehouse_api_result.get(key, None)
             if not isinstance(rapidpro_value, IGNORE_TYPES) and not isinstance(warehouse_value, IGNORE_TYPES):
-                warehouse_value = warehouse_api_result[key]
                 self.assertEqual(
                     _massage_data(rapidpro_value),
                     _massage_data(warehouse_value),
@@ -122,11 +121,29 @@ class DataImportTest(TembaTest):
                     )
                 )
 
+    def _make_contact(self, contact_uuid):
+        return Contact.objects.create(
+            organization=self.org,
+            uuid=contact_uuid,
+            created_on=datetime.now(),
+            modified_on=datetime.now(),
+        )
+
     def _make_group(self, group_uuid):
         return Group.objects.create(
             organization=self.org,
             uuid=group_uuid,
             count=1,
+        )
+
+    def _make_flow(self, flow_uuid, name):
+        return Flow.objects.create(
+            organization=self.org,
+            uuid=flow_uuid,
+            name=name,
+            expires=0,
+            created_on=datetime.now(),
+            runs=Runs.objects.create(),
         )
 
     def test_import_org(self, mock_request):
@@ -158,12 +175,7 @@ class DataImportTest(TembaTest):
     #     self._run_api_test(Boundary)
     #
     def test_import_broadcasts(self, mock_request):
-        Contact(
-            organization=self.org,
-            uuid='5079cb96-a1d8-4f47-8c87-d8c7bb6ddab9',
-            created_on=datetime.now(),
-            modified_on=datetime.now(),
-        ).save()
+        self._make_contact('5079cb96-a1d8-4f47-8c87-d8c7bb6ddab9')
         self._make_group('04a4752b-0f49-480e-ae60-3a3f2bea485c')
         api_results, objs_made = self._run_import_test(mock_request, Broadcast)
         self.assertEqual(2, len(objs_made))
@@ -182,21 +194,13 @@ class DataImportTest(TembaTest):
 
     def test_import_campaign_events(self, mock_request):
         group = self._make_group(group_uuid='04a4752b-0f49-480e-ae60-3a3f2bea485c')
-        runs = Runs.objects.create()
         Campaign.objects.create(
             organization=self.org,
             uuid='9ccae91f-b3f8-4c18-ad92-e795a2332c11',
             group=group,
             created_on=datetime.now()
         )
-        Flow.objects.create(
-            organization=self.org,
-            uuid='70c38f94-ab42-4666-86fd-3c76139110d3',
-            name='abc',
-            expires=0,
-            created_on=datetime.now(),
-            runs=runs,
-        )
+        self._make_flow('70c38f94-ab42-4666-86fd-3c76139110d3', 'some name')
         api_results, objs_made = self._run_import_test(mock_request, CampaignEvent)
         self.assertEqual(2, len(objs_made))
         for i, obj in enumerate(objs_made):
@@ -245,20 +249,25 @@ class DataImportTest(TembaTest):
             self.assertEqual(obj.key, api_results[i]['key'])
         self._run_api_test(Field)
 
-    # @skip('import currently succeeds on bad object references because errors are swallowed')
-    # def test_import_fails_if_no_related_object(self, mock_request):
-    #     api_results, objs_made = self._run_import_test(mock_request, FlowStart)
-    #     self.assertEqual(0, len(objs_made))
-    #
-    # def test_import_flow_starts(self, mock_request):
-    #     Flow(org_id=str(self.org.id), uuid='f5901b62-ba76-4003-9c62-72fdacc1b7b7', name='Registration').save()
-    #     Flow(org_id=str(self.org.id), uuid='f5901b62-ba76-4003-9c62-72fdacc1b7b8', name='Thrift Shop').save()
-    #     api_results, objs_made = self._run_import_test(mock_request, FlowStart)
-    #     self.assertEqual(2, len(objs_made))
-    #     for i, obj in enumerate(objs_made):
-    #         self.assertEqual(obj.flow.name, api_results[i]['flow']['name'])
-    #     self._run_api_test(FlowStart)
-    #
+    @skip('import currently succeeds on bad object references because errors are swallowed')
+    def test_import_fails_if_no_related_object(self, mock_request):
+        api_results, objs_made = self._run_import_test(mock_request, FlowStart)
+        self.assertEqual(0, len(objs_made))
+
+    def test_import_flow_starts(self, mock_request):
+        self._make_flow('f5901b62-ba76-4003-9c62-72fdacc1b7b7', 'Registration')
+        self._make_flow('f5901b62-ba76-4003-9c62-72fdacc1b7b8', 'Thrift Shop')
+        self._make_group('04a4752b-0f49-480e-ae60-3a3f2bea485c')
+        self._make_group('f5901b62-ba76-4003-9c62-72fdacc1b7b7')
+        self._make_contact('5079cb96-a1d8-4f47-8c87-d8c7bb6ddab9')
+        self._make_contact('28291a83-157e-45ed-93ef-e0425a065d35')
+        self._make_contact('f5901b62-ba76-4003-9c62-faaed0015553')
+        api_results, objs_made = self._run_import_test(mock_request, FlowStart)
+        self.assertEqual(2, len(objs_made))
+        for i, obj in enumerate(objs_made):
+            self.assertEqual(obj.flow.name, api_results[i]['flow']['name'])
+        self._run_api_test(FlowStart)
+
     def test_import_flows(self, mock_request):
         api_results, objs_made = self._run_import_test(mock_request, Flow)
         self.assertEqual(2, len(objs_made))
