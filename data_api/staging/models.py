@@ -245,5 +245,15 @@ class Broadcast(OrganizationModel):
         return "{}".format(self.text)
 
 
+class Campaign(OrganizationModel):
+    uuid = models.UUIDField()
+    group = models.ForeignKey(Group)
+    archived = models.BooleanField()
+    created_on = models.DateTimeField()
+    name = models.CharField(max_length=100)
+
+    rapidpro_collection = 'campaigns'
+
+
 def get_warehouse_attr_for_rapidpro_key(key):
     return 'rapidpro_id' if key == 'id' else key

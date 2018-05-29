@@ -1,7 +1,7 @@
 from django.conf.urls import patterns, url
 
 from data_api.staging_api.views import GroupList, ChannelList, ContactList, ChannelEventList, FieldList, \
-    BroadcastList
+    BroadcastList, CampaignList
 
 urlpatterns = patterns(
     '',
@@ -12,7 +12,7 @@ urlpatterns = patterns(
     # url(r'^broadcasts/(?P<id>[\w]+)/$', BroadcastDetails.as_view()),
     #
     # url(r'^campaigns/$', CampaignList.as_view()),
-    # url(r'^campaigns/org/(?P<org>[\w]+)/$', CampaignList.as_view()),
+    url(r'^campaigns/org/(?P<org>[\w]+)/$', CampaignList.as_view()),
     # url(r'^campaigns/(?P<id>[\w]+)/$', CampaignDetails.as_view()),
     #
     # url(r'^campaign_events/org/(?P<org>[\w]+)/$', CampaignEventList.as_view()),

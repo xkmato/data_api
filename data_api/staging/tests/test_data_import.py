@@ -14,7 +14,7 @@ from data_api.api.tests.test_utils import get_api_results_from_file
 from data_api.api.models import LastSaved
 from data_api.api.tasks import fetch_entity
 from data_api.staging.models import Organization, Group, SyncCheckpoint, Channel, Contact, ChannelEvent, Field, \
-    Broadcast
+    Broadcast, Campaign
 from data_api.staging.utils import import_org_with_client
 
 
@@ -41,8 +41,8 @@ class DataImportTest(TembaTest):
     def tearDown(self):
         pass
         # Boundary.objects.all().delete()
-        # Broadcast.objects.all().delete()
-        # Campaign.objects.all().delete()
+        Broadcast.objects.all().delete()
+        Campaign.objects.all().delete()
         # CampaignEvent.objects.all().delete()
         Channel.objects.all().delete()
         ChannelEvent.objects.all().delete()
@@ -122,6 +122,13 @@ class DataImportTest(TembaTest):
                     )
                 )
 
+    def _make_group(self, group_uuid):
+        Group(
+            organization=self.org,
+            uuid=group_uuid,
+            count=1,
+        ).save()
+
     def test_import_org(self, mock_request):
         api_results_text = get_api_results_from_file('org')
         api_results = json.loads(api_results_text)
@@ -168,13 +175,15 @@ class DataImportTest(TembaTest):
             self.assertEqual(obj.text, api_results[i]['text'])
         self._run_api_test(Broadcast)
 
-    # def test_import_campaigns(self, mock_request):
-    #     api_results, objs_made = self._run_import_test(mock_request, Campaign)
-    #     self.assertEqual(2, len(objs_made))
-    #     for i, obj in enumerate(objs_made):
-    #         self.assertEqual(obj.name, api_results[i]['name'])
-    #     self._run_api_test(Campaign)
-    #
+    def test_import_campaigns(self, mock_request):
+        for group_uuid in ['04a4752b-0f49-480e-ae60-3a3f2bea485c', '1b1add1b-6ed4-4e13-9b08-9127b2d33c74']:
+            self._make_group(group_uuid)
+        api_results, objs_made = self._run_import_test(mock_request, Campaign)
+        self.assertEqual(2, len(objs_made))
+        for i, obj in enumerate(objs_made):
+            self.assertEqual(obj.name, api_results[i]['name'])
+        self._run_api_test(Campaign)
+
     # def test_import_campaign_events(self, mock_request):
     #     Campaign(org_id=str(self.org.id), uuid='9ccae91f-b3f8-4c18-ad92-e795a2332c11').save()
     #     api_results, objs_made = self._run_import_test(mock_request, CampaignEvent)
