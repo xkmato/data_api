@@ -14,7 +14,7 @@ from data_api.api.tests.test_utils import get_api_results_from_file
 from data_api.api.models import LastSaved
 from data_api.api.tasks import fetch_entity
 from data_api.staging.models import Organization, Group, SyncCheckpoint, Channel, Contact, ChannelEvent, Field, \
-    Broadcast, Campaign, Flow
+    Broadcast, Campaign, Flow, CampaignEvent, Runs
 from data_api.staging.utils import import_org_with_client
 
 
@@ -123,11 +123,11 @@ class DataImportTest(TembaTest):
                 )
 
     def _make_group(self, group_uuid):
-        Group(
+        return Group.objects.create(
             organization=self.org,
             uuid=group_uuid,
             count=1,
-        ).save()
+        )
 
     def test_import_org(self, mock_request):
         api_results_text = get_api_results_from_file('org')
@@ -180,14 +180,29 @@ class DataImportTest(TembaTest):
             self.assertEqual(obj.name, api_results[i]['name'])
         self._run_api_test(Campaign)
 
-    # def test_import_campaign_events(self, mock_request):
-    #     Campaign(org_id=str(self.org.id), uuid='9ccae91f-b3f8-4c18-ad92-e795a2332c11').save()
-    #     api_results, objs_made = self._run_import_test(mock_request, CampaignEvent)
-    #     self.assertEqual(2, len(objs_made))
-    #     for i, obj in enumerate(objs_made):
-    #         self.assertEqual(obj.message, api_results[i]['message'])
-    #     self._run_api_test(CampaignEvent)
-    #
+    def test_import_campaign_events(self, mock_request):
+        group = self._make_group(group_uuid='04a4752b-0f49-480e-ae60-3a3f2bea485c')
+        runs = Runs.objects.create()
+        Campaign.objects.create(
+            organization=self.org,
+            uuid='9ccae91f-b3f8-4c18-ad92-e795a2332c11',
+            group=group,
+            created_on=datetime.now()
+        )
+        Flow.objects.create(
+            organization=self.org,
+            uuid='70c38f94-ab42-4666-86fd-3c76139110d3',
+            name='abc',
+            expires=0,
+            created_on=datetime.now(),
+            runs=runs,
+        )
+        api_results, objs_made = self._run_import_test(mock_request, CampaignEvent)
+        self.assertEqual(2, len(objs_made))
+        for i, obj in enumerate(objs_made):
+            self.assertEqual(obj.message, api_results[i]['message'])
+        self._run_api_test(CampaignEvent)
+
     def test_import_channels(self, mock_request):
         api_results, objs_made = self._run_import_test(mock_request, Channel)
         self.assertEqual(2, len(objs_made))

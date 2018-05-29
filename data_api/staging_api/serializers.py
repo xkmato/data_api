@@ -1,6 +1,7 @@
 from rest_framework import serializers
 
-from data_api.staging.models import Group, Channel, Device, Contact, ChannelEvent, Field, Broadcast, Campaign, Flow
+from data_api.staging.models import Group, Channel, Device, Contact, ChannelEvent, Field, Broadcast, Campaign, \
+    Flow, CampaignEvent
 
 
 def RapidproIdField():
@@ -61,6 +62,13 @@ class CampaignSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Campaign
+        fields = '__all__'
+
+
+class CampaignEventSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = CampaignEvent
         fields = '__all__'
 
 

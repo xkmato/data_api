@@ -248,7 +248,7 @@ class Broadcast(OrganizationModel):
 class Campaign(OrganizationModel):
     uuid = models.UUIDField()
     group = models.ForeignKey(Group)
-    archived = models.BooleanField()
+    archived = models.BooleanField(default=False)
     created_on = models.DateTimeField()
     name = models.CharField(max_length=100)
 
@@ -256,16 +256,16 @@ class Campaign(OrganizationModel):
 
 
 class Runs(RapidproBaseModel):
-    active = models.IntegerField()
-    completed = models.IntegerField()
-    expired = models.IntegerField()
-    interrupted = models.IntegerField()
+    active = models.IntegerField(default=0)
+    completed = models.IntegerField(default=0)
+    expired = models.IntegerField(default=0)
+    interrupted = models.IntegerField(default=0)
 
 
 class Flow(OrganizationModel):
     uuid = models.UUIDField()
     name = models.CharField(max_length=100)
-    archived = models.BooleanField()
+    archived = models.BooleanField(default=False)
     # labels = models.ManyToManyField(Label)  # todo
     expires = models.IntegerField()
     created_on = models.DateTimeField()
@@ -279,6 +279,23 @@ class Flow(OrganizationModel):
     #     if queryset:
     #         return queryset.filter(flow=self)
     #     return Run.objects.filter(flow__id=self.id)
+
+
+class CampaignEvent(OrganizationModel):
+    uuid = models.UUIDField()
+    campaign = models.ForeignKey(Campaign)
+    # relative_to = EmbeddedDocumentField(FieldRef)
+    offset = models.IntegerField()
+    unit = models.CharField(max_length=100)
+    delivery_hour = models.IntegerField()
+    flow = models.ForeignKey(Flow, null=True, blank=True)
+    message = models.TextField(null=True, blank=True)  # todo: this might need to also support dicts
+    created_on = models.DateTimeField()
+
+    rapidpro_collection = 'campaign_events'
+
+    def __unicode__(self):
+        return "%s - %s" % (self.uuid, self.organization)
 
 
 def get_warehouse_attr_for_rapidpro_key(key):
