@@ -255,5 +255,31 @@ class Campaign(OrganizationModel):
     rapidpro_collection = 'campaigns'
 
 
+class Runs(RapidproBaseModel):
+    active = models.IntegerField()
+    completed = models.IntegerField()
+    expired = models.IntegerField()
+    interrupted = models.IntegerField()
+
+
+class Flow(OrganizationModel):
+    uuid = models.UUIDField()
+    name = models.CharField(max_length=100)
+    archived = models.BooleanField()
+    # labels = models.ManyToManyField(Label)  # todo
+    expires = models.IntegerField()
+    created_on = models.DateTimeField()
+    modified_on = models.DateTimeField(null=True, blank=True)
+    runs = models.OneToOneField(Runs)
+
+    rapidpro_collection = 'flows'
+
+    # todo
+    # def get_runs(self, queryset=None):
+    #     if queryset:
+    #         return queryset.filter(flow=self)
+    #     return Run.objects.filter(flow__id=self.id)
+
+
 def get_warehouse_attr_for_rapidpro_key(key):
     return 'rapidpro_id' if key == 'id' else key
