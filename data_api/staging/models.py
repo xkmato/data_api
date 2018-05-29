@@ -212,7 +212,7 @@ class Device(RapidproBaseModel):
 
 class Channel(OrganizationModel):
     uuid = models.UUIDField()
-    name = models.CharField(max_length=100)
+    name = models.CharField(max_length=100, null=True, blank=True)
     address = models.CharField(max_length=100)
     country = models.CharField(max_length=100)
     device = models.OneToOneField(Device, null=True, blank=True)
@@ -280,7 +280,7 @@ class Flow(OrganizationModel):
     name = models.CharField(max_length=100)
     archived = models.BooleanField(default=False)
     # labels = models.ManyToManyField(Label)  # todo
-    expires = models.IntegerField()
+    expires = models.IntegerField(null=True, blank=True)
     created_on = models.DateTimeField()
     modified_on = models.DateTimeField(null=True, blank=True)
     runs = models.OneToOneField(Runs)
