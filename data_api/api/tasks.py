@@ -33,22 +33,48 @@ def fetch_entity(entity, org, return_objs=False):
     return entity.sync_all_data(org, return_objs)
 
 
+def get_org_entities(sql):
+    from data_api.api.models import OrgDocument
+    from data_api.staging.models import OrganizationModel
+    if not sql:
+        return OrgDocument.__subclasses__()
+    else:
+        return OrganizationModel.__subclasses__()
+
+
+def get_all_orgs(sql):
+    from data_api.api.models import Org
+    from data_api.staging.models import Organization
+    if not sql:
+        return Org.objects.filter(is_active=True)
+    else:
+        return Organization.objects.filter(is_active=True)
+
+
+def get_orgs_by_api_keys(api_keys, sql):
+    from data_api.api.models import Org
+    from data_api.staging.models import Organization
+    if not sql:
+        [Org.objects.get(**{'api_token': api_key}) for api_key in api_keys]
+    else:
+        return Organization.objects.filter(api_token__in=api_keys)
+
+
 @task
-def sync_latest_data(entities=None, orgs=None):
+def sync_latest_data(entities=None, orgs=None, sql=False):
     """
     Syncs the latest data from configured rapidpro Orgs.
 
     The default value for both arguments is to sync _all_ entities/orgs.
     """
-    from data_api.api.models import Org, OrgDocument
     mail_admins('Starting RapidPro data sync', '')
     start_time = datetime.now()
     if not entities:
-        entities = OrgDocument.__subclasses__()
+        entities = get_org_entities(sql)
     if not orgs:
-        orgs = Org.objects.filter(is_active=True)
+        orgs = get_all_orgs(sql)
     else:
-        orgs = [Org.objects.get(**{'api_token': api_key}) for api_key in orgs]
+        orgs = get_orgs_by_api_keys(orgs, sql)
     assert iter(entities)
     for org in orgs:
         for entity in entities:
