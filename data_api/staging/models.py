@@ -71,11 +71,11 @@ class RapidproCreateableModelMixin(object):
     """
 
     @classmethod
-    def get_or_create_from_temba(cls, temba_value):
+    def get_or_create_from_temba(cls, org, temba_value):
         try:
             return cls.objects.get(uuid=temba_value.uuid)
         except cls.DoesNotExist:
-            return cls.create_from_temba(temba_value)
+            return cls.create_from_temba(org, temba_value, do_save=True)
 
     @classmethod
     def create_from_temba(cls, org, temba, do_save=True):
@@ -103,12 +103,12 @@ class RapidproCreateableModelMixin(object):
                 # so that multiple queries, e.g. to the same Contact, resolve quickly.
                 # Caching might introduce complex invalidation logic - e.g. if a model was imported
                 # midway through a full import.
-                setattr(obj, warehouse_attr, field.related_model.get_or_create_from_temba(temba_value))
+                setattr(obj, warehouse_attr, field.related_model.get_or_create_from_temba(org, temba_value))
             elif isinstance(field, models.ManyToManyField) and temba_value is not None:
                 assert isinstance(temba_value, list)
                 warehouse_models = []
                 for nested_object in temba_value:
-                    warehouse_object = field.related_model.get_or_create_from_temba(nested_object)
+                    warehouse_object = field.related_model.get_or_create_from_temba(org, nested_object)
                     warehouse_models.append(warehouse_object)
                 related_models[warehouse_attr] = warehouse_models
             else:
