@@ -135,7 +135,8 @@ class RapidproCreateableModelMixin(object):
 
 
 class RapidproBaseModel(models.Model, RapidproCreateableModelMixin):
-    pass
+    class Meta:
+        abstract = True
 
 
 class OrganizationModel(RapidproBaseModel, RapidproAPIBaseModel):
@@ -253,6 +254,14 @@ class Campaign(OrganizationModel):
     name = models.CharField(max_length=100)
 
     rapidpro_collection = 'campaigns'
+
+
+class Label(OrganizationModel):
+    uuid = models.UUIDField()
+    name = models.CharField(max_length=100)
+    count = models.IntegerField()
+
+    rapidpro_collection = 'labels'
 
 
 class Runs(RapidproBaseModel):

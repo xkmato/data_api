@@ -14,7 +14,7 @@ from data_api.api.tests.test_utils import get_api_results_from_file
 from data_api.api.models import LastSaved
 from data_api.api.tasks import fetch_entity
 from data_api.staging.models import Organization, Group, SyncCheckpoint, Channel, Contact, ChannelEvent, Field, \
-    Broadcast, Campaign, Flow, CampaignEvent, Runs
+    Broadcast, Campaign, Flow, CampaignEvent, Runs, Label
 from data_api.staging.utils import import_org_with_client
 
 
@@ -50,7 +50,7 @@ class DataImportTest(TembaTest):
         Group.objects.all().delete()
         Flow.objects.all().delete()
         # FlowStart.objects.all().delete()
-        # Label.objects.all().delete()
+        Label.objects.all().delete()
         # Message.objects.all().delete()
         # Run.objects.all().delete()
         # Resthook.objects.all().delete()
@@ -273,13 +273,13 @@ class DataImportTest(TembaTest):
             self.assertEqual(obj.name, api_results[i]['name'])
         self._run_api_test(Group)
 
-    # def test_import_labels(self, mock_request):
-    #     api_results, objs_made = self._run_import_test(mock_request, Label)
-    #     self.assertEqual(2, len(objs_made))
-    #     for i, obj in enumerate(objs_made):
-    #         self.assertEqual(obj.name, api_results[i]['name'])
-    #     self._run_api_test(Label)
-    #
+    def test_import_labels(self, mock_request):
+        api_results, objs_made = self._run_import_test(mock_request, Label)
+        self.assertEqual(2, len(objs_made))
+        for i, obj in enumerate(objs_made):
+            self.assertEqual(obj.name, api_results[i]['name'])
+        self._run_api_test(Label)
+
     # def test_import_messages(self, mock_request):
     #     api_results, objs_made = self._run_import_test(mock_request, Message)
     #     self.assertEqual(12, len(objs_made))
