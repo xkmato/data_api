@@ -19,7 +19,7 @@ the intention is to have two models files, one for mongo and one for SQL.
 
 
 class Organization(models.Model):
-    api_token = models.CharField(max_length=32)
+    api_token = models.CharField(max_length=40)
     server = models.CharField(max_length=100, default=settings.DEFAULT_RAPIDPRO_SITE)
     is_active = models.BooleanField(default=False)
     name = models.CharField(max_length=100)
@@ -71,6 +71,13 @@ class RapidproCreateableModelMixin(object):
     """
 
     @classmethod
+    def get_or_create_from_temba(cls, temba_value):
+        try:
+            return cls.objects.get(uuid=temba_value.uuid)
+        except cls.DoesNotExist:
+            return cls.create_from_temba(temba_value)
+
+    @classmethod
     def create_from_temba(cls, org, temba, do_save=True):
         obj = cls()
         # will map field names to lists of fields to add, since all related models and the primary
@@ -96,15 +103,12 @@ class RapidproCreateableModelMixin(object):
                 # so that multiple queries, e.g. to the same Contact, resolve quickly.
                 # Caching might introduce complex invalidation logic - e.g. if a model was imported
                 # midway through a full import.
-                setattr(obj, warehouse_attr, field.related_model.objects.get(uuid=temba_value.uuid))
+                setattr(obj, warehouse_attr, field.related_model.get_or_create_from_temba(temba_value))
             elif isinstance(field, models.ManyToManyField) and temba_value is not None:
                 assert isinstance(temba_value, list)
                 warehouse_models = []
                 for nested_object in temba_value:
-                    try:
-                        warehouse_object = field.related_model.objects.get(uuid=nested_object.uuid)
-                    except field.related_model.DoesNotExist:
-                        warehouse_object = field.related_model.create_from_temba(org, nested_object, do_save=True)
+                    warehouse_object = field.related_model.get_or_create_from_temba(nested_object)
                     warehouse_models.append(warehouse_object)
                 related_models[warehouse_attr] = warehouse_models
             else:
@@ -179,7 +183,7 @@ class Contact(OrganizationModel):
     language = models.CharField(max_length=100, null=True, blank=True)
     # todo
     # urns = ListField(EmbeddedDocumentField(Urn))
-    groups = models.ManyToManyField(Group, null=True)
+    groups = models.ManyToManyField(Group)
     # todo
     # fields = DictField()
     blocked = models.NullBooleanField()
