@@ -24,7 +24,7 @@ class Organization(models.Model):
     is_active = models.BooleanField(default=False)
     name = models.CharField(max_length=100)
     country = models.CharField(max_length=100, null=True, blank=True)
-    primary_language = models.CharField(max_length=100)
+    primary_language = models.CharField(max_length=100, null=True, blank=True)
     timezone = models.CharField(max_length=100, null=True, blank=True)
     date_style = models.CharField(max_length=100, null=True, blank=True)
     anon = models.BooleanField(default=False)
@@ -188,8 +188,8 @@ class Contact(OrganizationModel):
     # fields = DictField()
     blocked = models.NullBooleanField()
     stopped = models.NullBooleanField()
-    created_on = models.DateTimeField()
-    modified_on = models.DateTimeField()
+    created_on = models.DateTimeField(null=True, blank=True)
+    modified_on = models.DateTimeField(null=True, blank=True)
 
     rapidpro_collection = 'contacts'
 
@@ -216,15 +216,15 @@ class Channel(OrganizationModel):
     address = models.CharField(max_length=100)
     country = models.CharField(max_length=100)
     device = models.OneToOneField(Device, null=True, blank=True)
-    last_seen = models.DateTimeField()
-    created_on = models.DateTimeField()
+    last_seen = models.DateTimeField(null=True, blank=True)
+    created_on = models.DateTimeField(null=True, blank=True)
 
     rapidpro_collection = 'channels'
 
 
 class ChannelEvent(OrganizationModel):
     rapidpro_id = models.PositiveIntegerField()
-    type = models.CharField(max_length=100)
+    type = models.CharField(max_length=100, null=True, blank=True)
     contact = models.ForeignKey(Contact)
     channel = models.ForeignKey(Channel)
     # todo:
@@ -281,9 +281,9 @@ class Flow(OrganizationModel):
     archived = models.BooleanField(default=False)
     # labels = models.ManyToManyField(Label)  # todo
     expires = models.IntegerField(null=True, blank=True)
-    created_on = models.DateTimeField()
+    created_on = models.DateTimeField(null=True, blank=True)
     modified_on = models.DateTimeField(null=True, blank=True)
-    runs = models.OneToOneField(Runs)
+    runs = models.OneToOneField(Runs, null=True, blank=True)
 
     rapidpro_collection = 'flows'
 
