@@ -386,7 +386,7 @@ class Run(OrganizationModel):
     values = MappedManyToManyField(Value)
     created_on = models.DateTimeField()
     modified_on = models.DateTimeField()
-    exited_on = models.DateTimeField()
+    exited_on = models.DateTimeField(null=True, blank=True)
     exit_type = models.CharField(max_length=100)
 
     rapidpro_collection = 'runs'
