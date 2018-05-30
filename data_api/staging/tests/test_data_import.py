@@ -15,7 +15,7 @@ from data_api.api.models import LastSaved
 from data_api.api.tasks import fetch_entity
 from data_api.staging.models import Organization, Group, SyncCheckpoint, Channel, Contact, ChannelEvent, Field, \
     Broadcast, Campaign, Flow, CampaignEvent, Runs, Label, FlowStart, Run, Boundary, Resthook, ResthookEvent, \
-    ResthookSubscriber
+    ResthookSubscriber, Message
 from data_api.staging.utils import import_org_with_client
 
 
@@ -52,7 +52,7 @@ class DataImportTest(TembaTest):
         Flow.objects.all().delete()
         FlowStart.objects.all().delete()
         Label.objects.all().delete()
-        # Message.objects.all().delete()
+        Message.objects.all().delete()
         Run.objects.all().delete()
         Resthook.objects.all().delete()
         ResthookEvent.objects.all().delete()
@@ -77,7 +77,8 @@ class DataImportTest(TembaTest):
 
         # check last saved
         checkpoint = SyncCheckpoint.objects.get(organization=self.org,
-                                                collection_name=obj_class.get_collection_name())
+                                                collection_name=obj_class.get_collection_name(),
+                                                subcollection_name=None)
         self.assertIsNotNone(checkpoint.last_saved)
         self.assertEqual(checkpoint.last_saved, checkpoint.last_started)
         self.assertFalse(checkpoint.is_running)
@@ -290,14 +291,14 @@ class DataImportTest(TembaTest):
             self.assertEqual(obj.name, api_results[i]['name'])
         self._run_api_test(Label)
 
-    # def test_import_messages(self, mock_request):
-    #     api_results, objs_made = self._run_import_test(mock_request, Message)
-    #     self.assertEqual(12, len(objs_made))
-    #     for i, obj in enumerate(objs_made):
-    #         self.assertEqual(obj.text, api_results[i % 2]['text'])
-    #     # todo: this is broken due to the custom way messages are imported not playing nice with mocks
-    #     # self._run_api_test(Message)
-    #
+    def test_import_messages(self, mock_request):
+        api_results, objs_made = self._run_import_test(mock_request, Message)
+        self.assertEqual(12, len(objs_made))
+        for i, obj in enumerate(objs_made):
+            self.assertEqual(obj.text, api_results[i % 2]['text'])
+        # todo: this is broken due to the custom way messages are imported not playing nice with mocks
+        # self._run_api_test(Message)
+
     def test_import_runs(self, mock_request):
         flow = self._make_flow('ffce0fbb-4fe1-4052-b26a-91beb2ebae9a', 'Water Survey')
         self._make_flow('7b75bcb0-3c86-482f-bdce-06a3d6cd5cf7', 'Test')

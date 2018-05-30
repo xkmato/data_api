@@ -81,12 +81,15 @@ class MongoIngestionCheckpoint(IngestionCheckpoint):
 
 class SqlIngestionCheckpoint(IngestionCheckpoint):
 
-    def __init__(self, org, collection_class, checkpoint_time):
+    def __init__(self, org, collection_class, checkpoint_time, subcollection=None):
         from data_api.staging.models import SyncCheckpoint
         super(SqlIngestionCheckpoint, self).__init__(org, collection_class, checkpoint_time)
+        self.subcollection = subcollection
         try:
             self._checkpoint = SyncCheckpoint.objects.get(
-                organization=org, collection_name=collection_class.get_collection_name()
+                organization=org,
+                collection_name=collection_class.get_collection_name(),
+                subcollection_name=self.subcollection,
             )
             self._exists = True
         except SyncCheckpoint.DoesNotExist:
@@ -109,6 +112,7 @@ class SqlIngestionCheckpoint(IngestionCheckpoint):
         self._checkpoint = SyncCheckpoint.objects.create(
             organization=self.org,
             collection_name=self.collection_class.get_collection_name(),
+            subcollection_name=self.subcollection,
             last_started=self.checkpoint_time,
             is_running=True,
         )

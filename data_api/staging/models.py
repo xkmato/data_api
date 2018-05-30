@@ -1,12 +1,17 @@
 from collections import namedtuple
 
+from datetime import datetime
+
+import pytz
 from django.conf import settings
 from django.contrib.postgres.fields import JSONField, ArrayField
 from django.core.exceptions import FieldDoesNotExist
 from django.db import models, transaction
 from temba_client.v2 import TembaClient
 
-from data_api.api.ingestion import RapidproAPIBaseModel
+from data_api.api.exceptions import ImportRunningException
+from data_api.api.ingestion import RapidproAPIBaseModel, get_fetch_kwargs, SqlIngestionCheckpoint
+from data_api.api.models import logger
 
 """
 RapidPro Staging SQL models live here. The word "staging" comes from the data warehouse 
@@ -331,6 +336,60 @@ class CampaignEvent(OrganizationModel):
 
     def __unicode__(self):
         return "%s - %s" % (self.uuid, self.organization)
+
+
+class Message(OrganizationModel):
+    rapidpro_id = models.PositiveIntegerField()
+    broadcast = models.PositiveIntegerField(null=True, blank=True)
+    contact = models.ForeignKey(Contact)
+    urn = models.CharField(max_length=100)
+    channel = models.ForeignKey(Channel, null=True, blank=True)
+    direction = models.CharField(max_length=100)
+    type = models.CharField(max_length=100)
+    status = models.CharField(max_length=100)
+    visibility = models.CharField(max_length=100)
+    text = models.TextField()
+    labels = models.ManyToManyField(Label)
+    created_on = models.DateTimeField()
+    modified_on = models.DateTimeField(null=True, blank=True)
+    sent_on = models.DateTimeField(null=True, blank=True)
+
+    rapidpro_collection = 'messages'
+
+    def __unicode__(self):
+        return "%s - %s" % (self.text[:7], self.org_id)
+
+    @classmethod
+    def get_checkpoint_for_folder(cls, org, folder):
+        return SqlIngestionCheckpoint(org, cls, datetime.now(tz=pytz.utc), folder)
+
+    @classmethod
+    def sync_data_with_checkpoint(cls, org, checkpoint, return_objs=False):
+        fetch_method = cls.get_fetch_method(org)
+        fetch_kwargs = get_fetch_kwargs(fetch_method, checkpoint)
+        folders = [
+            'inbox', 'flows', 'archived', 'outbox', 'incoming', 'sent',
+        ]
+        objs = []
+        initial_import = not cls.objects.filter(organization=org).exists()
+        for folder in folders:
+            logger.info('Syncing message folder {}'.format(folder))
+            checkpoint = cls.get_checkpoint_for_folder(org, folder)
+            if not checkpoint.exists():
+                checkpoint.create_and_start()
+            elif checkpoint.is_running():
+                raise ImportRunningException('Import for model {} in org {} still pending!'.format(
+                    cls.__name__, org.name,
+                ))
+            folder_kwargs = get_fetch_kwargs(fetch_method, checkpoint) or fetch_kwargs
+            temba_objs = fetch_method(folder=folder, **folder_kwargs)
+            created_objs = cls.create_from_temba_list(org, temba_objs, return_objs,
+                                                      is_initial_import=initial_import)
+            if return_objs:
+                objs.extend(created_objs)
+            checkpoint.set_finished()
+
+        return objs
 
 
 class Value(RapidproBaseModel):
