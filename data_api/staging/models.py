@@ -302,12 +302,6 @@ class Flow(OrganizationModel):
 
     rapidpro_collection = 'flows'
 
-    # todo
-    # def get_runs(self, queryset=None):
-    #     if queryset:
-    #         return queryset.filter(flow=self)
-    #     return Run.objects.filter(flow__id=self.id)
-
 
 class FlowStart(OrganizationModel):
     uuid = models.UUIDField()
