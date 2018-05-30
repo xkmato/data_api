@@ -240,7 +240,6 @@ class ChannelEvent(OrganizationModel):
     type = models.CharField(max_length=100, null=True, blank=True)
     contact = models.ForeignKey(Contact)
     channel = models.ForeignKey(Channel)
-    # todo:
     extra = JSONField(default=dict)
     occurred_on = models.DateTimeField()
     created_on = models.DateTimeField()
@@ -413,7 +412,6 @@ class Resthook(OrganizationModel):
 
 class ResthookEvent(OrganizationModel):
     resthook = models.CharField(max_length=100)
-    # todo
     data = JSONField(default=dict)
     created_on = models.DateTimeField()
 
