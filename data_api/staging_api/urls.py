@@ -1,7 +1,8 @@
 from django.conf.urls import patterns, url
 
 from data_api.staging_api.views import GroupList, ChannelList, ContactList, ChannelEventList, FieldList, \
-    BroadcastList, CampaignList, FlowList, CampaignEventList, LabelList, FlowStartList, RunList, BoundaryList
+    BroadcastList, CampaignList, FlowList, CampaignEventList, LabelList, FlowStartList, RunList, BoundaryList, \
+    ResthookList, ResthookEventList, ResthookSubscriberList
 
 urlpatterns = patterns(
     '',
@@ -50,7 +51,7 @@ urlpatterns = patterns(
     # url(r'^runs/flow_uuid/(?P<flow_uuid>[\w\-]+)/$', RunList.as_view()),
     # url(r'^runs/(?P<id>[\w]+)/$', RunDetails.as_view()),
     #
-    # url(r'^resthooks/org/(?P<org>[\w]+)/$', ResthookList.as_view()),
-    # url(r'^resthook_events/org/(?P<org>[\w]+)/$', ResthookEventList.as_view()),
-    # url(r'^resthook_subscribers/org/(?P<org>[\w]+)/$', ResthookSubscriberList.as_view()),
+    url(r'^resthooks/org/(?P<org>[\w]+)/$', ResthookList.as_view()),
+    url(r'^resthook_events/org/(?P<org>[\w]+)/$', ResthookEventList.as_view()),
+    url(r'^resthook_subscribers/org/(?P<org>[\w]+)/$', ResthookSubscriberList.as_view()),
 )

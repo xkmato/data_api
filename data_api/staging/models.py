@@ -428,5 +428,31 @@ class Boundary(OrganizationModel):
     rapidpro_collection = 'boundaries'
 
 
+class Resthook(OrganizationModel):
+    resthook = models.CharField(max_length=100)
+    created_on = models.DateTimeField()
+    modified_on = models.DateTimeField()
+
+    rapidpro_collection = 'resthooks'
+
+
+class ResthookEvent(OrganizationModel):
+    resthook = models.CharField(max_length=100)
+    # todo
+    # data = DictField()
+    created_on = models.DateTimeField()
+
+    rapidpro_collection = 'resthook_events'
+
+
+class ResthookSubscriber(OrganizationModel):
+    rapidpro_id = models.PositiveIntegerField()
+    resthook = models.CharField(max_length=100)
+    target_url = models.CharField(max_length=100)
+    created_on = models.DateTimeField()
+
+    rapidpro_collection = 'resthook_subscribers'
+
+
 def get_warehouse_attr_for_rapidpro_key(key):
     return 'rapidpro_id' if key == 'id' else key

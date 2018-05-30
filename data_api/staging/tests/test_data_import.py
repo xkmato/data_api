@@ -14,7 +14,8 @@ from data_api.api.tests.test_utils import get_api_results_from_file
 from data_api.api.models import LastSaved
 from data_api.api.tasks import fetch_entity
 from data_api.staging.models import Organization, Group, SyncCheckpoint, Channel, Contact, ChannelEvent, Field, \
-    Broadcast, Campaign, Flow, CampaignEvent, Runs, Label, FlowStart, Run, Boundary
+    Broadcast, Campaign, Flow, CampaignEvent, Runs, Label, FlowStart, Run, Boundary, Resthook, ResthookEvent, \
+    ResthookSubscriber
 from data_api.staging.utils import import_org_with_client
 
 
@@ -313,27 +314,27 @@ class DataImportTest(TembaTest):
             self.assertEqual(obj.rapidpro_id, api_results[i]['id'])
         self._run_api_test(Run)
 
-    # def test_import_resthooks(self, mock_request):
-    #     api_results, objs_made = self._run_import_test(mock_request, Resthook)
-    #     self.assertEqual(2, len(objs_made))
-    #     for i, obj in enumerate(objs_made):
-    #         self.assertEqual(obj.resthook, api_results[i]['resthook'])
-    #     self._run_api_test(Resthook)
-    #
-    # def test_import_resthook_events(self, mock_request):
-    #     api_results, objs_made = self._run_import_test(mock_request, ResthookEvent)
-    #     self.assertEqual(2, len(objs_made))
-    #     for i, obj in enumerate(objs_made):
-    #         self.assertEqual(obj.resthook, api_results[i]['resthook'])
-    #     self._run_api_test(ResthookEvent)
-    #
-    # def test_import_resthook_subscribers(self, mock_request):
-    #     api_results, objs_made = self._run_import_test(mock_request, ResthookSubscriber)
-    #     self.assertEqual(2, len(objs_made))
-    #     for i, obj in enumerate(objs_made):
-    #         self.assertEqual(obj.resthook, api_results[i]['resthook'])
-    #     self._run_api_test(ResthookSubscriber)
-    #
+    def test_import_resthooks(self, mock_request):
+        api_results, objs_made = self._run_import_test(mock_request, Resthook)
+        self.assertEqual(2, len(objs_made))
+        for i, obj in enumerate(objs_made):
+            self.assertEqual(obj.resthook, api_results[i]['resthook'])
+        self._run_api_test(Resthook)
+
+    def test_import_resthook_events(self, mock_request):
+        api_results, objs_made = self._run_import_test(mock_request, ResthookEvent)
+        self.assertEqual(2, len(objs_made))
+        for i, obj in enumerate(objs_made):
+            self.assertEqual(obj.resthook, api_results[i]['resthook'])
+        self._run_api_test(ResthookEvent)
+
+    def test_import_resthook_subscribers(self, mock_request):
+        api_results, objs_made = self._run_import_test(mock_request, ResthookSubscriber)
+        self.assertEqual(2, len(objs_made))
+        for i, obj in enumerate(objs_made):
+            self.assertEqual(obj.resthook, api_results[i]['resthook'])
+        self._run_api_test(ResthookSubscriber)
+
     # def test_disallow_import_if_running(self, mock_request):
     #     ls = LastSaved.create_for_org_and_collection(self.org, ResthookSubscriber)
     #     ls.is_running = True

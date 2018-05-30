@@ -1,7 +1,7 @@
 from rest_framework import serializers
 
 from data_api.staging.models import Group, Channel, Device, Contact, ChannelEvent, Field, Broadcast, Campaign, \
-    Flow, CampaignEvent, Label, FlowStart, Run, Boundary
+    Flow, CampaignEvent, Label, FlowStart, Run, Boundary, Resthook, ResthookEvent, ResthookSubscriber
 
 
 def RapidproIdField():
@@ -105,4 +105,26 @@ class BoundarySerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Boundary
+        fields = '__all__'
+
+
+class ResthookSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Resthook
+        fields = '__all__'
+
+
+class ResthookEventSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = ResthookEvent
+        fields = '__all__'
+
+
+class ResthookSubscriberSerializer(serializers.ModelSerializer):
+    id = RapidproIdField()
+
+    class Meta:
+        model = ResthookSubscriber
         fields = '__all__'
