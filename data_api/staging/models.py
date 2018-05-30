@@ -193,11 +193,12 @@ class Contact(OrganizationModel):
     uuid = models.UUIDField()
     name = models.CharField(max_length=100, null=True, blank=True)
     language = models.CharField(max_length=100, null=True, blank=True)
-    # todo
-    # urns = ListField(EmbeddedDocumentField(Urn))
+    urns = ArrayField(
+        models.CharField(max_length=100),
+        default=list
+    )
     groups = models.ManyToManyField(Group)
-    # todo
-    # fields = DictField()
+    fields = JSONField(default=dict)
     blocked = models.NullBooleanField()
     stopped = models.NullBooleanField()
     created_on = models.DateTimeField(null=True, blank=True)
@@ -249,8 +250,10 @@ class ChannelEvent(OrganizationModel):
 
 class Broadcast(OrganizationModel):
     rapidpro_id = models.PositiveIntegerField()
-    # todo figure out Urns
-    # urns = models.ManyToManyField(Urn)
+    urns = ArrayField(
+        models.CharField(max_length=100),
+        default=list
+    )
     contacts = models.ManyToManyField(Contact)
     groups = models.ManyToManyField(Group)
     text = models.TextField()  # todo: this might need to also support dicts
