@@ -310,13 +310,11 @@ class FlowStart(OrganizationModel):
     contacts = models.ManyToManyField(Contact)
     restart_participants = models.BooleanField()
     status = models.CharField(max_length=100)
-    # todo
-    # extra = DictField()
+    extra = JSONField(default=dict)
     created_on = models.DateTimeField(null=True, blank=True)
     modified_on = models.DateTimeField(null=True, blank=True)
 
     rapidpro_collection = 'flow_starts'
-    UNMIGRATED_FIELDS = ['extra']
 
 
 class CampaignEvent(OrganizationModel):
