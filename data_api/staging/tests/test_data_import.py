@@ -14,7 +14,7 @@ from data_api.api.tests.test_utils import get_api_results_from_file
 from data_api.api.models import LastSaved
 from data_api.api.tasks import fetch_entity
 from data_api.staging.models import Organization, Group, SyncCheckpoint, Channel, Contact, ChannelEvent, Field, \
-    Broadcast, Campaign, Flow, CampaignEvent, Runs, Label, FlowStart
+    Broadcast, Campaign, Flow, CampaignEvent, Runs, Label, FlowStart, Run
 from data_api.staging.utils import import_org_with_client
 
 
@@ -297,13 +297,22 @@ class DataImportTest(TembaTest):
     #     # todo: this is broken due to the custom way messages are imported not playing nice with mocks
     #     # self._run_api_test(Message)
     #
-    # def test_import_runs(self, mock_request):
-    #     api_results, objs_made = self._run_import_test(mock_request, Run)
-    #     self.assertEqual(2, len(objs_made))
-    #     for i, obj in enumerate(objs_made):
-    #         self.assertEqual(obj.tid, api_results[i]['id'])
-    #     self._run_api_test(Run)
-    #
+    def test_import_runs(self, mock_request):
+        flow = self._make_flow('ffce0fbb-4fe1-4052-b26a-91beb2ebae9a', 'Water Survey')
+        self._make_flow('7b75bcb0-3c86-482f-bdce-06a3d6cd5cf7', 'Test')
+        # contact = self._make_contact('d33e9ad5-5c35-414c-abd4-e7451c69ff1d')
+        FlowStart.objects.create(
+            organization=self.org,
+            uuid='93a624ad-5440-415e-b49f-17bf42754acb',
+            flow=flow,
+            restart_participants=False,
+        )
+        api_results, objs_made = self._run_import_test(mock_request, Run)
+        self.assertEqual(2, len(objs_made))
+        for i, obj in enumerate(objs_made):
+            self.assertEqual(obj.rapidpro_id, api_results[i]['id'])
+        self._run_api_test(Run)
+
     # def test_import_resthooks(self, mock_request):
     #     api_results, objs_made = self._run_import_test(mock_request, Resthook)
     #     self.assertEqual(2, len(objs_made))

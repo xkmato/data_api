@@ -1,3 +1,5 @@
+from collections import namedtuple
+
 from django.conf import settings
 from django.core.exceptions import FieldDoesNotExist
 from django.db import models, transaction
@@ -16,6 +18,17 @@ the staging data in a way to make data warehouse operations more efficient.
 Eventually this will replace the mongo models in api.models, but for the transition period
 the intention is to have two models files, one for mongo and one for SQL.
 """
+
+ModelToSave = namedtuple('ModelToSave', 'object foreign_key_field')
+
+
+class MappedManyToManyField(models.ManyToManyField):
+    """
+    This is a ManyToManyField used to import rapidpro mapped related objects.
+    It assumes the related object has a "key" field and sticks the key from
+    the rapidpro map into that place.
+    """
+    pass
 
 
 class Organization(models.Model):
@@ -83,6 +96,7 @@ class RapidproCreateableModelMixin(object):
         # will map field names to lists of fields to add, since all related models and the primary
         # need to be saved before we can save the relationship information
         related_models = {}
+        post_save_related_models = []  # objects that we need to save after the primary object is saved
         for key, temba_value in temba.__dict__.items():
             warehouse_attr = get_warehouse_attr_for_rapidpro_key(key)
             try:
@@ -90,10 +104,12 @@ class RapidproCreateableModelMixin(object):
             except FieldDoesNotExist:
                 continue
 
-            if isinstance(field, models.OneToOneField) and temba_value is not None:
+            if temba_value is None:
+                continue
+            elif isinstance(field, models.OneToOneField):
                 # we have to save related models in django
                 setattr(obj, warehouse_attr, field.related_model.create_from_temba(org, temba_value, do_save=True))
-            elif isinstance(field, models.ForeignKey) and temba_value is not None:
+            elif isinstance(field, models.ForeignKey):
                 # this is an opportunity to improve performance.
                 # rather than querying our local DB for the object and using a ForeignKey,
                 # we could instead just set an ID on the current document and not bother with
@@ -104,7 +120,16 @@ class RapidproCreateableModelMixin(object):
                 # Caching might introduce complex invalidation logic - e.g. if a model was imported
                 # midway through a full import.
                 setattr(obj, warehouse_attr, field.related_model.get_or_create_from_temba(org, temba_value))
-            elif isinstance(field, models.ManyToManyField) and temba_value is not None:
+            elif isinstance(field, MappedManyToManyField):
+                assert isinstance(temba_value, dict), 'expected dict but was {} ({})'.format(type(temba_value),
+                                                                                             temba_value)
+                warehouse_models = []
+                for key, nested_object in temba_value.iteritems():
+                    nested_object.__dict__['key'] = key
+                    warehouse_object = field.related_model.create_from_temba(org, nested_object, do_save=True)
+                    warehouse_models.append(warehouse_object)
+                related_models[warehouse_attr] = warehouse_models
+            elif isinstance(field, models.ManyToManyField):
                 assert isinstance(temba_value, list), 'expected list but was {} ({})'.format(type(temba_value),
                                                                                              temba_value)
                 warehouse_models = []
@@ -112,6 +137,14 @@ class RapidproCreateableModelMixin(object):
                     warehouse_object = field.related_model.get_or_create_from_temba(org, nested_object)
                     warehouse_models.append(warehouse_object)
                 related_models[warehouse_attr] = warehouse_models
+            elif isinstance(field, models.ManyToOneRel):
+                assert isinstance(temba_value, list), 'expected list but was {} ({})'.format(type(temba_value),
+                                                                                             temba_value)
+                for nested_object in temba_value:
+                    # instantiate, but don't save, a new instance of the related model
+                    warehouse_object = field.related_model.create_from_temba(org, nested_object, do_save=False)
+                    post_save_related_models.append(ModelToSave(object=warehouse_object,
+                                                                foreign_key_field=field.remote_field.name))
             else:
                 setattr(obj, warehouse_attr, temba_value)
             # todo: going to have to deal with all these more complex data types in SQL
@@ -131,11 +164,15 @@ class RapidproCreateableModelMixin(object):
             #     setattr(obj, key, item_class.instantiate_from_temba(getattr(temba, key)))
 
         obj.organization = org
-        if do_save or related_models:
+        if do_save or related_models or post_save_related_models:
             obj.save()
             for attr, related_objs in related_models.iteritems():
                 for related_obj in related_objs:
                     getattr(obj, attr).add(related_obj)
+            for model_to_save in post_save_related_models:
+                # set the foreign key to the current object (this has to happen after the original model is saved)
+                setattr(model_to_save.object, model_to_save.foreign_key_field, obj)
+                model_to_save.object.save()
         return obj
 
 
@@ -304,8 +341,8 @@ class FlowStart(OrganizationModel):
     status = models.CharField(max_length=100)
     # todo
     # extra = DictField()
-    created_on = models.DateTimeField()
-    modified_on = models.DateTimeField()
+    created_on = models.DateTimeField(null=True, blank=True)
+    modified_on = models.DateTimeField(null=True, blank=True)
 
     rapidpro_collection = 'flow_starts'
     UNMIGRATED_FIELDS = ['extra']
@@ -326,6 +363,42 @@ class CampaignEvent(OrganizationModel):
 
     def __unicode__(self):
         return "%s - %s" % (self.uuid, self.organization)
+
+
+class Value(RapidproBaseModel):
+    key = models.CharField(max_length=100)
+    value = models.TextField()  # todo: might need to be json
+    category = models.CharField(max_length=100)
+    node = models.CharField(max_length=100)
+    time = models.DateTimeField()
+
+    def __unicode__(self):
+        return unicode(self.value)[:7]
+
+
+class Run(OrganizationModel):
+    rapidpro_id = models.PositiveIntegerField()
+    flow = models.ForeignKey(Flow)
+    contact = models.ForeignKey(Contact)
+    start = models.ForeignKey(FlowStart, null=True, blank=True)
+    responded = models.BooleanField()
+    # path = models.ManyToManyField(Step)
+    values = MappedManyToManyField(Value)
+    created_on = models.DateTimeField()
+    modified_on = models.DateTimeField()
+    exited_on = models.DateTimeField()
+    exit_type = models.CharField(max_length=100)
+
+    rapidpro_collection = 'runs'
+
+
+class Step(RapidproBaseModel):
+    run = models.ForeignKey(Run, related_name='path')
+    node = models.CharField(max_length=100)
+    time = models.DateTimeField()
+
+    def __unicode__(self):
+        return self.text[:7]
 
 
 def get_warehouse_attr_for_rapidpro_key(key):
