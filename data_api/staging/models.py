@@ -278,7 +278,7 @@ class Campaign(OrganizationModel):
 class Label(OrganizationModel):
     uuid = models.UUIDField()
     name = models.CharField(max_length=100)
-    count = models.IntegerField()
+    count = models.IntegerField(null=True, blank=True)
 
     rapidpro_collection = 'labels'
 
@@ -294,7 +294,7 @@ class Flow(OrganizationModel):
     uuid = models.UUIDField()
     name = models.CharField(max_length=100)
     archived = models.BooleanField(default=False)
-    # labels = models.ManyToManyField(Label)  # todo
+    labels = models.ManyToManyField(Label)
     expires = models.IntegerField(null=True, blank=True)
     created_on = models.DateTimeField(null=True, blank=True)
     modified_on = models.DateTimeField(null=True, blank=True)
