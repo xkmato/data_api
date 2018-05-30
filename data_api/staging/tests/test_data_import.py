@@ -28,7 +28,7 @@ class DataImportTest(TembaTest):
         cls.api_token = uuid.uuid4().hex
         cls.client = TembaClient('example.com', '1234567890', user_agent='test/0.1')
         cls.org = Organization.objects.create(
-            name='test org', api_token=cls.api_token,
+            name='test org', api_token=cls.api_token, languages=['eng']
         )
         # for API tests
         username = 'unicef'

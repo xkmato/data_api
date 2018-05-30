@@ -1,6 +1,7 @@
 from collections import namedtuple
 
 from django.conf import settings
+from django.contrib.postgres.fields import JSONField, ArrayField
 from django.core.exceptions import FieldDoesNotExist
 from django.db import models, transaction
 from temba_client.v2 import TembaClient
@@ -38,16 +39,14 @@ class Organization(models.Model):
     name = models.CharField(max_length=100)
     country = models.CharField(max_length=100, null=True, blank=True)
     primary_language = models.CharField(max_length=100, null=True, blank=True)
+    languages = ArrayField(
+        models.CharField(max_length=100)
+    )
+    credits = JSONField(default=dict)
     timezone = models.CharField(max_length=100, null=True, blank=True)
     date_style = models.CharField(max_length=100, null=True, blank=True)
     anon = models.BooleanField(default=False)
 
-    # todo: need a plan for lists and dicts. JSONField?
-    UNMIGRATED_FIELDS = ['languages', 'credits']
-    # languages = ListField(StringField())
-    # credits = DictField()
-
-    meta = {'collection': 'orgs'}
 
     def get_temba_client(self):
         return TembaClient(self.server, self.api_token)
