@@ -44,7 +44,7 @@ class DataImportTest(TembaTest):
         Boundary.objects.all().delete()
         Broadcast.objects.all().delete()
         Campaign.objects.all().delete()
-        # CampaignEvent.objects.all().delete()
+        CampaignEvent.objects.all().delete()
         Channel.objects.all().delete()
         ChannelEvent.objects.all().delete()
         Contact.objects.all().delete()
@@ -54,9 +54,9 @@ class DataImportTest(TembaTest):
         Label.objects.all().delete()
         # Message.objects.all().delete()
         Run.objects.all().delete()
-        # Resthook.objects.all().delete()
-        # ResthookEvent.objects.all().delete()
-        # ResthookSubscriber.objects.all().delete()
+        Resthook.objects.all().delete()
+        ResthookEvent.objects.all().delete()
+        ResthookSubscriber.objects.all().delete()
 
     @classmethod
     def tearDownClass(cls):
