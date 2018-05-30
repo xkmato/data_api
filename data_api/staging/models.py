@@ -377,8 +377,14 @@ class BoundaryRef(RapidproBaseModel):
 
 class Geometry(RapidproBaseModel):
     type = models.CharField(max_length=100)
-    # todo:
-    # coordinates = ListField(ListField(ListField(ListField(FloatField()))))
+    coordinates = ArrayField(
+        ArrayField(
+            ArrayField(
+                ArrayField(models.FloatField())
+            )
+        ),
+        default=list
+    )
 
     def __unicode__(self):
         return self.type
