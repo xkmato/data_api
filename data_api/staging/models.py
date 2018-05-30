@@ -241,7 +241,7 @@ class ChannelEvent(OrganizationModel):
     contact = models.ForeignKey(Contact)
     channel = models.ForeignKey(Channel)
     # todo:
-    # extra = DictField()
+    extra = JSONField(default=dict)
     occurred_on = models.DateTimeField()
     created_on = models.DateTimeField()
 
@@ -408,7 +408,7 @@ class Resthook(OrganizationModel):
 class ResthookEvent(OrganizationModel):
     resthook = models.CharField(max_length=100)
     # todo
-    # data = DictField()
+    data = JSONField(default=dict)
     created_on = models.DateTimeField()
 
     rapidpro_collection = 'resthook_events'
