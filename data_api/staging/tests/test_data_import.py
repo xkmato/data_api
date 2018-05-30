@@ -14,7 +14,7 @@ from data_api.api.tests.test_utils import get_api_results_from_file
 from data_api.api.models import LastSaved
 from data_api.api.tasks import fetch_entity
 from data_api.staging.models import Organization, Group, SyncCheckpoint, Channel, Contact, ChannelEvent, Field, \
-    Broadcast, Campaign, Flow, CampaignEvent, Runs, Label, FlowStart, Run
+    Broadcast, Campaign, Flow, CampaignEvent, Runs, Label, FlowStart, Run, Boundary
 from data_api.staging.utils import import_org_with_client
 
 
@@ -40,7 +40,7 @@ class DataImportTest(TembaTest):
 
     def tearDown(self):
         pass
-        # Boundary.objects.all().delete()
+        Boundary.objects.all().delete()
         Broadcast.objects.all().delete()
         Campaign.objects.all().delete()
         # CampaignEvent.objects.all().delete()
@@ -52,7 +52,7 @@ class DataImportTest(TembaTest):
         FlowStart.objects.all().delete()
         Label.objects.all().delete()
         # Message.objects.all().delete()
-        # Run.objects.all().delete()
+        Run.objects.all().delete()
         # Resthook.objects.all().delete()
         # ResthookEvent.objects.all().delete()
         # ResthookSubscriber.objects.all().delete()
@@ -167,13 +167,13 @@ class DataImportTest(TembaTest):
         self.assertEqual(1, Organization.objects.filter(api_token=api_key).count())
         self.assertEqual(new_name, second_org.name)
 
-    # def test_import_boundaries(self, mock_request):
-    #     api_results, objs_made = self._run_import_test(mock_request, Boundary)
-    #     self.assertEqual(2, len(objs_made))
-    #     for i, obj in enumerate(objs_made):
-    #         self.assertEqual(obj.name, api_results[i]['name'])
-    #     self._run_api_test(Boundary)
-    #
+    def test_import_boundaries(self, mock_request):
+        api_results, objs_made = self._run_import_test(mock_request, Boundary)
+        self.assertEqual(2, len(objs_made))
+        for i, obj in enumerate(objs_made):
+            self.assertEqual(obj.name, api_results[i]['name'])
+        self._run_api_test(Boundary)
+
     def test_import_broadcasts(self, mock_request):
         self._make_contact('5079cb96-a1d8-4f47-8c87-d8c7bb6ddab9')
         self._make_group('04a4752b-0f49-480e-ae60-3a3f2bea485c')

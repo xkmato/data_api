@@ -1,12 +1,12 @@
 from django.conf.urls import patterns, url
 
 from data_api.staging_api.views import GroupList, ChannelList, ContactList, ChannelEventList, FieldList, \
-    BroadcastList, CampaignList, FlowList, CampaignEventList, LabelList, FlowStartList, RunList
+    BroadcastList, CampaignList, FlowList, CampaignEventList, LabelList, FlowStartList, RunList, BoundaryList
 
 urlpatterns = patterns(
     '',
-    # url(r'^boundaries/org/(?P<org>[\w]+)/$', BoundaryList.as_view()),
-    #
+    url(r'^boundaries/org/(?P<org>[\w]+)/$', BoundaryList.as_view()),
+
     # url(r'^broadcasts/$', BroadcastList.as_view()),
     url(r'^broadcasts/org/(?P<org>[\w]+)/$', BroadcastList.as_view()),
     # url(r'^broadcasts/(?P<id>[\w]+)/$', BroadcastDetails.as_view()),

@@ -382,7 +382,7 @@ class Run(OrganizationModel):
     contact = models.ForeignKey(Contact)
     start = models.ForeignKey(FlowStart, null=True, blank=True)
     responded = models.BooleanField()
-    # path = models.ManyToManyField(Step)
+    # todo: I think this should actually be a MappedReverseForeignKey (not a thing that exists yet)
     values = MappedManyToManyField(Value)
     created_on = models.DateTimeField()
     modified_on = models.DateTimeField()
@@ -399,6 +399,33 @@ class Step(RapidproBaseModel):
 
     def __unicode__(self):
         return self.text[:7]
+
+
+class BoundaryRef(RapidproBaseModel):
+    osm_id = models.CharField(max_length=100)
+    name = models.CharField(max_length=100)
+
+
+class Geometry(RapidproBaseModel):
+    type = models.CharField(max_length=100)
+    # todo:
+    # coordinates = ListField(ListField(ListField(ListField(FloatField()))))
+
+    def __unicode__(self):
+        return self.type
+
+
+class Boundary(OrganizationModel):
+    created_on = models.DateTimeField(null=True, blank=True)
+    modified_on = models.DateTimeField(null=True, blank=True)
+    osm_id = models.CharField(max_length=100)
+    name = models.CharField(max_length=100)
+    level = models.IntegerField()
+    parent = models.OneToOneField(BoundaryRef, null=True, blank=True)
+    # aliases = ListField(StringField())
+    geometry = models.OneToOneField(Geometry)
+
+    rapidpro_collection = 'boundaries'
 
 
 def get_warehouse_attr_for_rapidpro_key(key):

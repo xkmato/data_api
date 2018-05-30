@@ -2,7 +2,7 @@ from rest_framework import generics
 
 from data_api.staging_api.serializers import GroupSerializer, ChannelSerializer, ContactSerializer, \
     ChannelEventSerializer, FieldSerializer, BroadcastSerializer, CampaignSerializer, FlowSerializer, \
-    CampaignEventSerializer, LabelSerializer, FlowStartSerializer, RunSerializer
+    CampaignEventSerializer, LabelSerializer, FlowStartSerializer, RunSerializer, BoundarySerializer
 
 
 class OrganizationModelListView(generics.ListAPIView):
@@ -58,3 +58,7 @@ class FlowStartList(OrganizationModelListView):
 
 class RunList(OrganizationModelListView):
     serializer_class = RunSerializer
+
+
+class BoundaryList(OrganizationModelListView):
+    serializer_class = BoundarySerializer
