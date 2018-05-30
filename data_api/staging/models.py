@@ -47,21 +47,11 @@ class Organization(models.Model):
     date_style = models.CharField(max_length=100, null=True, blank=True)
     anon = models.BooleanField(default=False)
 
-
     def get_temba_client(self):
         return TembaClient(self.server, self.api_token)
 
     def __unicode__(self):
         return self.name
-
-    # def get_runs(self):
-    #     return Run.objects.filter(org__id=self.id)
-    #
-    # def get_contacts(self):
-    #     return Contact.objects.filter(org__id=self.id)
-    #
-    # def get_flows(self):
-    #     return Flow.objects.filter(org__id=self.id)
 
 
 class SyncCheckpoint(models.Model):
@@ -146,21 +136,6 @@ class RapidproCreateableModelMixin(object):
                                                                 foreign_key_field=field.remote_field.name))
             else:
                 setattr(obj, warehouse_attr, temba_value)
-            # todo: going to have to deal with all these more complex data types in SQL
-            # elif isinstance(class_attr, MapField):
-            #     item_class = class_attr.field
-            #     assert isinstance(item_class, EmbeddedDocumentField)
-            #     setattr(obj, key, {
-            #         k: item_class.document_type.instantiate_from_temba(v) for k, v in getattr(temba, key).items()
-            #     })
-            #
-            # elif isinstance(class_attr, ReferenceField) and getattr(temba, key) is not None:
-            #     item_class = class_attr.document_type
-            #     # same note applies as above on the list version
-            #     setattr(obj, key, item_class.get_or_fetch(org, getattr(temba, key).uuid))
-            # elif isinstance(class_attr, EmbeddedDocumentField):
-            #     item_class = class_attr.document_type
-            #     setattr(obj, key, item_class.instantiate_from_temba(getattr(temba, key)))
 
         obj.organization = org
         if do_save or related_models or post_save_related_models:
