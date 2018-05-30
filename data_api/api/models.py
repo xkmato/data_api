@@ -662,14 +662,6 @@ class Run(OrgDocument):
                 pass
 
 
-class CategoryStats(EmbeddedDocument, EmbeddedUtil):
-    count = IntField()
-    label = StringField()
-
-    def __unicode__(self):
-        return self.label
-
-
 class BoundaryRef(EmbeddedDocument, EmbeddedUtil):
     osm_id = StringField()
     name = StringField()
