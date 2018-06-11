@@ -5,6 +5,7 @@ from datetime import datetime
 import pytz
 
 from data_api.api.exceptions import ImportRunningException
+from data_api.api.tasks import logger
 
 
 class IngestionCheckpoint(object):
@@ -192,11 +193,17 @@ class RapidproAPIBaseModel(object):
         for temba in temba_list.all(retry_on_rate_exceed=True):
             # only bother importing the object if either it's the first time we're importing data
             # for this org/type or if we didn't find existing data in the DB already
-            if is_initial_import or not _object_found(temba):
-                obj = cls.create_from_temba(org, temba, do_save=False)
-                chunk_to_save.append(obj)
-                if return_objs:
-                    obj_list.append(obj)
+            try:
+                if is_initial_import or not _object_found(temba):
+                    obj = cls.create_from_temba(org, temba, do_save=False)
+                    chunk_to_save.append(obj)
+                    if return_objs:
+                        obj_list.append(obj)
+            except Exception as e:
+                logger.error('error importing {}. Error is: {}'.format(
+                    temba.__dict__, e
+                ))
+                raise
             if len(chunk_to_save) > chunk_size:
                 cls.bulk_save(chunk_to_save)
                 chunk_to_save = []
