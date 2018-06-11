@@ -355,7 +355,7 @@ class CampaignEvent(OrganizationModel):
     delivery_hour = models.IntegerField()
     flow = models.ForeignKey(Flow, null=True, blank=True)
     message = models.TextField(null=True, blank=True)  # todo: this might need to also support dicts
-    created_on = models.DateTimeField()
+    created_on = models.DateTimeField(null=True, blank=True)
 
     rapidpro_collection = 'campaign_events'
 
