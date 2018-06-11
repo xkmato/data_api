@@ -203,7 +203,7 @@ class Group(OrganizationModel):
 
 class Contact(OrganizationModel):
     uuid = models.UUIDField()
-    name = models.CharField(max_length=100, null=True, blank=True)
+    name = models.TextField(null=True, blank=True)
     language = models.CharField(max_length=100, null=True, blank=True)
     urns = ArrayField(
         models.CharField(max_length=100),
