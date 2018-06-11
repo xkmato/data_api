@@ -1,3 +1,4 @@
+from __future__ import unicode_literals
 from collections import namedtuple
 
 from datetime import datetime
@@ -193,7 +194,7 @@ class Group(OrganizationModel):
 
     rapidpro_collection = 'groups'
 
-    def __str__(self):
+    def __unicode__(self):
         return '{} ({})'.format(self.name, self.organization)
 
 
@@ -214,7 +215,7 @@ class Contact(OrganizationModel):
 
     rapidpro_collection = 'contacts'
 
-    def __str__(self):
+    def __unicode__(self):
         return '{} ({})'.format(self.name, self.organization)
 
 
@@ -225,7 +226,7 @@ class Field(OrganizationModel):
 
     rapidpro_collection = 'fields'
 
-    def __str__(self):
+    def __unicode__(self):
         return '{} ({})'.format(self.label, self.organization)
 
 
@@ -236,7 +237,7 @@ class Device(RapidproBaseModel):
     name = models.CharField(max_length=100)
     network_type = models.CharField(max_length=100)
 
-    def __str__(self):
+    def __unicode__(self):
         return '{}'.format(self.name)
 
 
@@ -250,6 +251,9 @@ class Channel(OrganizationModel):
     created_on = models.DateTimeField(null=True, blank=True)
 
     rapidpro_collection = 'channels'
+
+    def __unicode__(self):
+        return '{}'.format(self.name)
 
 
 class ChannelEvent(OrganizationModel):
@@ -290,7 +294,7 @@ class Campaign(OrganizationModel):
 
     rapidpro_collection = 'campaigns'
 
-    def __str__(self):
+    def __unicode__(self):
         return '{} ({})'.format(self.name, self.organization)
 
 
@@ -301,7 +305,7 @@ class Label(OrganizationModel):
 
     rapidpro_collection = 'labels'
 
-    def __str__(self):
+    def __unicode__(self):
         return '{} ({})'.format(self.name, self.organization)
 
 
@@ -324,7 +328,7 @@ class Flow(OrganizationModel):
 
     rapidpro_collection = 'flows'
 
-    def __str__(self):
+    def __unicode__(self):
         return '{} ({})'.format(self.name, self.organization)
 
 
@@ -377,7 +381,7 @@ class Message(OrganizationModel):
 
     rapidpro_collection = 'messages'
 
-    def __str__(self):
+    def __unicode__(self):
         return "%s - %s" % (self.text[:7], self.org_id)
 
     @classmethod
@@ -481,7 +485,7 @@ class Boundary(OrganizationModel):
 
     rapidpro_collection = 'boundaries'
 
-    def __str__(self):
+    def __unicode__(self):
         return '{} ({})'.format(self.name, self.organization)
 
 
