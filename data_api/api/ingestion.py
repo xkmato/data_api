@@ -186,7 +186,7 @@ class RapidproAPIBaseModel(object):
             if hasattr(temba_obj, 'uuid'):
                 q = {'uuid': temba_obj.uuid}
             elif hasattr(temba_obj, 'id'):
-                q = {'tid': temba_obj.id}
+                q = {'rapidpro_id': temba_obj.id}
             return q and cls.objects.filter(**q).first()
 
         for temba in temba_list.all(retry_on_rate_exceed=True):
