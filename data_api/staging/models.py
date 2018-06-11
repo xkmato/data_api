@@ -193,6 +193,9 @@ class Group(OrganizationModel):
 
     rapidpro_collection = 'groups'
 
+    def __str__(self):
+        return '{} ({})'.format(self.name, self.organization)
+
 
 class Contact(OrganizationModel):
     uuid = models.UUIDField()
@@ -211,6 +214,9 @@ class Contact(OrganizationModel):
 
     rapidpro_collection = 'contacts'
 
+    def __str__(self):
+        return '{} ({})'.format(self.name, self.organization)
+
 
 class Field(OrganizationModel):
     key = models.CharField(max_length=100)
@@ -219,6 +225,9 @@ class Field(OrganizationModel):
 
     rapidpro_collection = 'fields'
 
+    def __str__(self):
+        return '{} ({})'.format(self.label, self.organization)
+
 
 class Device(RapidproBaseModel):
     power_status = models.CharField(max_length=100)
@@ -226,6 +235,9 @@ class Device(RapidproBaseModel):
     power_level = models.PositiveIntegerField()
     name = models.CharField(max_length=100)
     network_type = models.CharField(max_length=100)
+
+    def __str__(self):
+        return '{}'.format(self.name)
 
 
 class Channel(OrganizationModel):
@@ -278,6 +290,9 @@ class Campaign(OrganizationModel):
 
     rapidpro_collection = 'campaigns'
 
+    def __str__(self):
+        return '{} ({})'.format(self.name, self.organization)
+
 
 class Label(OrganizationModel):
     uuid = models.UUIDField()
@@ -285,6 +300,9 @@ class Label(OrganizationModel):
     count = models.IntegerField(null=True, blank=True)
 
     rapidpro_collection = 'labels'
+
+    def __str__(self):
+        return '{} ({})'.format(self.name, self.organization)
 
 
 class Runs(RapidproBaseModel):
@@ -305,6 +323,9 @@ class Flow(OrganizationModel):
     runs = models.OneToOneField(Runs, null=True, blank=True)
 
     rapidpro_collection = 'flows'
+
+    def __str__(self):
+        return '{} ({})'.format(self.name, self.organization)
 
 
 class FlowStart(OrganizationModel):
@@ -356,7 +377,7 @@ class Message(OrganizationModel):
 
     rapidpro_collection = 'messages'
 
-    def __unicode__(self):
+    def __str__(self):
         return "%s - %s" % (self.text[:7], self.org_id)
 
     @classmethod
@@ -459,6 +480,9 @@ class Boundary(OrganizationModel):
     geometry = models.OneToOneField(Geometry)
 
     rapidpro_collection = 'boundaries'
+
+    def __str__(self):
+        return '{} ({})'.format(self.name, self.organization)
 
 
 class Resthook(OrganizationModel):
