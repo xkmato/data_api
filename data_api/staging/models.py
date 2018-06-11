@@ -233,7 +233,7 @@ class Field(OrganizationModel):
 class Device(RapidproBaseModel):
     power_status = models.CharField(max_length=100)
     power_source = models.CharField(max_length=100)
-    power_level = models.PositiveIntegerField()
+    power_level = models.IntegerField()
     name = models.CharField(max_length=100)
     network_type = models.CharField(max_length=100)
 
