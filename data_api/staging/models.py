@@ -477,7 +477,7 @@ class Boundary(OrganizationModel):
     level = models.IntegerField()
     parent = models.OneToOneField(BoundaryRef, null=True, blank=True)
     # aliases = ListField(StringField())
-    geometry = models.OneToOneField(Geometry)
+    geometry = models.OneToOneField(Geometry, null=True)
 
     rapidpro_collection = 'boundaries'
 
