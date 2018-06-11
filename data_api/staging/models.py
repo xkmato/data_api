@@ -71,6 +71,9 @@ class SyncCheckpoint(models.Model):
     class Meta:
         unique_together = ('organization', 'collection_name', 'subcollection_name')
 
+    def __unicode__(self):
+        return '{}: {} {}'.format(self.organization, self.collection_name, self.subcollection_name or '').strip()
+
 
 class RapidproCreateableModelMixin(object):
     """

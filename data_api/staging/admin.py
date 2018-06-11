@@ -3,6 +3,12 @@ from django.contrib import admin
 from data_api.staging import models
 
 
+class SyncCheckpointAdmin(admin.ModelAdmin):
+    list_display = ['organization', 'collection_name', 'subcollection_name', 'last_started', 'last_saved',
+                    'is_running']
+    list_filter = ['organization', 'collection_name', 'last_started', 'last_saved', 'is_running']
+
+
 class OrganizationAdmin(admin.ModelAdmin):
     list_display = ['name', 'country', 'is_active', 'server', 'api_token']
     list_filter = ['is_active', 'server']
@@ -96,6 +102,7 @@ class ResthookSubscriberAdmin(admin.ModelAdmin):
     list_filter = ORG_MODEL_FIELDS
 
 
+admin.site.register(models.SyncCheckpoint, SyncCheckpointAdmin)
 admin.site.register(models.Organization, OrganizationAdmin)
 admin.site.register(models.Group, GroupAdmin)
 admin.site.register(models.Contact, ContactAdmin)
