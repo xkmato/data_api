@@ -290,7 +290,7 @@ class Broadcast(OrganizationModel):
 
 class Campaign(OrganizationModel):
     uuid = models.UUIDField()
-    group = models.ForeignKey(Group)
+    group = models.ForeignKey(Group, null=True, blank=True)
     archived = models.BooleanField(default=False)
     created_on = models.DateTimeField()
     name = models.CharField(max_length=100)
