@@ -1,6 +1,33 @@
 # Some General Information about the Production UNICEF Instance
 
-## Key Information
+## Azure Install
+
+We are in the process of setting up the warehouse on a new Azure instance to be
+the new production environment.
+These are the details of that environment.
+
+| Information | Value |
+| ----------- | ----- |
+| Url  | TBD |
+| Host  | 23.97.220.55 |
+| Admin User | dwadmin |
+| Project User | rapidpro |
+| Project Home | /home/rapidpro/projects/rapidpro_warehouse |
+| Virtualenv Home | /home/rapidpro/.virtualenvs/rapidpro-warehouse/ |
+| Server log | /home/rapidpro/logs/ |
+| Settings | /home/rapidpro/projects/rapidpro_warehouse/data_api/settings_production.py |
+| Supervisor Config | /home/rapidpro/services/rapidpro-supervisor.conf |
+| Nginx Config | /etc/nginx/sites-available/rapidpro-warehouse |
+| Database URL | unipgdwhdb.postgres.database.azure.com |
+| Database User | rprodwusr@unipgdwhdb |
+| Database Name | rprodw |
+| Mongo Database | N/A (phased out) |
+
+
+## Legacy Install
+
+This information applies to the legacy machine running in AWS.
+It is in the process of being phased out.
 
 | Information | Value |
 | ----------- | ----- |
@@ -16,7 +43,7 @@
 | SQL Database | /var/www/data_api/db.sqlite3 |
 | Mongo Database | rapidpro-v2-test |
 
-## Redash
+### Redash
 
 The same machine is also running redash.
 Here is some information about that setup.
@@ -36,7 +63,7 @@ though a few changes were made to run it in a virtualenv.
 | Logs | /var/log/supervisor/ |
 
 
-## Mail server
+### Mail server
 
 The mail is being routed through a local mail server using `postfix`.
 You can use `systemd` to check its status or start/stop it. E.g.
