@@ -6,6 +6,8 @@ We are in the process of setting up the warehouse on a new Azure instance to be
 the new production environment.
 These are the details of that environment.
 
+Sample config files can be found in [the `config_files` directory](./config_files/).
+
 | Information | Value |
 | ----------- | ----- |
 | Url  | TBD |
