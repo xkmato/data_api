@@ -191,7 +191,7 @@ class OrganizationModel(RapidproBaseModel, RapidproAPIBaseModel):
 
 class Group(OrganizationModel):
     uuid = models.UUIDField()
-    name = models.CharField(max_length=100)
+    name = models.TextField()
     query = models.CharField(max_length=100, null=True, blank=True)
     count = models.IntegerField()
 
