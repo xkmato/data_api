@@ -192,7 +192,7 @@ class OrganizationModel(RapidproBaseModel, RapidproAPIBaseModel):
 class Group(OrganizationModel):
     uuid = models.UUIDField()
     name = models.TextField()
-    query = models.CharField(max_length=100, null=True, blank=True)
+    query = models.TextField(null=True, blank=True)
     count = models.IntegerField()
 
     rapidpro_collection = 'groups'
@@ -246,8 +246,8 @@ class Device(RapidproBaseModel):
 
 class Channel(OrganizationModel):
     uuid = models.UUIDField()
-    name = models.CharField(max_length=100, null=True, blank=True)
-    address = models.CharField(max_length=100)
+    name = models.TextField(null=True, blank=True)
+    address = models.TextField()
     country = models.CharField(max_length=100)
     device = models.OneToOneField(Device, null=True, blank=True)
     last_seen = models.DateTimeField(null=True, blank=True)
