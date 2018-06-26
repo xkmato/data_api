@@ -1,7 +1,6 @@
 from __future__ import unicode_literals
 import csv
 from datetime import datetime
-import inspect
 import logging
 from bson.errors import InvalidId
 from bson.objectid import ObjectId
@@ -12,12 +11,11 @@ from django.dispatch import receiver
 from mongoengine import connect, Document, StringField, BooleanField, ReferenceField, DateTimeField, IntField, \
     EmbeddedDocument, ListField, EmbeddedDocumentField, DictField, DynamicDocument, FloatField, DynamicField, \
     MapField, ObjectIdField
-import pytz
 from rest_framework.authtoken.models import Token
 from temba_client.exceptions import TembaNoSuchObjectError, TembaException
 from temba_client.v2 import TembaClient
 
-from data_api.api.exceptions import ImportRunningException
+from data_api.api.ingestion import RapidproAPIBaseModel, get_fetch_kwargs
 from data_api.api.utils import create_folder_for_org
 
 __author__ = 'kenneth'
@@ -114,17 +112,30 @@ class LastSaved(DynamicDocument):
 
     @classmethod
     def get_for_org_and_collection(cls, org, collection_class):
-        return cls.objects.filter(**{'coll': collection_class._meta['collection'], 'org': org}).first()
+        return cls.objects.filter(**{'coll': collection_class.get_collection_name(), 'org': org}).first()
 
     @classmethod
     def create_for_org_and_collection(cls, org, collection_class):
         ls = cls()
         ls.org = org
-        ls.coll = collection_class._meta['collection']
+        ls.coll = collection_class.get_collection_name()
         return ls
 
 
-class BaseUtil(object):
+class BaseUtil(RapidproAPIBaseModel):
+
+    @classmethod
+    def get_collection_name(cls):
+        return cls._meta['collection']
+
+    @classmethod
+    def object_count(cls, org):
+        return cls.objects.filter(org_id=org.id).count()
+
+    @classmethod
+    def bulk_save(cls, chunk_to_save):
+        cls.objects.insert(chunk_to_save)
+
     @classmethod
     def create_from_temba(cls, org, temba, do_save=True):
         obj = cls()
@@ -195,40 +206,9 @@ class BaseUtil(object):
 
     @classmethod
     def fetch(cls, org, uuid):
-        func = "get_%s" % cls._meta['collection']
+        func = "get_%s" % cls.get_collection_name()
         fetch = getattr(org.get_temba_client(), func.rstrip('s'))
         return cls.create_from_temba(org, fetch(uuid))
-
-    @classmethod
-    def create_from_temba_list(cls, org, temba_list, return_objs=False, is_initial_import=False):
-        obj_list = []
-        chunk_to_save = []
-        chunk_size = 100
-
-        def _object_found(temba_obj):
-            q = None
-            if hasattr(temba_obj, 'uuid'):
-                q = {'uuid': temba_obj.uuid}
-            elif hasattr(temba_obj, 'id'):
-                q = {'tid': temba_obj.id}
-            return q and cls.objects.filter(**q).first()
-
-        for temba in temba_list.all(retry_on_rate_exceed=True):
-            # only bother importing the object if either it's the first time we're importing data
-            # for this org/type or if we didn't find existing data in the DB already
-            if is_initial_import or not _object_found(temba):
-                obj = cls.create_from_temba(org, temba, do_save=False)
-                chunk_to_save.append(obj)
-                if return_objs:
-                    obj_list.append(obj)
-            if len(chunk_to_save) > chunk_size:
-                cls.objects.insert(chunk_to_save)
-                chunk_to_save = []
-
-        if chunk_to_save:
-            cls.objects.insert(chunk_to_save)
-
-        return obj_list
 
     @classmethod
     def get_objects_from_uuids(cls, org, uuids):
@@ -240,42 +220,6 @@ class BaseUtil(object):
             else:
                 objs.append(cls.get_or_fetch(org, uuid))
         return objs
-
-    @classmethod
-    def fetch_objects(cls, org, return_objs=False):
-        """
-        Syncs all objects of this type from the provided org.
-        """
-        ls = LastSaved.get_for_org_and_collection(org, cls)
-        checkpoint = datetime.utcnow()
-        if not ls:
-            ls = LastSaved.create_for_org_and_collection(org, cls)
-            ls.last_started = checkpoint
-            ls.is_running = True
-            ls.save()
-        elif ls.is_running:
-            raise ImportRunningException('Import for model {} in org {} still pending!'.format(
-                cls.__name__, org.name,
-            ))
-        objs = cls.sync_temba_objects(org, ls, return_objs)
-        ls.last_saved = checkpoint
-        ls.is_running = False
-        ls.save()
-        return objs
-
-    @classmethod
-    def sync_temba_objects(cls, org, last_saved, return_objs=False):
-        fetch_method = cls.get_fetch_method(org)
-        fetch_kwargs = get_fetch_kwargs(fetch_method, last_saved)
-        initial_import = cls.objects.filter(org_id=org.id).count() == 0
-        return cls.create_from_temba_list(org, fetch_method(**fetch_kwargs), return_objs,
-                                          is_initial_import=initial_import)
-
-    @classmethod
-    def get_fetch_method(cls, org):
-        func = "get_%s" % cls._meta['collection']
-        return getattr(org.get_temba_client(), func)
-
 
     # def __unicode__(self):
     # if hasattr(self, 'name'):
@@ -466,10 +410,6 @@ class Runs(EmbeddedDocument, EmbeddedUtil):
     expired = IntField()
     interrupted = IntField()
 
-    def __unicode__(self):
-        return self.label
-
-
 class Flow(OrgDocument):
     uuid = StringField()
     name = StringField()
@@ -539,9 +479,9 @@ class Message(OrgDocument):
         return ls
 
     @classmethod
-    def sync_temba_objects(cls, org, last_saved, return_objs=False):
+    def sync_data_with_checkpoint(cls, org, checkpoint, return_objs=False):
         fetch_method = cls.get_fetch_method(org)
-        fetch_kwargs = get_fetch_kwargs(fetch_method, last_saved)
+        fetch_kwargs = get_fetch_kwargs(fetch_method, checkpoint)
         folders = [
             'inbox', 'flows', 'archived', 'outbox', 'incoming', 'sent',
         ]
@@ -722,14 +662,6 @@ class Run(OrgDocument):
                 pass
 
 
-class CategoryStats(EmbeddedDocument, EmbeddedUtil):
-    count = IntField()
-    label = StringField()
-
-    def __unicode__(self):
-        return self.label
-
-
 class BoundaryRef(EmbeddedDocument, EmbeddedUtil):
     osm_id = StringField()
     name = StringField()
@@ -785,13 +717,3 @@ class ResthookSubscriber(OrgDocument):
 def create_auth_token(sender, instance=None, created=False, **kwargs):
     if created:
         Token.objects.create(user=instance)
-
-
-def get_fetch_kwargs(fetch_method, last_saved):
-    if last_saved and last_saved.last_saved:
-        method_args = inspect.getargspec(fetch_method)[0]
-        if 'after' in method_args:
-            return {
-                'after': pytz.utc.localize(last_saved.last_saved)
-            }
-    return {}
