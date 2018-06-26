@@ -26,6 +26,27 @@ Sample config files can be found in [the `config_files` directory](./config_file
 | Mongo Database | N/A (phased out) |
 
 
+## Superset VM
+
+Superset is also being setup on the Azure environment.
+These are the details of that environment.
+
+| Information | Value |
+| ----------- | ----- |
+| Url  | TBD |
+| Host  | 40.113.110.13 |
+| Admin User | dwadmin |
+| Project User | superset |
+| Project Home | /home/superset/projects/superset/ |
+| Virtualenv Home | /home/superset/.virtualenvs/superset/ |
+| Server log | TBD |
+| Settings | /home/superset/projects/superset/superset_config.py |
+| Supervisor Config | /home/superset/services/superset-supervisor.conf |
+| Nginx Config | /etc/nginx/sites-enabled/superset |
+| Database URL | unipgdwhdb.postgres.database.azure.com |
+| Database User | rprodwusr@unipgdwhdb |
+| Database Name | rprodw |
+
 ## Legacy Install
 
 This information applies to the legacy machine running in AWS.
