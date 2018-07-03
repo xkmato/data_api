@@ -66,5 +66,4 @@ def _rapidpro_sudo(command, environment_vars=None):
             ' '.join('{}={}'.format(k, v) for k, v in environment_vars.items()),
             command,
         )
-        print(command)
     sudo(command, user=env.rapidpro_user)
