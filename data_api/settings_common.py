@@ -41,6 +41,7 @@ INSTALLED_APPS = (
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'raven.contrib.django.raven_compat',
+    'anymail',
 
     'data_api.api',
     'data_api.sql_views',
@@ -150,10 +151,16 @@ ADMIN = (
     ('Admin', 'code@uniceflabs.org'),
 )
 
-DEFAULT_FROM_EMAIL = 'Data Team <no-reply@data.uniceflabs.org>'
+
+ANYMAIL = {
+    "MAILGUN_API_KEY": "****",
+    "MAILGUN_SENDER_DOMAIN": 'mail.unicef.io',  # your Mailgun domain, if needed
+}
+EMAIL_BACKEND = "anymail.backends.mailgun.EmailBackend"
+DEFAULT_FROM_EMAIL = 'Data Team <postmaster@mail.unicef.io>'
 EMAIL_HOST = '127.0.0.1'
-EMAIL_HOST_USER = 'Data Team <no-reply@data.uniceflabs.org>'
-SERVER_EMAIL = 'Data Team <no-reply@data.uniceflabs.org>'
+EMAIL_HOST_USER = DEFAULT_FROM_EMAIL
+SERVER_EMAIL = DEFAULT_FROM_EMAIL
 
 LOGGING = {
     'version': 1,

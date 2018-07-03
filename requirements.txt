@@ -26,3 +26,4 @@ six==1.11.0
 uuid==1.30
 urllib3==1.22
 mock==2.0.0
+django-anymail[mailgun]
