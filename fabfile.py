@@ -1,3 +1,4 @@
+import os
 from fabric.context_managers import settings, cd
 from fabric.operations import run, sudo
 from fabric.state import env
@@ -5,26 +6,39 @@ from fabric.state import env
 __author__ = 'kenneth'
 
 
-def production():
+def legacy():
     env.hosts = ['52.209.114.249']
     env.rapidpro_user = 'www-data'
+    env.code_dir = '/var/www/data_api'
+    env.virtualenv_home = '/var/www/.virtualenvs/api'
+    env.supervisor_process_web = 'api'
+    env.supervisor_process_celery = 'data_celery_workers:*'
+
+def production():
+    env.hosts = ['rapidpro-api.unicef.io']
+    env.rapidpro_user = 'rapidpro'
+    env.code_dir = '/home/rapidpro/projects/rapidpro_warehouse'
+    env.virtualenv_home = '/home/rapidpro/.virtualenvs/rapidpro-warehouse'
+    env.supervisor_process_web = 'rapidpro-django'
+    env.supervisor_process_celery = None  # celery not setup yet
+    env.user = 'dwadmin'
+    env.settings_module = 'data_api.settings_production'
 
 
 def deploy(restart_celery=True, user='www-data', git_hash=None):
     source = 'https://github.com/rapidpro/data_api.git'
-    proc_name = 'api'
-    path = '/var/www/data_api'
-    workon_home = '/var/www/.virtualenvs/api/bin/'
-
     env.rapidpro_user = env.rapidpro_user or user
-
+    workon_home = os.path.join(env.virtualenv_home, 'bin')
     print "Starting deployment"
+    django_settings_env = {}
+    if env.settings_module:
+        django_settings_env['DJANGO_SETTINGS_MODULE'] = env.settings_module
     with settings(warn_only=True):
-        if run("test -d %s" % path).failed:
-            run("git clone %s %s" % (source, path))
-            with cd(path):
+        if run("test -d %s" % env.code_dir).failed:
+            run("git clone %s %s" % (source, env.code_dir))
+            with cd(env.code_dir):
                 run("git config core.filemode false")
-    with cd(path):
+    with cd(env.code_dir):
         _rapidpro_sudo("git stash")
         _rapidpro_sudo("git fetch")
         if not git_hash:
@@ -32,19 +46,25 @@ def deploy(restart_celery=True, user='www-data', git_hash=None):
             _rapidpro_sudo("git pull %s master" % source)
         else:
             _rapidpro_sudo("git checkout %s" % git_hash)
-        _rapidpro_sudo('%spip install -r requirements.txt --no-cache-dir' % workon_home)
-        _rapidpro_sudo('%spython manage.py collectstatic --noinput' % workon_home)
+        _rapidpro_sudo('%s/pip install -r requirements.txt --no-cache-dir' % workon_home)
+        _rapidpro_sudo('%s/python manage.py collectstatic --noinput' % workon_home,
+                       environment_vars=django_settings_env)
 
-        sudo("chown -R %s:%s ." % (user, user))
-        sudo("chmod -R ug+rwx .")
+        sudo("chown -R %s:%s ." % (env.rapidpro_user, env.rapidpro_user))
 
-    sudo("supervisorctl restart %s" % proc_name)
-    if restart_celery:
-        sudo("supervisorctl restart data_celery_workers:*")
+    sudo("supervisorctl restart %s" % env.supervisor_process_web)
+    if restart_celery and env.supervisor_process_celery:
+        sudo("supervisorctl restart {}".format(env.supervisor_process_celery))
 
 
-def _rapidpro_sudo(command):
+def _rapidpro_sudo(command, environment_vars=None):
     """
     Runs a command as env.rapidpro_user
     """
+    if environment_vars:
+        command = '{} {}'.format(
+            ' '.join('{}={}'.format(k, v) for k, v in environment_vars.items()),
+            command,
+        )
+        print(command)
     sudo(command, user=env.rapidpro_user)
