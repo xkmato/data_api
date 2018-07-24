@@ -385,7 +385,7 @@ class Message(OrganizationModel):
     rapidpro_collection = 'messages'
 
     def __unicode__(self):
-        return "%s - %s" % (self.text[:7], self.org_id)
+        return "%s - %s" % (self.text[:7], self.organization)
 
     @classmethod
     def get_checkpoint_for_folder(cls, org, folder):
