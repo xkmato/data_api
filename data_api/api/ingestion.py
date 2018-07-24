@@ -1,8 +1,12 @@
+import gzip
 import inspect
+import json
 from abc import ABCMeta, abstractmethod
 from datetime import datetime
+from tempfile import NamedTemporaryFile
 
 import pytz
+import requests
 
 from data_api.api.exceptions import ImportRunningException
 from data_api.api.tasks import logger
@@ -227,3 +231,30 @@ def get_fetch_kwargs(fetch_method, checkpoint):
                 'after': checkpoint_time
             }
     return {}
+
+
+def ensure_timezone(checkpoint_time):
+    if checkpoint_time.tzinfo is None or checkpoint_time.tzinfo.utcoffset(checkpoint_time) is None:
+        checkpoint_time = pytz.utc.localize(checkpoint_time)
+    return checkpoint_time
+
+
+def download_archive_to_temporary_file(download_url):
+    f = NamedTemporaryFile(delete=False)
+    r = requests.get(download_url, stream=True)
+    with open(f.name, 'wb') as f:
+        for chunk in r.iter_content(chunk_size=1024):
+            if chunk: # filter out keep-alive new chunks
+                f.write(chunk)
+    return f.name
+
+
+def iter_archive(filename):
+    """
+    Iterates through an archive file and yields the results as json
+    :param temp_file_name:
+    :return: an iterator of json wrapped objects
+    """
+    with gzip.open(filename, 'rb') as f:
+        for line in f.readlines():
+            yield json.loads(line)
