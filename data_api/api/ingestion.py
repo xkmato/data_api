@@ -168,7 +168,8 @@ class RapidproAPIBaseModel(object):
         fetch_method = cls.get_fetch_method(org)
         fetch_kwargs = get_fetch_kwargs(fetch_method, checkpoint)
         initial_import = cls.object_count(org) == 0
-        return cls.create_from_temba_list(org, fetch_method(**fetch_kwargs), return_objs,
+        temba_generator = fetch_method(**fetch_kwargs).all(retry_on_rate_exceed=True)
+        return cls.create_from_temba_list(org, temba_generator, return_objs,
                                           is_initial_import=initial_import)
 
     @classmethod
@@ -177,7 +178,7 @@ class RapidproAPIBaseModel(object):
         return getattr(org.get_temba_client(), func)
 
     @classmethod
-    def create_from_temba_list(cls, org, temba_list, return_objs=False, is_initial_import=False):
+    def create_from_temba_list(cls, org, temba_generator, return_objs=False, is_initial_import=False):
         obj_list = []
         chunk_to_save = []
         chunk_size = 100
@@ -190,7 +191,7 @@ class RapidproAPIBaseModel(object):
                 q = {'rapidpro_id': temba_obj.id}
             return q and cls.objects.filter(**q).first()
 
-        for temba in temba_list.all(retry_on_rate_exceed=True):
+        for temba in temba_generator:
             # only bother importing the object if either it's the first time we're importing data
             # for this org/type or if we didn't find existing data in the DB already
             try:

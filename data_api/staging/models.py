@@ -411,7 +411,8 @@ class Message(OrganizationModel):
                 ))
             folder_kwargs = get_fetch_kwargs(fetch_method, checkpoint) or fetch_kwargs
             temba_objs = fetch_method(folder=folder, **folder_kwargs)
-            created_objs = cls.create_from_temba_list(org, temba_objs, return_objs,
+            temba_obj_generator = temba_objs.all(retry_on_rate_exceed=True)
+            created_objs = cls.create_from_temba_list(org, temba_obj_generator, return_objs,
                                                       is_initial_import=initial_import)
             if return_objs:
                 objs.extend(created_objs)
