@@ -69,7 +69,7 @@ class CSVExport(models.Model):
 
 class Org(Document):
     api_token = StringField(required=True)
-    server = StringField(required=True, default=settings.DEFAULT_RAPIDPRO_SITE)
+    server = StringField(required=True, default=settings.RAPIDPRO_DEFAULT_SITE)
     is_active = BooleanField(default=False)
     name = StringField(required=True)
     country = StringField()

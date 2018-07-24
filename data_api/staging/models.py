@@ -40,7 +40,7 @@ class MappedManyToManyField(models.ManyToManyField):
 
 class Organization(models.Model):
     api_token = models.CharField(max_length=40)
-    server = models.CharField(max_length=100, default=settings.DEFAULT_RAPIDPRO_SITE)
+    server = models.CharField(max_length=100, default=settings.RAPIDPRO_DEFAULT_SITE)
     is_active = models.BooleanField(default=False)
     name = models.CharField(max_length=100)
     country = models.CharField(max_length=100, null=True, blank=True)
