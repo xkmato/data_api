@@ -73,8 +73,8 @@ class CampaignEventAdmin(admin.ModelAdmin):
 
 
 class MessageAdmin(admin.ModelAdmin):
-    list_display = ['text', 'type', 'direction'] + ORG_MODEL_FIELDS
-    list_filter = ['type', 'direction'] + ORG_MODEL_FIELDS
+    list_display = ['text', 'type', 'direction', 'sent_on', 'visibility'] + ORG_MODEL_FIELDS
+    list_filter = ['type', 'direction', 'sent_on', 'visibility'] + ORG_MODEL_FIELDS
 
 
 class RunAdmin(admin.ModelAdmin):

@@ -13,6 +13,7 @@ class Migration(migrations.Migration):
 
     dependencies = [
         ('sql_views', '0001_initial'),
+        ('staging', '0010_auto_20180621_1539'),
     ]
 
     operations = [

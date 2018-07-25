@@ -85,7 +85,8 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'data_api.wsgi.application'
 
-DEFAULT_RAPIDPRO_SITE = 'https://app.rapidpro.io/'
+RAPIDPRO_DEFAULT_SITE = 'https://app.rapidpro.io/'
+RAPIDPRO_USE_ARCHIVES = False
 
 LOG_FORMAT = '%(asctime)-15s %(message)s'
 

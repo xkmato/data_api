@@ -3,15 +3,17 @@ from collections import namedtuple
 
 from datetime import datetime
 
+import os
 import pytz
 from django.conf import settings
 from django.contrib.postgres.fields import JSONField, ArrayField
 from django.core.exceptions import FieldDoesNotExist
 from django.db import models, transaction
-from temba_client.v2 import TembaClient
+from temba_client.v2 import TembaClient, Message as TembaMessage
 
 from data_api.api.exceptions import ImportRunningException
-from data_api.api.ingestion import RapidproAPIBaseModel, get_fetch_kwargs, SqlIngestionCheckpoint
+from data_api.api.ingestion import RapidproAPIBaseModel, get_fetch_kwargs, SqlIngestionCheckpoint, ensure_timezone, \
+    download_archive_to_temporary_file, iter_archive
 from data_api.api.models import logger
 
 """
@@ -40,7 +42,7 @@ class MappedManyToManyField(models.ManyToManyField):
 
 class Organization(models.Model):
     api_token = models.CharField(max_length=40)
-    server = models.CharField(max_length=100, default=settings.DEFAULT_RAPIDPRO_SITE)
+    server = models.CharField(max_length=100, default=settings.RAPIDPRO_DEFAULT_SITE)
     is_active = models.BooleanField(default=False)
     name = models.CharField(max_length=100)
     country = models.CharField(max_length=100, null=True, blank=True)
@@ -385,7 +387,7 @@ class Message(OrganizationModel):
     rapidpro_collection = 'messages'
 
     def __unicode__(self):
-        return "%s - %s" % (self.text[:7], self.org_id)
+        return "%s - %s" % (self.text[:7], self.organization)
 
     @classmethod
     def get_checkpoint_for_folder(cls, org, folder):
@@ -393,13 +395,48 @@ class Message(OrganizationModel):
 
     @classmethod
     def sync_data_with_checkpoint(cls, org, checkpoint, return_objs=False):
+        initial_import = not cls.objects.filter(organization=org).exists()
+        if settings.RAPIDPRO_USE_ARCHIVES:
+            return cls._sync_from_archives(org, checkpoint, return_objs, initial_import)
+        else:
+            return cls._sync_from_apis(org, checkpoint, return_objs, initial_import)
+
+    @classmethod
+    def _sync_from_archives(cls, org, checkpoint, return_objs, initial_import):
+        temba_class = TembaMessage
+        archive_fetch_kwargs = {
+            'archive_type': 'message',
+            'period': 'monthly',
+        }
+        if checkpoint and checkpoint.exists() and checkpoint.get_last_checkpoint_time():
+            archive_fetch_kwargs['after'] = ensure_timezone(checkpoint.get_last_checkpoint_time())
+
+        def _iter_temba_objects():
+            archives = org.get_temba_client().get_archives(**archive_fetch_kwargs)
+            for archive in archives.all(retry_on_rate_exceed=True):
+                logger.info('downloading archives for {} ({})'.format(archive.archive_type, archive.start_date))
+                temp_file_name = download_archive_to_temporary_file(archive.download_url)
+                for temba_json in iter_archive(temp_file_name):
+                    try:
+                        yield temba_class.deserialize(temba_json)
+                    except:
+                        import json
+                        print(json.dumps(temba_json, indent=2))
+                        raise
+                # cleanup
+                os.remove(temp_file_name)
+
+        cls.create_from_temba_list(org, _iter_temba_objects(), return_objs, initial_import)
+
+
+    @classmethod
+    def _sync_from_apis(cls, org, checkpoint, return_objs, initial_import):
         fetch_method = cls.get_fetch_method(org)
         fetch_kwargs = get_fetch_kwargs(fetch_method, checkpoint)
         folders = [
             'inbox', 'flows', 'archived', 'outbox', 'incoming', 'sent',
         ]
         objs = []
-        initial_import = not cls.objects.filter(organization=org).exists()
         for folder in folders:
             logger.info('Syncing message folder {}'.format(folder))
             checkpoint = cls.get_checkpoint_for_folder(org, folder)
@@ -411,7 +448,8 @@ class Message(OrganizationModel):
                 ))
             folder_kwargs = get_fetch_kwargs(fetch_method, checkpoint) or fetch_kwargs
             temba_objs = fetch_method(folder=folder, **folder_kwargs)
-            created_objs = cls.create_from_temba_list(org, temba_objs, return_objs,
+            temba_obj_generator = temba_objs.all(retry_on_rate_exceed=True)
+            created_objs = cls.create_from_temba_list(org, temba_obj_generator, return_objs,
                                                       is_initial_import=initial_import)
             if return_objs:
                 objs.extend(created_objs)
