@@ -339,10 +339,10 @@ class Flow(OrganizationModel):
 
 class FlowStart(OrganizationModel):
     uuid = models.UUIDField()
-    flow = models.ForeignKey(Flow)
+    flow = models.ForeignKey(Flow, null=True, blank=True)
     groups = models.ManyToManyField(Group)
     contacts = models.ManyToManyField(Contact)
-    restart_participants = models.BooleanField()
+    restart_participants = models.NullBooleanField()
     status = models.CharField(max_length=100)
     extra = JSONField(default=dict)
     created_on = models.DateTimeField(null=True, blank=True)
