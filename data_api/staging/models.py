@@ -160,6 +160,23 @@ class RapidproCreateableModelMixin(object):
                 model_to_save.object.save()
         return obj
 
+    @staticmethod
+    def _iter_temba_objects_over_archive(org, temba_class, archive_fetch_kwargs):
+        # used by objects that support the archive API (currently Message and Run)
+        archives = org.get_temba_client().get_archives(**archive_fetch_kwargs)
+        for archive in archives.all(retry_on_rate_exceed=True):
+            logger.info('downloading archives for {} ({})'.format(archive.archive_type, archive.start_date))
+            temp_file_name = download_archive_to_temporary_file(archive.download_url)
+            for temba_json in iter_archive(temp_file_name):
+                try:
+                    yield temba_class.deserialize(temba_json)
+                except Exception:
+                    import json
+                    print(json.dumps(temba_json, indent=2))
+                    raise
+            # cleanup
+            os.remove(temp_file_name)
+
 
 class RapidproBaseModel(models.Model, RapidproCreateableModelMixin):
     class Meta:
@@ -411,23 +428,8 @@ class Message(OrganizationModel):
         if checkpoint and checkpoint.exists() and checkpoint.get_last_checkpoint_time():
             archive_fetch_kwargs['after'] = ensure_timezone(checkpoint.get_last_checkpoint_time())
 
-        def _iter_temba_objects():
-            archives = org.get_temba_client().get_archives(**archive_fetch_kwargs)
-            for archive in archives.all(retry_on_rate_exceed=True):
-                logger.info('downloading archives for {} ({})'.format(archive.archive_type, archive.start_date))
-                temp_file_name = download_archive_to_temporary_file(archive.download_url)
-                for temba_json in iter_archive(temp_file_name):
-                    try:
-                        yield temba_class.deserialize(temba_json)
-                    except:
-                        import json
-                        print(json.dumps(temba_json, indent=2))
-                        raise
-                # cleanup
-                os.remove(temp_file_name)
-
-        cls.create_from_temba_list(org, _iter_temba_objects(), return_objs, initial_import)
-
+        temba_generator = cls._iter_temba_objects_over_archive(org, temba_class, archive_fetch_kwargs)
+        cls.create_from_temba_list(org, temba_generator, return_objs, initial_import)
 
     @classmethod
     def _sync_from_apis(cls, org, checkpoint, return_objs, initial_import):
