@@ -9,7 +9,7 @@ from django.conf import settings
 from django.contrib.postgres.fields import JSONField, ArrayField
 from django.core.exceptions import FieldDoesNotExist
 from django.db import models, transaction
-from temba_client.v2 import TembaClient, Message as TembaMessage
+from temba_client.v2 import TembaClient, Message as TembaMessage, Run as TembaRun
 
 from data_api.api.exceptions import ImportRunningException
 from data_api.api.ingestion import RapidproAPIBaseModel, get_fetch_kwargs, SqlIngestionCheckpoint, ensure_timezone, \
@@ -159,6 +159,28 @@ class RapidproCreateableModelMixin(object):
                 setattr(model_to_save.object, model_to_save.foreign_key_field, obj)
                 model_to_save.object.save()
         return obj
+
+    @staticmethod
+    def _iter_temba_objects_over_archive(org, temba_class, archive_fetch_kwargs, default_object_values=None):
+        default_object_values = default_object_values or {}
+        # used by objects that support the archive API (currently Message and Run)
+        archives = org.get_temba_client().get_archives(**archive_fetch_kwargs)
+        for archive in archives.all(retry_on_rate_exceed=True):
+            logger.info('downloading archives for {} ({})'.format(archive.archive_type, archive.start_date))
+            temp_file_name = download_archive_to_temporary_file(archive.download_url)
+            for temba_json in iter_archive(temp_file_name):
+                # populate default fields if not set/available
+                for k, v in default_object_values.items():
+                    if k not in temba_json:
+                        temba_json[k] = v
+                try:
+                    yield temba_class.deserialize(temba_json)
+                except Exception:
+                    import json
+                    print(json.dumps(temba_json, indent=2))
+                    raise
+            # cleanup
+            os.remove(temp_file_name)
 
 
 class RapidproBaseModel(models.Model, RapidproCreateableModelMixin):
@@ -339,10 +361,10 @@ class Flow(OrganizationModel):
 
 class FlowStart(OrganizationModel):
     uuid = models.UUIDField()
-    flow = models.ForeignKey(Flow)
+    flow = models.ForeignKey(Flow, null=True, blank=True)
     groups = models.ManyToManyField(Group)
     contacts = models.ManyToManyField(Contact)
-    restart_participants = models.BooleanField()
+    restart_participants = models.NullBooleanField()
     status = models.CharField(max_length=100)
     extra = JSONField(default=dict)
     created_on = models.DateTimeField(null=True, blank=True)
@@ -411,23 +433,8 @@ class Message(OrganizationModel):
         if checkpoint and checkpoint.exists() and checkpoint.get_last_checkpoint_time():
             archive_fetch_kwargs['after'] = ensure_timezone(checkpoint.get_last_checkpoint_time())
 
-        def _iter_temba_objects():
-            archives = org.get_temba_client().get_archives(**archive_fetch_kwargs)
-            for archive in archives.all(retry_on_rate_exceed=True):
-                logger.info('downloading archives for {} ({})'.format(archive.archive_type, archive.start_date))
-                temp_file_name = download_archive_to_temporary_file(archive.download_url)
-                for temba_json in iter_archive(temp_file_name):
-                    try:
-                        yield temba_class.deserialize(temba_json)
-                    except:
-                        import json
-                        print(json.dumps(temba_json, indent=2))
-                        raise
-                # cleanup
-                os.remove(temp_file_name)
-
-        cls.create_from_temba_list(org, _iter_temba_objects(), return_objs, initial_import)
-
+        temba_generator = cls._iter_temba_objects_over_archive(org, temba_class, archive_fetch_kwargs)
+        cls.create_from_temba_list(org, temba_generator, return_objs, initial_import)
 
     @classmethod
     def _sync_from_apis(cls, org, checkpoint, return_objs, initial_import):
@@ -483,6 +490,28 @@ class Run(OrganizationModel):
     exit_type = models.CharField(max_length=100)
 
     rapidpro_collection = 'runs'
+
+    @classmethod
+    def sync_data_with_checkpoint(cls, org, checkpoint, return_objs=False):
+        if settings.RAPIDPRO_USE_ARCHIVES:
+            return cls._sync_from_archives(org, checkpoint, return_objs)
+        else:
+            return super(Run, cls).sync_data_with_checkpoint(org, checkpoint, return_objs)
+
+    @classmethod
+    def _sync_from_archives(cls, org, checkpoint, return_objs):
+        initial_import = not cls.objects.filter(organization=org).exists()
+        temba_class = TembaRun
+        archive_fetch_kwargs = {
+            'archive_type': 'run',
+            'period': 'monthly',
+        }
+        if checkpoint and checkpoint.exists() and checkpoint.get_last_checkpoint_time():
+            archive_fetch_kwargs['after'] = ensure_timezone(checkpoint.get_last_checkpoint_time())
+
+        temba_generator = cls._iter_temba_objects_over_archive(org, temba_class, archive_fetch_kwargs,
+                                                               default_object_values={'start': None})
+        cls.create_from_temba_list(org, temba_generator, return_objs, initial_import)
 
 
 class Step(RapidproBaseModel):

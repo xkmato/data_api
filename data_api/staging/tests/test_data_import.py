@@ -40,7 +40,6 @@ class DataImportTest(TembaTest):
         cls.client.login(username=username, password=password)
 
     def tearDown(self):
-        pass
         Boundary.objects.all().delete()
         Broadcast.objects.all().delete()
         Campaign.objects.all().delete()
