@@ -5,7 +5,7 @@ celery==4.1.0
 Django==1.9.13
 django-rest-framework-mongoengine==3.3.1
 django-rest-swagger==0.3.4
-djangorestframework==3.7.3
+djangorestframework==3.6.4
 ecdsa==0.13
 Fabric==1.14.0
 kombu==4.1.0
