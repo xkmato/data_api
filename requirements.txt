@@ -27,3 +27,4 @@ uuid==1.30
 urllib3==1.22
 mock==2.0.0
 django-anymail[mailgun]
+sentry-sdk==0.7.10
