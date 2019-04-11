@@ -35,7 +35,7 @@ or
 
 Make sure you are in the root directory of the repository then run:
 
-`pip install -r requirements.txt`
+`pipenv install -d`
 
 ## Configure settings
 

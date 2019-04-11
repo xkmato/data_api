@@ -5,4 +5,4 @@ include LICENSE
 include setup.py
 recursive-include data_api *.*
 recursive-exclude data_api *.pyc
-include requirements.txt
+include Pipfile.lock
