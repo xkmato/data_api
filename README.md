@@ -26,7 +26,6 @@ or
 - [Python](https://www.python.org/downloads/)
 - [Virtualenv](https://virtualenv.pypa.io/en/stable/)
 - [Virtualenvwrapper](https://virtualenvwrapper.readthedocs.io/en/latest/)
-- [MongoDB](https://docs.mongodb.com/manual/administration/install-community/)
 
 ## Setup Virtualenv
 
