@@ -12,46 +12,13 @@ from data_api.staging.exceptions import ImportRunningException
 from data_api.api.tasks import logger
 
 
-class IngestionCheckpoint(object):
-    __metaclass__ = ABCMeta
-
-    def __init__(self, org, collection_class, checkpoint_time):
-        self.org = org
-        self.collection_class = collection_class
-        self.checkpoint_time = checkpoint_time
-
-    @classmethod
-    def get_checkpoint(self, org, collection_class, checkpoint_time):
-        from data_api.staging.models import Organization
-        assert isinstance(org, Organization)
-        return SqlIngestionCheckpoint(org, collection_class, checkpoint_time)
-
-    @abstractmethod
-    def exists(self):
-        pass
-
-    @abstractmethod
-    def is_running(self):
-        pass
-
-    @abstractmethod
-    def get_last_checkpoint_time(self):
-        pass
-
-    @abstractmethod
-    def create_and_start(self):
-        pass
-
-    @abstractmethod
-    def set_finished(self):
-        pass
-
-
-class SqlIngestionCheckpoint(IngestionCheckpoint):
+class SqlIngestionCheckpoint(object):
 
     def __init__(self, org, collection_class, checkpoint_time, subcollection=None):
         from data_api.staging.models import SyncCheckpoint
-        super(SqlIngestionCheckpoint, self).__init__(org, collection_class, checkpoint_time)
+        self.org = org
+        self.collection_class = collection_class
+        self.checkpoint_time = checkpoint_time
         self.subcollection = subcollection
         try:
             self._checkpoint = SyncCheckpoint.objects.get(
@@ -63,6 +30,12 @@ class SqlIngestionCheckpoint(IngestionCheckpoint):
         except SyncCheckpoint.DoesNotExist:
             self._checkpoint = None
             self._exists = False
+
+    @classmethod
+    def get_checkpoint(self, org, collection_class, checkpoint_time):
+        from data_api.staging.models import Organization
+        assert isinstance(org, Organization)
+        return SqlIngestionCheckpoint(org, collection_class, checkpoint_time)
 
     def exists(self):
         return self._exists
@@ -119,7 +92,7 @@ class RapidproAPIBaseModel(object):
         Syncs all objects of this type from the provided org.
         """
         checkpoint_time = datetime.now(tz=pytz.utc)
-        checkpoint = IngestionCheckpoint.get_checkpoint(org, cls, checkpoint_time)
+        checkpoint = SqlIngestionCheckpoint.get_checkpoint(org, cls, checkpoint_time)
         if not checkpoint.exists():
             checkpoint.create_and_start()
         elif checkpoint.is_running():
