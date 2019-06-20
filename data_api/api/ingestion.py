@@ -1,7 +1,6 @@
 import gzip
 import inspect
 import json
-from abc import ABCMeta, abstractmethod
 from datetime import datetime
 from tempfile import NamedTemporaryFile
 
