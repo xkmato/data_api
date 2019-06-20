@@ -13,7 +13,7 @@ from django.db import models, transaction
 from temba_client.v2 import TembaClient, Message as TembaMessage, Run as TembaRun
 
 from data_api.staging.exceptions import ImportRunningException
-from data_api.api.ingestion import RapidproAPIBaseModel, get_fetch_kwargs, IngestionCheckpoint, ensure_timezone, \
+from data_api.staging.ingestion import RapidproAPIBaseModel, get_fetch_kwargs, IngestionCheckpoint, ensure_timezone, \
     download_archive_to_temporary_file, iter_archive
 
 
