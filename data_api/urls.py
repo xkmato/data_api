@@ -16,13 +16,11 @@ Including another URLconf
 from django.conf.urls import include, url
 from django.contrib import admin
 from rest_framework.authtoken import views
-from data_api.api import urls as v2_urls
 from data_api.staging_api import urls as staging_api_urls
 
 urlpatterns = [
     url(r'^api-token-auth/', views.obtain_auth_token),
     url(r'^admin/', include(admin.site.urls)),
-    url(r'^api/v2/', include(v2_urls)),
     url(r'^api/v3/', include(staging_api_urls)),
     url(r'^ui/', include('data_api.ui.urls')),
     url(r'^', include('rest_framework_swagger.urls')),
