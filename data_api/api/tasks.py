@@ -83,14 +83,3 @@ def sync_latest_data(entities=None, orgs=None):
 
     task_duration = datetime.now() - start_time
     mail_admins('Finished RapidPro data sync in {} seconds'.format(task_duration.seconds), '')
-
-
-@task
-def generate_message_dumps(from_date=None, org=None, contact_fields=None):
-    from data_api.api.models import Message
-    Message.generate_csv(from_date=from_date, org_id=org, contact_fields=contact_fields)
-
-@task
-def generate_run_dumps(from_date=None, org=None, contact_fields=None):
-    from data_api.api.models import Run
-    Run.generate_csv(from_date=from_date, org_id=org, contact_fields=contact_fields)

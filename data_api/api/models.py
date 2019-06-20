@@ -29,44 +29,6 @@ logging.basicConfig(format=settings.LOG_FORMAT)
 logger = logging.getLogger("models")
 
 
-class CSVExport(models.Model):
-    org_id = models.CharField(max_length=100)
-    created_on = models.DateTimeField(auto_now_add=True)
-    modified_on = models.DateTimeField(auto_now=True)
-    last_object = models.DateTimeField()
-    object_model = models.CharField(max_length=100)
-
-    @classmethod
-    def update_for_object(cls, org_id, obj_id, obj_type):
-        obj = cls.objects.filter(object_model=obj_type, org_id=org_id).first()
-        if not obj:
-            obj = cls.objects.create(object_model=obj_type, last_object=obj_id, org_id=org_id)
-        else:
-            obj.last_object = obj_id
-            obj.save()
-        return obj
-
-    @classmethod
-    def update_for_messages(cls, org_id, obj_id):
-        return cls.update_for_object(org_id, obj_id, 'message')
-
-    @classmethod
-    def update_for_runs(cls, org_id, obj_id):
-        return cls.update_for_object(org_id, obj_id, 'run')
-
-    @classmethod
-    def get_last_object(cls, org, obj_type):
-        return cls.objects.filter(object_model=obj_type, org_id=org)
-
-    @classmethod
-    def get_last_message(cls, org):
-        return cls.get_last_object(org, 'message')
-
-    @classmethod
-    def get_last_run(cls, org):
-        return cls.get_last_object(org, 'run')
-
-
 class Org(Document):
     api_token = StringField(required=True)
     server = StringField(required=True, default=settings.RAPIDPRO_DEFAULT_SITE)
@@ -502,57 +464,6 @@ class Message(OrgDocument):
             last_saved_for_folder.save()
         return objs
 
-    @classmethod
-    def generate_csv(cls, from_date=None, org_id=None, contact_fields=None):
-        if not from_date:
-            from_date = datetime(2016, 1, 1)
-        if not org_id:
-            org_id = settings.DEFAULT_ORG
-        create_folder_for_org(org_id)
-        if not contact_fields:
-            contact_fields = settings.DEFAULT_CONTACT_FIELDS
-
-        message_attributes = settings.DEFAULT_MESSAGE_ATTRIBUTES
-        file_number = 0
-        record_number = 0
-        q = cls.get_for_org(org_id).filter(created_on__gt=from_date)
-        while q[record_number: record_number + settings.MAX_RECORDS_PER_EXPORT].first():
-            with open('%s/%s/messages/export_%s_%d.csv' % (settings.CSV_DUMPS_FOLDER, org_id, str(datetime.now()),
-                                                           file_number), 'w') as csv_file:
-                writer = csv.DictWriter(csv_file, fieldnames=message_attributes + ['contact_%s' % a
-                                                                                   for a in contact_fields])
-                writer.writeheader()
-                for message in q[record_number: record_number + settings.MAX_RECORDS_PER_EXPORT]:
-                    try:
-                        contact = Contact.objects.filter(id=ObjectId(message.contact.get('id'))).first()
-                        if contact:
-                            try:
-                                fields = eval(contact.fields)
-                            except NameError:
-                                fields = {}
-
-                        m_dict = {}
-                        for attrib in message_attributes:
-                            m_dict[attrib] = unicode(getattr(message, attrib)).encode('utf-8')
-                        if contact:
-                            m_dict['contact_uuid'] = contact.uuid
-                            contact_fields.remove('uuid')
-                            for _attrib in contact_fields:
-                                m_dict['contact_%s' % _attrib] = unicode(fields.get(_attrib)).encode('utf-8')
-                        writer.writerow(m_dict)
-                        record_number += 1
-                        if record_number >= record_number+settings.MAX_RECORDS_PER_EXPORT:
-                            break
-                    except UnicodeEncodeError as e:
-                        logger.error(e)
-                        raise
-                    except Exception as e:
-                        logger.error(e)
-                        raise
-                CSVExport.update_for_messages(org_id, message.created_on)
-            file_number += 1
-
-
 class Value(EmbeddedDocument, EmbeddedUtil):
     value = DynamicField()
     category = StringField()
@@ -595,71 +506,6 @@ class Run(OrgDocument):
             return cls.objects.filter(flow__id=ObjectId(flow_id))
         except InvalidId:
             return cls.objects.none()
-
-    @classmethod
-    def generate_csv(cls, from_date=None, org_id=None, contact_fields=None):
-        if not org_id:
-            org_id = settings.DEFAULT_ORG
-        create_folder_for_org(org_id)
-        if not from_date:
-            from_date = datetime(2016, 1, 1)
-        if not contact_fields:
-            contact_fields = settings.DEFAULT_CONTACT_FIELDS
-
-        step_attributes = ['node', 'text', 'value', 'type', 'arrived_on', 'left_on']
-        ruleset_attributes = ['node', 'category', 'text', 'rule_value', 'label', 'value', 'time']
-        run_attributes = ['created_on', 'kind', 'flow_uuid', 'flow_name']
-        file_number = 0
-        record_number = 0
-        q = cls.get_for_org(org_id).filter(created_on__gt=from_date, values__ne=[]).order_by('created_on')
-        while q[record_number: record_number + settings.MAX_RECORDS_PER_EXPORT].first():
-            try:
-                with open('%s/%s/runs/export_%s_%d.csv' % (settings.CSV_DUMPS_FOLDER, org_id, str(datetime.now()),
-                                                               file_number), 'w') as csv_file:
-                    writer = csv.DictWriter(csv_file, fieldnames=run_attributes + ['step_%s' % sa for sa in step_attributes]
-                                                                    + ['ruleset_%s' % ra for ra in ruleset_attributes] +
-                                                                    ['contact_%s' % a for a in contact_fields])
-                    writer.writeheader()
-                    for run in q[record_number: record_number + settings.MAX_RECORDS_PER_EXPORT]:
-                        try:
-                            flow = Flow.objects.filter(id=ObjectId(run.flow.get('id'))).first()
-                            contact = Contact.objects.filter(id=ObjectId(run.contact.get('id'))).first()
-                            if contact:
-                                try:
-                                    fields = eval(contact.fields)
-                                except NameError:
-                                    fields = {}
-
-                            m_dict = {'created_on': unicode(run.created_on), 'flow_uuid': flow.uuid if flow else None,
-                                      'flow_name': flow.name if flow else None}
-                            if contact:
-                                m_dict['contact_uuid'] = contact.uuid
-                                contact_fields.remove('uuid')
-                                for _attrib in contact_fields:
-                                    m_dict['contact_%s' % _attrib] = unicode(fields.get(_attrib)).encode('utf-8')
-                            r_dict, s_dict = {}, {}
-                            try:
-                                for ruleset in run.values:
-                                    m_dict['kind'] = 'value'
-                                    for ra in ruleset_attributes:
-                                        r_dict['ruleset_%s' % ra] = unicode(getattr(ruleset, ra, None)).encode('utf-8')
-                                    x = m_dict.copy()
-                                    x.update(r_dict)
-                                    writer.writerow(x)
-                            except Exception as e:
-                                logger.error(e)
-                            record_number += 1
-                            if record_number >= record_number+settings.MAX_RECORDS_PER_EXPORT:
-                                break
-                        except UnicodeEncodeError as e:
-                            logger.error(e)
-                            raise
-                        except Exception as e:
-                            raise
-                    CSVExport.update_for_runs(org_id, run.created_on)
-                file_number += 1
-            except Exception as e:
-                pass
 
 
 class BoundaryRef(EmbeddedDocument, EmbeddedUtil):
