@@ -8,7 +8,6 @@ from django.conf import settings
 import raven
 from raven.contrib.celery import register_logger_signal, register_signal
 
-__author__ = 'kenneth'
 
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'data_api.settings')
 

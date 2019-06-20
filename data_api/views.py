@@ -1,7 +1,5 @@
 from django.http import JsonResponse
 
-__author__ = 'kenneth'
-
 
 def page_not_found_view(request):
     return JsonResponse({

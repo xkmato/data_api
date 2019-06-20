@@ -10,8 +10,6 @@ from celery import task
 
 from data_api.staging.exceptions import ImportRunningException
 
-__author__ = 'kenneth'
-
 logging.basicConfig(format=settings.LOG_FORMAT)
 logger = logging.getLogger("tasks")
 

@@ -1,4 +1,3 @@
-__author__ = 'kenneth'
 """
 Django settings for data_api project.
 
