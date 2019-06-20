@@ -13,7 +13,7 @@ from django.db import models, transaction
 from temba_client.v2 import TembaClient, Message as TembaMessage, Run as TembaRun
 
 from data_api.staging.exceptions import ImportRunningException
-from data_api.api.ingestion import RapidproAPIBaseModel, get_fetch_kwargs, SqlIngestionCheckpoint, ensure_timezone, \
+from data_api.api.ingestion import RapidproAPIBaseModel, get_fetch_kwargs, IngestionCheckpoint, ensure_timezone, \
     download_archive_to_temporary_file, iter_archive
 
 
@@ -414,7 +414,7 @@ class Message(OrganizationModel):
 
     @classmethod
     def get_checkpoint_for_folder(cls, org, folder):
-        return SqlIngestionCheckpoint(org, cls, datetime.now(tz=pytz.utc), folder)
+        return IngestionCheckpoint(org, cls, datetime.now(tz=pytz.utc), folder)
 
     @classmethod
     def sync_data_with_checkpoint(cls, org, checkpoint, return_objs=False):
