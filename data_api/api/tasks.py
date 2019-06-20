@@ -31,21 +31,6 @@ def fetch_entity(entity, org, return_objs=False):
     return entity.sync_all_data(org, return_objs)
 
 
-def get_org_entities():
-    from data_api.staging.models import OrganizationModel
-    return OrganizationModel.__subclasses__()
-
-
-def get_all_orgs():
-    from data_api.staging.models import Organization
-    return Organization.objects.filter(is_active=True)
-
-
-def get_orgs_by_api_keys(api_keys):
-    from data_api.staging.models import Organization
-    return Organization.objects.filter(api_token__in=api_keys)
-
-
 @task
 def sync_latest_data(entities=None, orgs=None):
     """
@@ -56,11 +41,11 @@ def sync_latest_data(entities=None, orgs=None):
     mail_admins('Starting RapidPro data sync', '')
     start_time = datetime.now()
     if not entities:
-        entities = get_org_entities()
+        entities = _get_org_entities()
     if not orgs:
-        orgs = get_all_orgs()
+        orgs = _get_all_orgs()
     else:
-        orgs = get_orgs_by_api_keys(orgs)
+        orgs = _get_orgs_by_api_keys(orgs)
     assert iter(entities)
     for org in orgs:
         for entity in entities:
@@ -81,3 +66,18 @@ def sync_latest_data(entities=None, orgs=None):
 
     task_duration = datetime.now() - start_time
     mail_admins('Finished RapidPro data sync in {} seconds'.format(task_duration.seconds), '')
+
+
+def _get_org_entities():
+    from data_api.staging.models import OrganizationModel
+    return OrganizationModel.__subclasses__()
+
+
+def _get_all_orgs():
+    from data_api.staging.models import Organization
+    return Organization.objects.filter(is_active=True)
+
+
+def _get_orgs_by_api_keys(api_keys):
+    from data_api.staging.models import Organization
+    return Organization.objects.filter(api_token__in=api_keys)
