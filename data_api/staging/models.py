@@ -27,9 +27,6 @@ Thus, these models represent the *raw* rapidpro data.
 
 It is anticipated that there might one day be a "rapidpro_warehouse" app that aggregates/denormalizes
 the staging data in a way to make data warehouse operations more efficient. 
-
-Eventually this will replace the mongo models in api.models, but for the transition period
-the intention is to have two models files, one for mongo and one for SQL.
 """
 
 ModelToSave = namedtuple('ModelToSave', 'object foreign_key_field')
