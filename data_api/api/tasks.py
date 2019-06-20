@@ -8,7 +8,7 @@ from temba_client.exceptions import TembaConnectionError, TembaBadRequestError, 
     TembaRateExceededError, TembaException
 from celery import task
 
-from data_api.api.exceptions import ImportRunningException
+from data_api.staging.exceptions import ImportRunningException
 
 __author__ = 'kenneth'
 

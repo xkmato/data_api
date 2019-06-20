@@ -8,7 +8,7 @@ from tempfile import NamedTemporaryFile
 import pytz
 import requests
 
-from data_api.api.exceptions import ImportRunningException
+from data_api.staging.exceptions import ImportRunningException
 from data_api.api.tasks import logger
 
 

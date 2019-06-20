@@ -11,7 +11,7 @@ from django.core.exceptions import FieldDoesNotExist
 from django.db import models, transaction
 from temba_client.v2 import TembaClient, Message as TembaMessage, Run as TembaRun
 
-from data_api.api.exceptions import ImportRunningException
+from data_api.staging.exceptions import ImportRunningException
 from data_api.api.ingestion import RapidproAPIBaseModel, get_fetch_kwargs, SqlIngestionCheckpoint, ensure_timezone, \
     download_archive_to_temporary_file, iter_archive
 from data_api.api.models import logger
