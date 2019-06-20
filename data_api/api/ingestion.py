@@ -22,13 +22,9 @@ class IngestionCheckpoint(object):
 
     @classmethod
     def get_checkpoint(self, org, collection_class, checkpoint_time):
-        from data_api.api.models import Org
         from data_api.staging.models import Organization
-        if isinstance(org, Org):
-            return MongoIngestionCheckpoint(org, collection_class, checkpoint_time)
-        else:
-            assert isinstance(org, Organization)
-            return SqlIngestionCheckpoint(org, collection_class, checkpoint_time)
+        assert isinstance(org, Organization)
+        return SqlIngestionCheckpoint(org, collection_class, checkpoint_time)
 
     @abstractmethod
     def exists(self):
@@ -49,39 +45,6 @@ class IngestionCheckpoint(object):
     @abstractmethod
     def set_finished(self):
         pass
-
-
-class MongoIngestionCheckpoint(IngestionCheckpoint):
-
-    def __init__(self, org, collection_class, checkpoint_time):
-        from data_api.api.models import LastSaved
-        super(MongoIngestionCheckpoint, self).__init__(org, collection_class, checkpoint_time)
-        self._last_saved = LastSaved.get_for_org_and_collection(org, collection_class)
-        self._exists = self._last_saved is not None
-
-    def exists(self):
-        return self._exists
-
-    def is_running(self):
-        return self.exists() and self._last_saved.is_running
-
-    def get_last_checkpoint_time(self):
-        if not self.exists():
-            return None
-        return self._last_saved.last_saved
-
-    def create_and_start(self):
-        from data_api.api.models import LastSaved
-        ls = LastSaved.create_for_org_and_collection(self.org, self.collection_class)
-        ls.last_started = self.checkpoint_time
-        ls.is_running = True
-        ls.save()
-        self._last_saved = ls
-
-    def set_finished(self):
-        self._last_saved.last_saved = self.checkpoint_time
-        self._last_saved.is_running = False
-        self._last_saved.save()
 
 
 class SqlIngestionCheckpoint(IngestionCheckpoint):
