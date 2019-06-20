@@ -69,7 +69,7 @@ sudo -u postgres createdb rapidpro_data_api
 
 Or to run individual tests:
 
-`./manage.py test data_api.api.tests.test_data_import_v2.V2TembaTest.test_import_boundaries`
+`./manage.py test data_api.staging.tests.test_data_import.DataImportTest.test_import_boundaries`
 
 # Deployment
 
