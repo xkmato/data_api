@@ -50,7 +50,6 @@ INSTALLED_APPS = (
     'data_api.ui',
     'rest_framework',
     'rest_framework.authtoken',
-    'rest_framework_mongoengine',
     'rest_framework_swagger',
 )
 
@@ -248,5 +247,4 @@ DEFAULT_CONTACT_FIELDS = ['uuid', 'age_groups', 'education_level', 'village', 'o
                               'istwitteruser', 'isinternetuser', 'recruitment_source']
 
 
-MONGO_DBNAME = 'rapidpro'
 LOGIN_URL = '/admin/login/'
