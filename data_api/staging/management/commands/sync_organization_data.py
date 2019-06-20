@@ -42,4 +42,4 @@ class Command(BaseCommand):
 
         client = TembaClient(server, api_key)
         import_org_with_client(client, server, api_key)
-        sync_latest_data(orgs=[api_key], sql=True)
+        sync_latest_data(orgs=[api_key])
