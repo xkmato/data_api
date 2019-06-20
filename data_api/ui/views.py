@@ -1,6 +1,8 @@
 from django.contrib.auth.decorators import user_passes_test
 from django.shortcuts import render
-from data_api.api.utils import import_org
+from temba_client.v2 import TembaClient
+
+from data_api.staging.utils import import_org_with_client
 from data_api.ui.forms import OrgForm
 
 
@@ -14,7 +16,8 @@ def import_org_view(request):
             api_key = post_form.cleaned_data['api_key']
             server = post_form.cleaned_data['server']
             try:
-                org = import_org(server, api_key)
+                client = TembaClient(server, api_key)
+                org = import_org_with_client(client, server, api_key)
                 feedback = 'Successfully imported API key for <strong>{}</strong>. Data will show up within 24 hours.'.format(
                     org.name,
                 )
