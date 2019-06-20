@@ -8,7 +8,7 @@ import pytz
 import requests
 
 from data_api.staging.exceptions import ImportRunningException
-from data_api.api.tasks import logger
+from data_api.staging.tasks import logger
 
 
 class IngestionCheckpoint(object):

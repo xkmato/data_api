@@ -30,7 +30,7 @@ app = Celery('data_api')
 @app.on_after_configure.connect
 def setup_periodic_tasks(sender, **kwargs):
     try:
-        from data_api.api.tasks import sync_latest_data
+        from data_api.staging.tasks import sync_latest_data
     except Exception:
         # fail hard if something went wrong bootsrapping the tasks
         traceback.print_exc()
