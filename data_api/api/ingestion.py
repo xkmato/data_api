@@ -13,7 +13,7 @@ from data_api.api.tasks import logger
 
 
 class IngestionCheckpoint(object):
-    
+
     def __init__(self, org, collection_class, checkpoint_time, subcollection=None):
         from data_api.staging.models import SyncCheckpoint
         self.org = org
