@@ -3,6 +3,7 @@ from collections import namedtuple
 
 from datetime import datetime
 
+import logging
 import os
 import pytz
 from django.conf import settings
@@ -14,7 +15,10 @@ from temba_client.v2 import TembaClient, Message as TembaMessage, Run as TembaRu
 from data_api.staging.exceptions import ImportRunningException
 from data_api.api.ingestion import RapidproAPIBaseModel, get_fetch_kwargs, SqlIngestionCheckpoint, ensure_timezone, \
     download_archive_to_temporary_file, iter_archive
-from data_api.api.models import logger
+
+
+logging.basicConfig(format=settings.LOG_FORMAT)
+logger = logging.getLogger("models")
 
 """
 RapidPro Staging SQL models live here. The word "staging" comes from the data warehouse 
