@@ -1,4 +1,3 @@
-__author__ = 'kenneth'
 """
 Django settings for data_api project.
 
@@ -43,14 +42,12 @@ INSTALLED_APPS = (
     'raven.contrib.django.raven_compat',
     'anymail',
 
-    'data_api.api',
     'data_api.sql_views',
     'data_api.staging',
     'data_api.staging_api',
     'data_api.ui',
     'rest_framework',
     'rest_framework.authtoken',
-    'rest_framework_mongoengine',
     'rest_framework_swagger',
 )
 
@@ -248,5 +245,4 @@ DEFAULT_CONTACT_FIELDS = ['uuid', 'age_groups', 'education_level', 'village', 'o
                               'istwitteruser', 'isinternetuser', 'recruitment_source']
 
 
-MONGO_DBNAME = 'rapidpro'
 LOGIN_URL = '/admin/login/'

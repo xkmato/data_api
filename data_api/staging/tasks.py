@@ -8,9 +8,7 @@ from temba_client.exceptions import TembaConnectionError, TembaBadRequestError, 
     TembaRateExceededError, TembaException
 from celery import task
 
-from data_api.api.exceptions import ImportRunningException
-
-__author__ = 'kenneth'
+from data_api.staging.exceptions import ImportRunningException
 
 logging.basicConfig(format=settings.LOG_FORMAT)
 logger = logging.getLogger("tasks")
@@ -33,35 +31,8 @@ def fetch_entity(entity, org, return_objs=False):
     return entity.sync_all_data(org, return_objs)
 
 
-def get_org_entities(sql):
-    from data_api.api.models import OrgDocument
-    from data_api.staging.models import OrganizationModel
-    if not sql:
-        return OrgDocument.__subclasses__()
-    else:
-        return OrganizationModel.__subclasses__()
-
-
-def get_all_orgs(sql):
-    from data_api.api.models import Org
-    from data_api.staging.models import Organization
-    if not sql:
-        return Org.objects.filter(is_active=True)
-    else:
-        return Organization.objects.filter(is_active=True)
-
-
-def get_orgs_by_api_keys(api_keys, sql):
-    from data_api.api.models import Org
-    from data_api.staging.models import Organization
-    if not sql:
-        [Org.objects.get(**{'api_token': api_key}) for api_key in api_keys]
-    else:
-        return Organization.objects.filter(api_token__in=api_keys)
-
-
 @task
-def sync_latest_data(entities=None, orgs=None, sql=False):
+def sync_latest_data(entities=None, orgs=None):
     """
     Syncs the latest data from configured rapidpro Orgs.
 
@@ -70,11 +41,11 @@ def sync_latest_data(entities=None, orgs=None, sql=False):
     mail_admins('Starting RapidPro data sync', '')
     start_time = datetime.now()
     if not entities:
-        entities = get_org_entities(sql)
+        entities = _get_org_entities()
     if not orgs:
-        orgs = get_all_orgs(sql)
+        orgs = _get_all_orgs()
     else:
-        orgs = get_orgs_by_api_keys(orgs, sql)
+        orgs = _get_orgs_by_api_keys(orgs)
     assert iter(entities)
     for org in orgs:
         for entity in entities:
@@ -97,12 +68,16 @@ def sync_latest_data(entities=None, orgs=None, sql=False):
     mail_admins('Finished RapidPro data sync in {} seconds'.format(task_duration.seconds), '')
 
 
-@task
-def generate_message_dumps(from_date=None, org=None, contact_fields=None):
-    from data_api.api.models import Message
-    Message.generate_csv(from_date=from_date, org_id=org, contact_fields=contact_fields)
+def _get_org_entities():
+    from data_api.staging.models import OrganizationModel
+    return OrganizationModel.__subclasses__()
 
-@task
-def generate_run_dumps(from_date=None, org=None, contact_fields=None):
-    from data_api.api.models import Run
-    Run.generate_csv(from_date=from_date, org_id=org, contact_fields=contact_fields)
+
+def _get_all_orgs():
+    from data_api.staging.models import Organization
+    return Organization.objects.filter(is_active=True)
+
+
+def _get_orgs_by_api_keys(api_keys):
+    from data_api.staging.models import Organization
+    return Organization.objects.filter(api_token__in=api_keys)

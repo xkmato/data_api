@@ -3,6 +3,7 @@ from collections import namedtuple
 
 from datetime import datetime
 
+import logging
 import os
 import pytz
 from django.conf import settings
@@ -11,10 +12,13 @@ from django.core.exceptions import FieldDoesNotExist
 from django.db import models, transaction
 from temba_client.v2 import TembaClient, Message as TembaMessage, Run as TembaRun
 
-from data_api.api.exceptions import ImportRunningException
-from data_api.api.ingestion import RapidproAPIBaseModel, get_fetch_kwargs, SqlIngestionCheckpoint, ensure_timezone, \
+from data_api.staging.exceptions import ImportRunningException
+from data_api.staging.ingestion import RapidproAPIBaseModel, get_fetch_kwargs, IngestionCheckpoint, ensure_timezone, \
     download_archive_to_temporary_file, iter_archive
-from data_api.api.models import logger
+
+
+logging.basicConfig(format=settings.LOG_FORMAT)
+logger = logging.getLogger("models")
 
 """
 RapidPro Staging SQL models live here. The word "staging" comes from the data warehouse 
@@ -23,9 +27,6 @@ Thus, these models represent the *raw* rapidpro data.
 
 It is anticipated that there might one day be a "rapidpro_warehouse" app that aggregates/denormalizes
 the staging data in a way to make data warehouse operations more efficient. 
-
-Eventually this will replace the mongo models in api.models, but for the transition period
-the intention is to have two models files, one for mongo and one for SQL.
 """
 
 ModelToSave = namedtuple('ModelToSave', 'object foreign_key_field')
@@ -413,7 +414,7 @@ class Message(OrganizationModel):
 
     @classmethod
     def get_checkpoint_for_folder(cls, org, folder):
-        return SqlIngestionCheckpoint(org, cls, datetime.now(tz=pytz.utc), folder)
+        return IngestionCheckpoint(org, cls, datetime.now(tz=pytz.utc), folder)
 
     @classmethod
     def sync_data_with_checkpoint(cls, org, checkpoint, return_objs=False):

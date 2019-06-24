@@ -3,8 +3,6 @@ from fabric.context_managers import settings, cd
 from fabric.operations import run, sudo
 from fabric.state import env
 
-__author__ = 'kenneth'
-
 
 def legacy():
     env.hosts = ['52.209.114.249']

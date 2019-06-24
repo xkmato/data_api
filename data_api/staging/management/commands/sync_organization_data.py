@@ -2,8 +2,8 @@ import logging
 from django.core.management import BaseCommand
 from temba_client.v2 import TembaClient
 
-from data_api.api.tasks import sync_latest_data, logger as task_logger
-from data_api.api.models import logger as model_logger
+from data_api.staging.tasks import sync_latest_data, logger as task_logger
+from data_api.staging.models import logger as model_logger
 from data_api.staging.utils import import_org_with_client
 
 
@@ -42,4 +42,4 @@ class Command(BaseCommand):
 
         client = TembaClient(server, api_key)
         import_org_with_client(client, server, api_key)
-        sync_latest_data(orgs=[api_key], sql=True)
+        sync_latest_data(orgs=[api_key])

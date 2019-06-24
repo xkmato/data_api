@@ -9,10 +9,8 @@ from temba_client.tests import TembaTest, MockResponse
 from temba_client.v2 import TembaClient
 import uuid
 
-from data_api.api.exceptions import ImportRunningException
-from data_api.api.tests.test_utils import get_api_results_from_file
-from data_api.api.models import LastSaved
-from data_api.api.tasks import fetch_entity
+from data_api.staging.tests.test_utils import get_api_results_from_file
+from data_api.staging.tasks import fetch_entity
 from data_api.staging.models import Organization, Group, SyncCheckpoint, Channel, Contact, ChannelEvent, Field, \
     Broadcast, Campaign, Flow, CampaignEvent, Runs, Label, FlowStart, Run, Boundary, Resthook, ResthookEvent, \
     ResthookSubscriber, Message

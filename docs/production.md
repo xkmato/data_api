@@ -23,7 +23,6 @@ Sample config files can be found in [the `config_files` directory](./config_file
 | Database URL | unipgdwhdb.postgres.database.azure.com |
 | Database User | rprodwusr@unipgdwhdb |
 | Database Name | rprodw |
-| Mongo Database | N/A (phased out) |
 
 
 ## Superset VM
@@ -64,7 +63,7 @@ It is in the process of being phased out.
 | Supervisor Config | /etc/supervisor/supervisord.conf |
 | Nginx Config | /etc/nginx/sites-enabled/api.conf |
 | SQL Database | /var/www/data_api/db.sqlite3 |
-| Mongo Database | rapidpro-v2-test |
+| Mongo Database (deprecated) | rapidpro-v2-test |
 
 ### Redash
 
@@ -96,7 +95,9 @@ $ sudo service postfix status
 $ sudo service postfix start
 ```
 
-## Recovering from a Reboot
+## (Legacy) Recovering from a Reboot
+
+**These instructions likely don't apply to the current Azure environment.**
 
 When the machine last rebooted, the EBS data volume where mongo and log files reside did not mount, 
 resulting in nothing being able to run. 
