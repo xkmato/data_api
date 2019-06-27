@@ -3,27 +3,9 @@ import os
 import traceback
 from celery import Celery
 import sys
-import celery
-from django.conf import settings
-import raven
-from raven.contrib.celery import register_logger_signal, register_signal
 
 
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'data_api.settings')
-
-if settings.RAVEN_URL:
-    # see https://sentry.io/cory-zue/datauniceflabsorg/getting-started/python-celery/
-    class Celery(celery.Celery):
-
-        def on_configure(self):
-            client = raven.Client(settings.RAVEN_URL)
-
-            # register a custom filter to filter out duplicate logs
-            register_logger_signal(client)
-
-            # hook into the Celery error handler
-            register_signal(client)
-
 
 app = Celery('data_api')
 
