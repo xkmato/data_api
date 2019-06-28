@@ -21,12 +21,12 @@ logging.basicConfig(format=settings.LOG_FORMAT)
 logger = logging.getLogger("models")
 
 """
-RapidPro Staging SQL models live here. The word "staging" comes from the data warehouse 
+RapidPro Staging SQL models live here. The word "staging" comes from the data warehouse
 notion of staging where the raw data from an external system is staged as-is in the warehouse.
 Thus, these models represent the *raw* rapidpro data.
 
 It is anticipated that there might one day be a "rapidpro_warehouse" app that aggregates/denormalizes
-the staging data in a way to make data warehouse operations more efficient. 
+the staging data in a way to make data warehouse operations more efficient.
 """
 
 ModelToSave = namedtuple('ModelToSave', 'object foreign_key_field')

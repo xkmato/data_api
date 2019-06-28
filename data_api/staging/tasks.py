@@ -18,7 +18,7 @@ def retry_if_temba_api_or_connection_error(exception):
         return False
     if isinstance(exception, (TembaConnectionError, TembaRateExceededError)):
         logger.warning("Raised an exception: %s - Retrying in %s minutes", str(exception),
-                       str(settings.RETRY_WAIT_FIXED/60000))
+                       str(settings.RETRY_WAIT_FIXED / 60000))
         return True
     return False
 

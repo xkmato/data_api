@@ -179,7 +179,7 @@ def download_archive_to_temporary_file(download_url):
     r = requests.get(download_url, stream=True)
     with open(f.name, 'wb') as f:
         for chunk in r.iter_content(chunk_size=1024):
-            if chunk: # filter out keep-alive new chunks
+            if chunk:  # filter out keep-alive new chunks
                 f.write(chunk)
     return f.name
 
