@@ -39,7 +39,6 @@ INSTALLED_APPS = (
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'raven.contrib.django.raven_compat',
     'anymail',
 
     'data_api.sql_views',
@@ -120,11 +119,6 @@ DATABASES = {
 }
 
 
-RAVEN_URL = None  # override WITH https://<key>:<secret>@app.getsentry.com/<project> to enable raven
-RAVEN_CONFIG = {
-    'dsn': 'https://<key>:<secret>@app.getsentry.com/<project>',
-}
-
 # Internationalization
 # https://docs.djangoproject.com/en/1.8/topics/i18n/
 
@@ -163,10 +157,6 @@ SERVER_EMAIL = DEFAULT_FROM_EMAIL
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': True,
-    'root': {
-        'level': 'WARNING',
-        'handlers': ['sentry'],
-    },
     'formatters': {
         'verbose': {
             'format': '%(levelname)s [%(asctime)s] %(module)s %(message)s'
@@ -181,10 +171,6 @@ LOGGING = {
         }
     },
     'handlers': {
-        'sentry': {
-            'level': 'ERROR',
-            'class': 'raven.contrib.django.raven_compat.handlers.SentryHandler',
-        },
         'console': {
             'level': 'DEBUG',
             'class': 'logging.StreamHandler',
@@ -211,16 +197,6 @@ LOGGING = {
             'handlers': ['console'],
             'propagate': True,
             'level': 'DEBUG',
-        },
-        'raven': {
-            'level': 'DEBUG',
-            'handlers': ['console'],
-            'propagate': False,
-        },
-        'sentry.errors': {
-            'level': 'DEBUG',
-            'handlers': ['console'],
-            'propagate': False,
         },
     }
 }

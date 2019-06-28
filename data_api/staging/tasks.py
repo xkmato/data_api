@@ -1,14 +1,13 @@
 import logging
-import traceback
 from datetime import datetime
 from django.conf import settings
 from django.core.mail import mail_admins
 from retrying import retry
+from sentry_sdk import capture_exception
 from temba_client.exceptions import TembaConnectionError, TembaBadRequestError, TembaTokenError, \
-    TembaRateExceededError, TembaException
+    TembaRateExceededError
 from celery import task
 
-from data_api.staging.exceptions import ImportRunningException
 
 logging.basicConfig(format=settings.LOG_FORMAT)
 logger = logging.getLogger("tasks")
@@ -51,18 +50,10 @@ def sync_latest_data(entities=None, orgs=None):
         for entity in entities:
             try:
                 fetch_entity(entity, org)
-            except ImportRunningException as e:
-                logger.error(str(e))
-                continue
-            except TembaException as e:
-                if settings.DEBUG:
-                    raise
-                logger.error("Temba is misbehaving: %s - No retry", str(e))
-                continue
             except Exception as e:
                 if settings.DEBUG:
                     raise
-                logger.error("Things are dead: %s - No retry", str(traceback.format_exc()))
+                capture_exception(e)
 
     task_duration = datetime.now() - start_time
     mail_admins('Finished RapidPro data sync in {} seconds'.format(task_duration.seconds), '')

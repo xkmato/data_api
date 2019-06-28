@@ -13,8 +13,6 @@ DATABASES = {
 }
 
 
-RAVEN_CONFIG = {}
-
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
@@ -57,16 +55,6 @@ LOGGING = {
             'handlers': ['console'],
             'propagate': True,
             'level': 'DEBUG',
-        },
-        'raven': {
-            'level': 'DEBUG',
-            'handlers': ['console'],
-            'propagate': False,
-        },
-        'sentry.errors': {
-            'level': 'DEBUG',
-            'handlers': ['console'],
-            'propagate': False,
         },
     }
 }
