@@ -6,7 +6,7 @@ from data_api.staging import models
 class SyncCheckpointAdmin(admin.ModelAdmin):
     list_display = ['organization', 'collection_name', 'subcollection_name', 'last_started', 'last_saved',
                     'is_running']
-    list_filter = ['organization', 'collection_name', 'last_started', 'last_saved', 'is_running']
+    list_filter = ['is_running', 'organization', 'collection_name', 'last_started', 'last_saved']
 
 
 class OrganizationAdmin(admin.ModelAdmin):
