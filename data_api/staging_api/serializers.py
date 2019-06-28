@@ -1,7 +1,24 @@
 from rest_framework import serializers
 
-from data_api.staging.models import Group, Channel, Device, Contact, ChannelEvent, Field, Broadcast, Campaign, \
-    Flow, CampaignEvent, Label, FlowStart, Run, Boundary, Resthook, ResthookEvent, ResthookSubscriber
+from data_api.staging.models import (
+    Boundary,
+    Broadcast,
+    Campaign,
+    CampaignEvent,
+    Channel,
+    ChannelEvent,
+    Contact,
+    Device,
+    Field,
+    Flow,
+    FlowStart,
+    Group,
+    Label,
+    Resthook,
+    ResthookEvent,
+    ResthookSubscriber,
+    Run,
+)
 
 
 def RapidproIdField():

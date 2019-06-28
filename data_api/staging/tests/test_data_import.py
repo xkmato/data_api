@@ -1,19 +1,40 @@
 import json
-from unittest import skip
+import uuid
 from datetime import datetime
+from unittest import skip
+
 from django.contrib.auth.models import User
 from django.utils import timezone
+
 from mock import patch
 from rest_framework.test import APIClient
-from temba_client.tests import TembaTest, MockResponse
+from temba_client.tests import MockResponse, TembaTest
 from temba_client.v2 import TembaClient
-import uuid
 
-from data_api.staging.tests.test_utils import get_api_results_from_file
+from data_api.staging.models import (
+    Boundary,
+    Broadcast,
+    Campaign,
+    CampaignEvent,
+    Channel,
+    ChannelEvent,
+    Contact,
+    Field,
+    Flow,
+    FlowStart,
+    Group,
+    Label,
+    Message,
+    Organization,
+    Resthook,
+    ResthookEvent,
+    ResthookSubscriber,
+    Run,
+    Runs,
+    SyncCheckpoint,
+)
 from data_api.staging.tasks import fetch_entity
-from data_api.staging.models import Organization, Group, SyncCheckpoint, Channel, Contact, ChannelEvent, Field, \
-    Broadcast, Campaign, Flow, CampaignEvent, Runs, Label, FlowStart, Run, Boundary, Resthook, ResthookEvent, \
-    ResthookSubscriber, Message
+from data_api.staging.tests.test_utils import get_api_results_from_file
 from data_api.staging.utils import import_org_with_client
 
 

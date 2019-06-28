@@ -1,21 +1,27 @@
 from __future__ import unicode_literals
-from collections import namedtuple
-
-from datetime import datetime
 
 import logging
 import os
-import pytz
+from collections import namedtuple
+from datetime import datetime
+
 from django.conf import settings
-from django.contrib.postgres.fields import JSONField, ArrayField
+from django.contrib.postgres.fields import ArrayField, JSONField
 from django.core.exceptions import FieldDoesNotExist
 from django.db import models, transaction
-from temba_client.v2 import TembaClient, Message as TembaMessage, Run as TembaRun
+
+import pytz
+from temba_client.v2 import Message as TembaMessage, Run as TembaRun, TembaClient
 
 from data_api.staging.exceptions import ImportRunningException
-from data_api.staging.ingestion import RapidproAPIBaseModel, get_fetch_kwargs, IngestionCheckpoint, ensure_timezone, \
-    download_archive_to_temporary_file, iter_archive
-
+from data_api.staging.ingestion import (
+    download_archive_to_temporary_file,
+    ensure_timezone,
+    get_fetch_kwargs,
+    IngestionCheckpoint,
+    iter_archive,
+    RapidproAPIBaseModel,
+)
 
 logging.basicConfig(format=settings.LOG_FORMAT)
 logger = logging.getLogger("models")

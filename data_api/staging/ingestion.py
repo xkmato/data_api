@@ -6,10 +6,9 @@ from tempfile import NamedTemporaryFile
 
 import pytz
 import requests
-from sentry_sdk import configure_scope, capture_exception
+from sentry_sdk import capture_exception, configure_scope
 
 from data_api.staging.exceptions import ImportRunningException
-from data_api.staging.tasks import logger
 
 
 class IngestionCheckpoint(object):

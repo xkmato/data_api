@@ -4,7 +4,6 @@ from __future__ import unicode_literals
 
 from django.db import migrations
 
-
 from data_api.sql_views.operations import RawSQLMigration
 
 migrator = RawSQLMigration(('data_api', 'sql_views', 'sql_templates'), {})

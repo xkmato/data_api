@@ -1,9 +1,10 @@
 from __future__ import absolute_import, unicode_literals
-import os
-import traceback
-from celery import Celery
-import sys
 
+import os
+import sys
+import traceback
+
+from celery import Celery
 
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'data_api.settings')
 
