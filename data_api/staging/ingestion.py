@@ -6,6 +6,7 @@ from tempfile import NamedTemporaryFile
 
 import pytz
 import requests
+from sentry_sdk import configure_scope, capture_exception
 
 from data_api.staging.exceptions import ImportRunningException
 from data_api.staging.tasks import logger
@@ -140,10 +141,10 @@ class RapidproAPIBaseModel(object):
                     if return_objs:
                         obj_list.append(obj)
             except Exception as e:
-                logger.error('error importing {}. Error is: {}'.format(
-                    temba.__dict__, e
-                ))
-                raise
+                with configure_scope() as scope:
+                    scope.set_extra('temba_dict', temba.__dict__)
+                    capture_exception(e)
+                    raise
             if len(chunk_to_save) > chunk_size:
                 cls.bulk_save(chunk_to_save)
                 chunk_to_save = []
