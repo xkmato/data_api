@@ -5,6 +5,7 @@ from unittest import skip
 
 from django.contrib.auth.models import User
 from django.utils import timezone
+from django.utils.six import string_types
 
 from mock import patch
 from rest_framework.test import APIClient
@@ -367,7 +368,7 @@ def _get_sort_field(rapidpro_api_object):
     for field in ['uuid', 'id']:
         if field in rapidpro_api_object:
             return field
-    return rapidpro_api_object.keys()[0]
+    return list(rapidpro_api_object.keys())[0]
 
 
 def _massage_data(value):
@@ -380,4 +381,4 @@ def _massage_data(value):
 
 def _looks_like_a_date_string(value):
     # todo: can make this more advanced as needed
-    return isinstance(value, basestring) and value.endswith('Z') and (len(value) == 27 or len(value) == 24)
+    return isinstance(value, string_types) and value.endswith('Z') and (len(value) == 27 or len(value) == 24)
