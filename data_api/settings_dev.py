@@ -1,4 +1,4 @@
-from .settings_common import *
+from .settings_common import *  # noqa
 
 SECRET_KEY = '5fde38c8-b49b-11e7-800e-3c970e7be43b'
 
@@ -35,9 +35,9 @@ LOGGING = {
             'formatter': 'simple'
         },
         'mail_admins': {
-             'level': 'ERROR',
-             'filters': [],
-             'class': 'django.utils.log.AdminEmailHandler'
+            'level': 'ERROR',
+            'filters': [],
+            'class': 'django.utils.log.AdminEmailHandler'
         }
     },
     'loggers': {

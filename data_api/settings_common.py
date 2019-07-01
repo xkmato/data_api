@@ -12,7 +12,6 @@ https://docs.djangoproject.com/en/1.8/ref/settings/
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 import os
-import datetime
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -102,7 +101,7 @@ REST_FRAMEWORK = {
 
 
 RETRY_MAX_ATTEMPTS = int(os.environ.get('RETRY_MAX_ATTEMPTS', 10))
-RETRY_WAIT_FIXED = int(os.environ.get('RETRY_WAIT_FIXED', 15*60*1000))
+RETRY_WAIT_FIXED = int(os.environ.get('RETRY_WAIT_FIXED', 15 * 60 * 1000))
 
 CELERY_BROKER_URL = 'redis://'
 
@@ -137,7 +136,7 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/1.8/howto/static-files/
 
 STATIC_URL = '/static/'
-STATIC_ROOT = BASE_DIR+'/static/'
+STATIC_ROOT = BASE_DIR + '/static/'
 
 ADMIN = (
     ('Admin', 'code@uniceflabs.org'),
@@ -167,7 +166,7 @@ LOGGING = {
     },
     'filters': {
         'require_debug_false': {
-                 '()': 'django.utils.log.RequireDebugFalse',
+            '()': 'django.utils.log.RequireDebugFalse',
         }
     },
     'handlers': {
@@ -177,9 +176,9 @@ LOGGING = {
             'formatter': 'simple'
         },
         'mail_admins': {
-             'level': 'ERROR',
-             'filters': ['require_debug_false'],
-             'class': 'django.utils.log.AdminEmailHandler'
+            'level': 'ERROR',
+            'filters': ['require_debug_false'],
+            'class': 'django.utils.log.AdminEmailHandler'
         }
     },
     'loggers': {
@@ -217,8 +216,8 @@ CSV_DUMPS_FOLDER = '/mnt/data1/csv_dumps'
 DEFAULT_ORG = '578c88f64439f1157befb2c6'
 DEFAULT_MESSAGE_ATTRIBUTES = ['created_on', 'text', 'direction', 'status', 'sent_on', 'type']
 DEFAULT_CONTACT_FIELDS = ['uuid', 'age_groups', 'education_level', 'village', 'occupation', 'district', 'year_born',
-                              'registration_date', 'subcounty', 'gender', 'age', 'village_name', 'isfacebookuser',
-                              'istwitteruser', 'isinternetuser', 'recruitment_source']
+                          'registration_date', 'subcounty', 'gender', 'age', 'village_name', 'isfacebookuser',
+                          'istwitteruser', 'isinternetuser', 'recruitment_source']
 
 
 LOGIN_URL = '/admin/login/'

@@ -1,5 +1,5 @@
 import os
-from fabric.context_managers import settings, cd
+from fabric.context_managers import cd, settings
 from fabric.operations import run, sudo
 from fabric.state import env
 
@@ -11,6 +11,7 @@ def legacy():
     env.virtualenv_home = '/var/www/.virtualenvs/api'
     env.supervisor_process_web = 'api'
     env.supervisor_process_celery = 'data_celery_workers:*'
+
 
 def production():
     env.hosts = ['rapidpro-api.unicef.io']
@@ -27,7 +28,7 @@ def deploy(restart_celery=True, user='www-data', git_hash=None):
     source = 'https://github.com/rapidpro/data_api.git'
     env.rapidpro_user = env.rapidpro_user or user
     workon_home = os.path.join(env.virtualenv_home, 'bin')
-    print "Starting deployment"
+    print("Starting deployment")
     django_settings_env = {}
     if env.settings_module:
         django_settings_env['DJANGO_SETTINGS_MODULE'] = env.settings_module
