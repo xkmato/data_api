@@ -1,9 +1,23 @@
 from rest_framework import generics
 
-from data_api.staging_api.serializers import GroupSerializer, ChannelSerializer, ContactSerializer, \
-    ChannelEventSerializer, FieldSerializer, BroadcastSerializer, CampaignSerializer, FlowSerializer, \
-    CampaignEventSerializer, LabelSerializer, FlowStartSerializer, RunSerializer, BoundarySerializer, \
-    ResthookSerializer, ResthookEventSerializer, ResthookSubscriberSerializer
+from data_api.staging_api.serializers import (
+    BoundarySerializer,
+    BroadcastSerializer,
+    CampaignEventSerializer,
+    CampaignSerializer,
+    ChannelEventSerializer,
+    ChannelSerializer,
+    ContactSerializer,
+    FieldSerializer,
+    FlowSerializer,
+    FlowStartSerializer,
+    GroupSerializer,
+    LabelSerializer,
+    ResthookEventSerializer,
+    ResthookSerializer,
+    ResthookSubscriberSerializer,
+    RunSerializer,
+)
 
 
 class OrganizationModelListView(generics.ListAPIView):

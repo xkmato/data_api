@@ -15,7 +15,9 @@ Including another URLconf
 """
 from django.conf.urls import include, url
 from django.contrib import admin
+
 from rest_framework.authtoken import views
+
 from data_api.staging_api import urls as staging_api_urls
 
 urlpatterns = [

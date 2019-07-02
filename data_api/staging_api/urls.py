@@ -1,8 +1,23 @@
 from django.conf.urls import patterns, url
 
-from data_api.staging_api.views import GroupList, ChannelList, ContactList, ChannelEventList, FieldList, \
-    BroadcastList, CampaignList, FlowList, CampaignEventList, LabelList, FlowStartList, RunList, BoundaryList, \
-    ResthookList, ResthookEventList, ResthookSubscriberList
+from data_api.staging_api.views import (
+    BoundaryList,
+    BroadcastList,
+    CampaignEventList,
+    CampaignList,
+    ChannelEventList,
+    ChannelList,
+    ContactList,
+    FieldList,
+    FlowList,
+    FlowStartList,
+    GroupList,
+    LabelList,
+    ResthookEventList,
+    ResthookList,
+    ResthookSubscriberList,
+    RunList,
+)
 
 urlpatterns = patterns(
     '',

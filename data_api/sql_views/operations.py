@@ -1,13 +1,12 @@
-from __future__ import absolute_import
-from __future__ import unicode_literals
+from __future__ import absolute_import, unicode_literals
+
 import os
+from io import open
 
 from django.conf import settings
 from django.db.migrations import RunPython
 from django.db.migrations.operations.special import RunSQL
 from django.template import engines
-
-from io import open
 
 
 def noop_migration():
