@@ -4,6 +4,7 @@ from datetime import datetime
 from unittest import skip
 
 from django.contrib.auth.models import User
+from django.test import override_settings
 from django.utils import timezone
 
 from mock import patch
@@ -309,6 +310,7 @@ class DataImportTest(TembaTest):
             self.assertEqual(obj.name, api_results[i]['name'])
         self._run_api_test(Label)
 
+    @override_settings(RAPIDPRO_USE_ARCHIVES=False)
     def test_import_messages(self, mock_request):
         api_results, objs_made = self._run_import_test(mock_request, Message)
         self.assertEqual(12, len(objs_made))
@@ -317,6 +319,7 @@ class DataImportTest(TembaTest):
         # todo: this is broken due to the custom way messages are imported not playing nice with mocks
         # self._run_api_test(Message)
 
+    @override_settings(RAPIDPRO_USE_ARCHIVES=False)
     def test_import_runs(self, mock_request):
         flow = self._make_flow('ffce0fbb-4fe1-4052-b26a-91beb2ebae9a', 'Water Survey')
         self._make_flow('7b75bcb0-3c86-482f-bdce-06a3d6cd5cf7', 'Test')
