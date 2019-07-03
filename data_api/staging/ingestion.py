@@ -141,7 +141,7 @@ class RapidproAPIBaseModel(object):
                         obj_list.append(obj)
             except Exception as e:
                 with configure_scope() as scope:
-                    scope.set_extra('temba_dict', temba.__dict__)
+                    scope.set_extra('temba_dict', temba.serialize())
                     capture_exception(e)
                     raise
             if len(chunk_to_save) > chunk_size:
