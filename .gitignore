@@ -10,4 +10,4 @@ profiling
 profile.py
 .tox/
 dist/
-rapidpro_dw.egg-info/
+rapidpro_data_warehouse.egg-info/

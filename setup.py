@@ -18,10 +18,8 @@ with open(init, 'rb') as f:
     NAME = str(ast.literal_eval(_name_re.search(content).group(1)))
 
 
-def get_requirements(filename):
-    with open(ROOT + '/' + filename) as requirements_file:
-        install_requires = requirements_file.read().splitlines()
-    return install_requires
+def get_requirements(fname):
+    return open(os.path.join(os.path.dirname(__file__), fname)).read()
 
 
 setup(
