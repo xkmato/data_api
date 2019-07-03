@@ -9,6 +9,7 @@ from django.conf import settings
 from django.contrib.postgres.fields import ArrayField, JSONField
 from django.core.exceptions import FieldDoesNotExist
 from django.db import models, transaction
+from django.utils import six
 
 import pytz
 from temba_client.v2 import Message as TembaMessage, Run as TembaRun, TembaClient
@@ -131,7 +132,7 @@ class RapidproCreateableModelMixin(object):
                 assert isinstance(temba_value, dict), 'expected dict but was {} ({})'.format(type(temba_value),
                                                                                              temba_value)
                 warehouse_models = []
-                for key, nested_object in temba_value.iteritems():
+                for key, nested_object in six.iteritems(temba_value):
                     nested_object.__dict__['key'] = key
                     warehouse_object = field.related_model.create_from_temba(org, nested_object, do_save=True)
                     warehouse_models.append(warehouse_object)
@@ -158,7 +159,7 @@ class RapidproCreateableModelMixin(object):
         obj.organization = org
         if do_save or related_models or post_save_related_models:
             obj.save()
-            for attr, related_objs in related_models.iteritems():
+            for attr, related_objs in six.iteritems(related_models):
                 for related_obj in related_objs:
                     getattr(obj, attr).add(related_obj)
             for model_to_save in post_save_related_models:

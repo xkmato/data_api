@@ -8,3 +8,4 @@ data_api/settings_production.py
 # some profiling folders used locally
 profiling
 profile.py
+.tox/

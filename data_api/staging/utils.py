@@ -1,3 +1,5 @@
+from django.utils import six
+
 from .models import Organization
 
 
@@ -9,7 +11,7 @@ def import_org_with_client(client, server, api_key):
     org_dict['is_active'] = True
     try:
         local_org = Organization.objects.get(api_token=api_key)
-        for k, v in org_dict.iteritems():
+        for k, v in six.iteritems(org_dict):
             setattr(local_org, k, v)
         local_org.save()
         return local_org

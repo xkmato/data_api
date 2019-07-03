@@ -7,7 +7,7 @@ django-rest-swagger==0.3.4
 djangorestframework==3.6.4
 ecdsa==0.13
 Fabric==1.14.0
-kombu==4.1.0
+kombu==4.3.0
 Markdown==2.6.2
 paramiko==2.3.1
 psycopg2==2.7.4
