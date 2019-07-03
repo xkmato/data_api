@@ -324,7 +324,7 @@ class Campaign(OrganizationModel):
     uuid = models.UUIDField()
     group = models.ForeignKey(Group, null=True, blank=True)
     archived = models.BooleanField(default=False)
-    created_on = models.DateTimeField()
+    created_on = models.DateTimeField(null=True, blank=True)
     name = models.CharField(max_length=100)
 
     rapidpro_collection = 'campaigns'
