@@ -222,7 +222,7 @@ class OrganizationModel(RapidproBaseModel, RapidproAPIBaseModel):
 
 
 class Group(OrganizationModel):
-    uuid = models.UUIDField()
+    uuid = models.UUIDField(unique=True, db_index=True)
     name = models.TextField()
     query = models.TextField(null=True, blank=True)
     count = models.IntegerField()
@@ -234,7 +234,7 @@ class Group(OrganizationModel):
 
 
 class Contact(OrganizationModel):
-    uuid = models.UUIDField()
+    uuid = models.UUIDField(unique=True, db_index=True)
     name = models.TextField(null=True, blank=True)
     language = models.CharField(max_length=100, null=True, blank=True)
     urns = ArrayField(
@@ -277,7 +277,7 @@ class Device(RapidproBaseModel):
 
 
 class Channel(OrganizationModel):
-    uuid = models.UUIDField()
+    uuid = models.UUIDField(unique=True, db_index=True)
     name = models.TextField(null=True, blank=True)
     address = models.TextField()
     country = models.CharField(max_length=100)
@@ -321,7 +321,7 @@ class Broadcast(OrganizationModel):
 
 
 class Campaign(OrganizationModel):
-    uuid = models.UUIDField()
+    uuid = models.UUIDField(unique=True, db_index=True)
     group = models.ForeignKey(Group, null=True, blank=True)
     archived = models.BooleanField(default=False)
     created_on = models.DateTimeField(null=True, blank=True)
@@ -334,7 +334,7 @@ class Campaign(OrganizationModel):
 
 
 class Label(OrganizationModel):
-    uuid = models.UUIDField()
+    uuid = models.UUIDField(unique=True, db_index=True)
     name = models.CharField(max_length=100)
     count = models.IntegerField(null=True, blank=True)
 
@@ -352,7 +352,7 @@ class Runs(RapidproBaseModel):
 
 
 class Flow(OrganizationModel):
-    uuid = models.UUIDField()
+    uuid = models.UUIDField(unique=True, db_index=True)
     name = models.CharField(max_length=100)
     archived = models.BooleanField(default=False)
     labels = models.ManyToManyField(Label)
@@ -368,7 +368,7 @@ class Flow(OrganizationModel):
 
 
 class FlowStart(OrganizationModel):
-    uuid = models.UUIDField()
+    uuid = models.UUIDField(unique=True, db_index=True)
     flow = models.ForeignKey(Flow, null=True, blank=True)
     groups = models.ManyToManyField(Group)
     contacts = models.ManyToManyField(Contact)
@@ -382,7 +382,7 @@ class FlowStart(OrganizationModel):
 
 
 class CampaignEvent(OrganizationModel):
-    uuid = models.UUIDField()
+    uuid = models.UUIDField(unique=True, db_index=True)
     campaign = models.ForeignKey(Campaign)
     # relative_to = EmbeddedDocumentField(FieldRef)
     offset = models.IntegerField()
