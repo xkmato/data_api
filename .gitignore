@@ -9,3 +9,5 @@ data_api/settings_production.py
 profiling
 profile.py
 .tox/
+dist/
+rapidpro_data_warehouse.egg-info/
