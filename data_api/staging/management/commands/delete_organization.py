@@ -1,5 +1,4 @@
 from django.core.management import BaseCommand
-from django.utils import six
 
 from data_api.staging.models import Organization, OrganizationModel
 
@@ -36,7 +35,7 @@ class Command(BaseCommand):
         for model in org_models:
             print('  {} {}s'.format(model.objects.filter(organization=org).count(), model.__name__))
 
-        if noinput or six.moves.input('y/N: ').lower().strip() == 'y':
+        if noinput or input('y/N: ').lower().strip() == 'y':
             org.delete()
             print('org {} was deleted.'.format(org.name))
         else:
