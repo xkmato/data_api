@@ -1,0 +1,30 @@
+dist: xenial
+language: python
+sudo: false
+
+python:
+  - 2.7
+  - 3.7
+
+services:
+  - postgresql
+
+
+addons:
+  postgresql: "9.5"
+  apt:
+    packages:
+      - postgresql-9.5-postgis-2.4
+
+install:
+  - pip install tox codecov
+
+script:
+  - tox -e "py${TRAVIS_PYTHON_VERSION//.}"
+
+before_success:
+  - coverage erase
+
+after_success:
+  - coverage combine
+  - codecov
