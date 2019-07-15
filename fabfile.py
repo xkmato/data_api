@@ -48,6 +48,8 @@ def deploy(restart_celery=True, user='www-data', git_hash=None):
         _rapidpro_sudo('%s/pip install -r requirements.txt --no-cache-dir' % workon_home)
         _rapidpro_sudo('%s/python manage.py collectstatic --noinput' % workon_home,
                        environment_vars=django_settings_env)
+        _rapidpro_sudo('%s/python manage.py migrate --noinput' % workon_home,
+                       environment_vars=django_settings_env)
 
         sudo("chown -R %s:%s ." % (env.rapidpro_user, env.rapidpro_user))
 
