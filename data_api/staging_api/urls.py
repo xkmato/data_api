@@ -1,4 +1,4 @@
-from django.conf.urls import patterns, url
+from django.conf.urls import url
 
 from data_api.staging_api.views import (
     BoundaryList,
@@ -19,8 +19,7 @@ from data_api.staging_api.views import (
     RunList,
 )
 
-urlpatterns = patterns(
-    '',
+urlpatterns = (
     url(r'^boundaries/org/(?P<org>[\w]+)/$', BoundaryList.as_view()),
 
     # url(r'^broadcasts/$', BroadcastList.as_view()),

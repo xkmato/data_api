@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 import ast
+import json
 import os.path
 import re
 from codecs import open
@@ -18,8 +19,13 @@ with open(init, 'rb') as f:
     NAME = str(ast.literal_eval(_name_re.search(content).group(1)))
 
 
-def get_requirements(fname):
-    return open(os.path.join(os.path.dirname(__file__), fname)).read()
+def get_requirements(requires):
+    with open('Pipfile.lock') as fd:
+        lock_data = json.load(fd)
+        return [
+            package_name + package_data['version']
+            for package_name, package_data in lock_data[requires].items()
+        ]
 
 
 setup(
@@ -34,7 +40,11 @@ setup(
     zip_safe=False,
     license='BSD',
     include_package_data=True,
-    install_requires=get_requirements('requirements.txt'),
+    install_requires=get_requirements('default'),
+    tests_require=get_requirements('develop'),
+    extras_require={
+        'test': get_requirements('develop'),
+    },
     classifiers=[
         'Framework :: Django',
         'Operating System :: POSIX :: Linux',
@@ -43,6 +53,6 @@ setup(
         'Programming Language :: Python :: 3',
         'Programming Language :: Python :: 3.7',
         'Framework :: Django',
-        'Framework :: Django :: 1.9',
+        'Framework :: Django :: 1.11',
     ],
 )
