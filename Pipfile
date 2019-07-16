@@ -16,7 +16,7 @@ amqp = "*"
 anyjson = "*"
 celery = "*"
 django-anymail = {extras = ["mailgun"],version = "*"}
-django-rest-swagger = "<2.0"
+django-rest-swagger = "*"
 djangorestframework = "<3.7"
 ecdsa = "*"
 gunicorn = "*"
