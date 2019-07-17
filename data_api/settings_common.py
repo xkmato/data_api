@@ -204,10 +204,10 @@ SITE_ID = 1
 
 SWAGGER_SETTINGS = {
     'api_version': '0.1',
-    'enabled_methods': [
+    'SUPPORTED_SUBMIT_METHODS': [
         'get'
     ],
-},
+}
 
 EXCLUDED_FLOWS = '55b99f354439f1187a6df178'
 
