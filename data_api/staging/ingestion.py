@@ -190,6 +190,6 @@ def iter_archive(filename):
     :param temp_file_name:
     :return: an iterator of json wrapped objects
     """
-    with gzip.open(filename, 'rb') as f:
+    with gzip.open(filename, 'rt') as f:
         for line in f.readlines():
             yield json.loads(line)
