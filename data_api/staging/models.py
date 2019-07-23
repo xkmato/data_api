@@ -66,7 +66,7 @@ class Organization(models.Model):
     def get_temba_client(self):
         return TembaClient(self.server, self.api_token)
 
-    def __unicode__(self):
+    def __str__(self):
         return self.name
 
 
@@ -81,7 +81,7 @@ class SyncCheckpoint(models.Model):
     class Meta:
         unique_together = ('organization', 'collection_name', 'subcollection_name')
 
-    def __unicode__(self):
+    def __str__(self):
         return '{}: {} {}'.format(self.organization, self.collection_name, self.subcollection_name or '').strip()
 
 
@@ -229,7 +229,7 @@ class Group(OrganizationModel):
 
     rapidpro_collection = 'groups'
 
-    def __unicode__(self):
+    def __str__(self):
         return '{} ({})'.format(self.name, self.organization)
 
 
@@ -250,7 +250,7 @@ class Contact(OrganizationModel):
 
     rapidpro_collection = 'contacts'
 
-    def __unicode__(self):
+    def __str__(self):
         return '{} ({})'.format(self.name, self.organization)
 
 
@@ -261,7 +261,7 @@ class Field(OrganizationModel):
 
     rapidpro_collection = 'fields'
 
-    def __unicode__(self):
+    def __str__(self):
         return '{} ({})'.format(self.label, self.organization)
 
 
@@ -272,7 +272,7 @@ class Device(RapidproBaseModel):
     name = models.CharField(max_length=100)
     network_type = models.CharField(max_length=100)
 
-    def __unicode__(self):
+    def __str__(self):
         return '{}'.format(self.name)
 
 
@@ -287,7 +287,7 @@ class Channel(OrganizationModel):
 
     rapidpro_collection = 'channels'
 
-    def __unicode__(self):
+    def __str__(self):
         return '{}'.format(self.name)
 
 
@@ -316,7 +316,7 @@ class Broadcast(OrganizationModel):
 
     rapidpro_collection = 'broadcasts'
 
-    def __unicode__(self):
+    def __str__(self):
         return "{}".format(self.text)
 
 
@@ -329,7 +329,7 @@ class Campaign(OrganizationModel):
 
     rapidpro_collection = 'campaigns'
 
-    def __unicode__(self):
+    def __str__(self):
         return '{} ({})'.format(self.name, self.organization)
 
 
@@ -340,7 +340,7 @@ class Label(OrganizationModel):
 
     rapidpro_collection = 'labels'
 
-    def __unicode__(self):
+    def __str__(self):
         return '{} ({})'.format(self.name, self.organization)
 
 
@@ -363,7 +363,7 @@ class Flow(OrganizationModel):
 
     rapidpro_collection = 'flows'
 
-    def __unicode__(self):
+    def __str__(self):
         return '{} ({})'.format(self.name, self.organization)
 
 
@@ -394,7 +394,7 @@ class CampaignEvent(OrganizationModel):
 
     rapidpro_collection = 'campaign_events'
 
-    def __unicode__(self):
+    def __str__(self):
         return "%s - %s" % (self.uuid, self.organization)
 
 
@@ -416,7 +416,7 @@ class Message(OrganizationModel):
 
     rapidpro_collection = 'messages'
 
-    def __unicode__(self):
+    def __str__(self):
         return "%s - %s" % (self.text[:7], self.organization)
 
     @classmethod
@@ -480,7 +480,7 @@ class Value(RapidproBaseModel):
     node = models.CharField(max_length=100)
     time = models.DateTimeField()
 
-    def __unicode__(self):
+    def __str__(self):
         return unicode(self.value)[:7]
 
 
@@ -527,7 +527,7 @@ class Step(RapidproBaseModel):
     node = models.CharField(max_length=100)
     time = models.DateTimeField()
 
-    def __unicode__(self):
+    def __str__(self):
         return self.text[:7]
 
 
@@ -547,7 +547,7 @@ class Geometry(RapidproBaseModel):
         default=list
     )
 
-    def __unicode__(self):
+    def __str__(self):
         return self.type
 
 
@@ -563,7 +563,7 @@ class Boundary(OrganizationModel):
 
     rapidpro_collection = 'boundaries'
 
-    def __unicode__(self):
+    def __str__(self):
         return '{} ({})'.format(self.name, self.organization)
 
 
