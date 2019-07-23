@@ -25,6 +25,7 @@ class GroupAdmin(admin.ModelAdmin):
 class ContactAdmin(admin.ModelAdmin):
     list_display = ['name', 'uuid'] + ORG_MODEL_FIELDS
     list_filter = ORG_MODEL_FIELDS
+    search_fields = ['name', 'uuid']
 
 
 class FieldAdmin(admin.ModelAdmin):
