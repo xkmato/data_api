@@ -8,6 +8,7 @@ Fabric = "*"
 mock = "<3.0"
 flake8 = "*"
 isort = "*"
+django-extensions = "*"
 
 [packages]
 Django = "<2.0"
