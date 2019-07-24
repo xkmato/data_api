@@ -60,8 +60,26 @@ def sync_latest_data(entities=None, orgs=None):
 
 
 def _get_org_entities():
-    from data_api.staging.models import OrganizationModel
-    return OrganizationModel.__subclasses__()
+    import data_api.staging.models as staging_models
+    return [
+        staging_models.Group,
+        staging_models.Contact,
+        staging_models.Field,
+        staging_models.Channel,
+        staging_models.ChannelEvent,
+        staging_models.Broadcast,
+        staging_models.Campaign,
+        staging_models.Label,
+        staging_models.Flow,
+        staging_models.FlowStart,
+        staging_models.CampaignEvent,
+        staging_models.Message,
+        staging_models.Run,
+        staging_models.Boundary,
+        staging_models.Resthook,
+        staging_models.ResthookEvent,
+        staging_models.ResthookSubscriber,
+    ]
 
 
 def _get_all_orgs():
