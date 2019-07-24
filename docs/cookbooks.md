@@ -19,6 +19,10 @@ workon rapidpro-warehouse
 ./manage.py sync_organization_data [org_api_key] --debug
 ```
 
+The API key can be found by logging into [Rapidpro](https://app.rapidpro.io/org) and going to the 
+[org details page](https://app.rapidpro.io/org/home/).
+UNICEF has a shared account (rapidpro@unicef.org) with read access to many of UNICEF's projects.
+
 For a complete list of options see the 
 [sync_organization_data management command](https://github.com/rapidpro/data_api/blob/master/data_api/staging/management/commands/sync_organization_data.py)
 
