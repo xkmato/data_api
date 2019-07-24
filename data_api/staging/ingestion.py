@@ -11,7 +11,7 @@ from sentry_sdk import capture_exception, configure_scope
 from data_api.staging.exceptions import ImportRunningException
 
 
-class IngestionCheckpoint(object):
+class IngestionCheckpoint:
 
     def __init__(self, org, collection_class, checkpoint_time, subcollection=None):
         from data_api.staging.models import SyncCheckpoint
@@ -63,7 +63,7 @@ class IngestionCheckpoint(object):
         self._checkpoint.save()
 
 
-class RapidproAPIBaseModel(object):
+class RapidproAPIBaseModel:
 
     # ============ abstract methods ============
     # due to issues with django/mongoengine relying on metaclasses, we can't easily use ABCMeta for these

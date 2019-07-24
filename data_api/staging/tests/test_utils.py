@@ -2,8 +2,6 @@ import codecs
 import json
 import os
 
-import six
-
 
 def get_api_results_from_file(filename, extract_result=None):
     """
@@ -11,7 +9,7 @@ def get_api_results_from_file(filename, extract_result=None):
     """
     handle = codecs.open(os.path.join(os.path.dirname(__file__), 'test_api_results',
                                       '{}.json'.format(filename)))
-    contents = six.text_type(handle.read())
+    contents = handle.read()
     handle.close()
 
     if extract_result is not None:

@@ -1,5 +1,3 @@
-from __future__ import absolute_import, unicode_literals
-
 import os
 from io import open
 
@@ -31,20 +29,20 @@ class RunSqlLazy(RunSQL):
         self.template_context = template_context or {}
         self.rendered_forwards = False
         self.rendered_backwards = False
-        super(RunSqlLazy, self).__init__(sql_template_path, reverse_sql_template_path)
+        super().__init__(sql_template_path, reverse_sql_template_path)
 
     def database_forwards(self, app_label, schema_editor, from_state, to_state):
         if not self.rendered_forwards:
             self.sql = self._render_template(self.sql)
             self.rendered_forwards = True
-        super(RunSqlLazy, self).database_forwards(app_label, schema_editor, from_state, to_state)
+        super().database_forwards(app_label, schema_editor, from_state, to_state)
 
     def database_backwards(self, app_label, schema_editor, from_state, to_state):
         if self.reverse_sql:
             if not self.rendered_backwards:
                 self.reverse_sql = self._render_template(self.reverse_sql)
                 self.rendered_backwards = True
-        super(RunSqlLazy, self).database_backwards(app_label, schema_editor, from_state, to_state)
+        super().database_backwards(app_label, schema_editor, from_state, to_state)
 
     def _render_template(self, path):
         with open(self.sql, encoding='utf-8') as f:
@@ -55,7 +53,7 @@ class RunSqlLazy(RunSQL):
         return template.render(self.template_context)
 
 
-class RawSQLMigration(object):
+class RawSQLMigration:
     """
     Helper class for running raw SQL migrations.
     Usage:
