@@ -41,6 +41,7 @@ from data_api.staging.utils import import_org_with_client
 
 @patch('temba_client.clients.request')
 class DataImportTest(TembaTest):
+    databases = {'default'}
     # this class heavily inspired by temba_client.v2.tests.TembaClientTest
 
     @classmethod

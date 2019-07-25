@@ -5,20 +5,20 @@ verify_ssl = true
 
 [dev-packages]
 Fabric = "*"
-mock = "<3.0"
+mock = "*"
 flake8 = "*"
 isort = "*"
 django-extensions = "*"
 
 [packages]
-Django = "<2.0"
+Django = "*"
 PyYAML = "*"
 amqp = "*"
 anyjson = "*"
 celery = "*"
 django-anymail = {extras = ["mailgun"],version = "*"}
 django-rest-swagger = "*"
-djangorestframework = "<3.7"
+djangorestframework = "*"
 ecdsa = "*"
 gunicorn = "*"
 psycopg2 = "<2.8"

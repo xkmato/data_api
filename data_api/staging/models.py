@@ -68,7 +68,7 @@ class Organization(models.Model):
 
 
 class SyncCheckpoint(models.Model):
-    organization = models.ForeignKey(Organization, db_index=True)
+    organization = models.ForeignKey(Organization, db_index=True, on_delete=models.CASCADE)
     collection_name = models.CharField(max_length=100)
     subcollection_name = models.CharField(max_length=100, null=True, blank=True)
     last_started = models.DateTimeField()
@@ -194,7 +194,7 @@ class RapidproBaseModel(models.Model, RapidproCreateableModelMixin):
 
 
 class OrganizationModel(RapidproBaseModel, RapidproAPIBaseModel):
-    organization = models.ForeignKey(Organization, db_index=True)
+    organization = models.ForeignKey(Organization, db_index=True, on_delete=models.CASCADE)
     first_synced = models.DateTimeField(auto_now_add=True)
     last_synced = models.DateTimeField(auto_now=True)
 
@@ -278,7 +278,7 @@ class Channel(OrganizationModel):
     name = models.TextField(null=True, blank=True)
     address = models.TextField()
     country = models.CharField(max_length=100)
-    device = models.OneToOneField(Device, null=True, blank=True)
+    device = models.OneToOneField(Device, null=True, blank=True, on_delete=models.CASCADE)
     last_seen = models.DateTimeField(null=True, blank=True)
     created_on = models.DateTimeField(null=True, blank=True)
 
@@ -291,8 +291,8 @@ class Channel(OrganizationModel):
 class ChannelEvent(OrganizationModel):
     rapidpro_id = models.PositiveIntegerField()
     type = models.CharField(max_length=100, null=True, blank=True)
-    contact = models.ForeignKey(Contact)
-    channel = models.ForeignKey(Channel)
+    contact = models.ForeignKey(Contact, on_delete=models.CASCADE)
+    channel = models.ForeignKey(Channel, on_delete=models.CASCADE)
     extra = JSONField(default=dict)
     occurred_on = models.DateTimeField()
     created_on = models.DateTimeField()
@@ -319,7 +319,7 @@ class Broadcast(OrganizationModel):
 
 class Campaign(OrganizationModel):
     uuid = models.UUIDField(unique=True, db_index=True)
-    group = models.ForeignKey(Group, null=True, blank=True)
+    group = models.ForeignKey(Group, null=True, blank=True, on_delete=models.CASCADE)
     archived = models.BooleanField(default=False)
     created_on = models.DateTimeField(null=True, blank=True)
     name = models.CharField(max_length=100)
@@ -347,6 +347,9 @@ class Runs(RapidproBaseModel):
     expired = models.IntegerField(default=0)
     interrupted = models.IntegerField(default=0)
 
+    def __str__(self):
+        return f'{self.active} {self.completed} {self.expired} {self.interrupted}'
+
 
 class Flow(OrganizationModel):
     uuid = models.UUIDField(unique=True, db_index=True)
@@ -356,7 +359,7 @@ class Flow(OrganizationModel):
     expires = models.IntegerField(null=True, blank=True)
     created_on = models.DateTimeField(null=True, blank=True)
     modified_on = models.DateTimeField(null=True, blank=True)
-    runs = models.OneToOneField(Runs, null=True, blank=True)
+    runs = models.OneToOneField(Runs, null=True, blank=True, on_delete=models.CASCADE)
 
     rapidpro_collection = 'flows'
 
@@ -366,7 +369,7 @@ class Flow(OrganizationModel):
 
 class FlowStart(OrganizationModel):
     uuid = models.UUIDField(unique=True, db_index=True)
-    flow = models.ForeignKey(Flow, null=True, blank=True)
+    flow = models.ForeignKey(Flow, null=True, blank=True, on_delete=models.CASCADE)
     groups = models.ManyToManyField(Group)
     contacts = models.ManyToManyField(Contact)
     restart_participants = models.NullBooleanField()
@@ -380,12 +383,12 @@ class FlowStart(OrganizationModel):
 
 class CampaignEvent(OrganizationModel):
     uuid = models.UUIDField(unique=True, db_index=True)
-    campaign = models.ForeignKey(Campaign)
+    campaign = models.ForeignKey(Campaign, on_delete=models.CASCADE)
     # relative_to = EmbeddedDocumentField(FieldRef)
     offset = models.IntegerField()
     unit = models.CharField(max_length=100)
     delivery_hour = models.IntegerField()
-    flow = models.ForeignKey(Flow, null=True, blank=True)
+    flow = models.ForeignKey(Flow, null=True, blank=True, on_delete=models.CASCADE)
     message = models.TextField(null=True, blank=True)  # todo: this might need to also support dicts
     created_on = models.DateTimeField(null=True, blank=True)
 
@@ -398,9 +401,9 @@ class CampaignEvent(OrganizationModel):
 class Message(OrganizationModel):
     rapidpro_id = models.PositiveIntegerField()
     broadcast = models.PositiveIntegerField(null=True, blank=True)
-    contact = models.ForeignKey(Contact)
+    contact = models.ForeignKey(Contact, on_delete=models.CASCADE)
     urn = models.CharField(max_length=100)
-    channel = models.ForeignKey(Channel, null=True, blank=True)
+    channel = models.ForeignKey(Channel, null=True, blank=True, on_delete=models.CASCADE)
     direction = models.CharField(max_length=100)
     type = models.CharField(max_length=100)
     status = models.CharField(max_length=100)
@@ -483,9 +486,9 @@ class Value(RapidproBaseModel):
 
 class Run(OrganizationModel):
     rapidpro_id = models.PositiveIntegerField()
-    flow = models.ForeignKey(Flow)
-    contact = models.ForeignKey(Contact)
-    start = models.ForeignKey(FlowStart, null=True, blank=True)
+    flow = models.ForeignKey(Flow, on_delete=models.CASCADE)
+    contact = models.ForeignKey(Contact, on_delete=models.CASCADE)
+    start = models.ForeignKey(FlowStart, null=True, blank=True, on_delete=models.CASCADE)
     responded = models.BooleanField()
     # todo: I think this should actually be a MappedReverseForeignKey (not a thing that exists yet)
     values = MappedManyToManyField(Value)
@@ -520,7 +523,7 @@ class Run(OrganizationModel):
 
 
 class Step(RapidproBaseModel):
-    run = models.ForeignKey(Run, related_name='path')
+    run = models.ForeignKey(Run, related_name='path', on_delete=models.CASCADE)
     node = models.CharField(max_length=100)
     time = models.DateTimeField()
 
@@ -554,9 +557,9 @@ class Boundary(OrganizationModel):
     osm_id = models.CharField(max_length=100)
     name = models.CharField(max_length=100)
     level = models.IntegerField()
-    parent = models.OneToOneField(BoundaryRef, null=True, blank=True)
+    parent = models.OneToOneField(BoundaryRef, null=True, blank=True, on_delete=models.CASCADE)
     # aliases = ListField(StringField())
-    geometry = models.OneToOneField(Geometry, null=True)
+    geometry = models.OneToOneField(Geometry, null=True, on_delete=models.CASCADE)
 
     rapidpro_collection = 'boundaries'
 
