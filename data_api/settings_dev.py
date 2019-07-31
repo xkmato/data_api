@@ -51,6 +51,9 @@ LOGGING = {
             'propagate': False,
             'level': 'WARNING',
         },
+        'django.utils.autoreload': {
+            'level': 'INFO',
+        },
         'scheduling': {
             'handlers': ['console'],
             'propagate': True,

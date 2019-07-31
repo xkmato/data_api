@@ -1,7 +1,7 @@
 from django.http import JsonResponse
 
 
-def page_not_found_view(request):
+def page_not_found_view(request, exception):
     return JsonResponse({
         "detail": "Not found"
     }, status=404)
@@ -13,13 +13,13 @@ def server_error_view(request):
     }, status=500)
 
 
-def request_forbidden_view(request):
+def request_forbidden_view(request, exception):
     return JsonResponse({
         "detail": "Permission Denied"
     }, status=403)
 
 
-def bad_request_view(request):
+def bad_request_view(request, exception):
     return JsonResponse({
         "detail": "Bad request"
     }, status=400)
